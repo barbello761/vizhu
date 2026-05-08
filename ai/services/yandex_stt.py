@@ -35,6 +35,7 @@ class YandexSttService:
 
     async def recognize(self, audio_base64: str, mime_type: str, lang: str = "ru-RU") -> str:
         base_mime = mime_type.split(";")[0].strip()
+        logger.info(mime_type, base_mime)
         audio_format = MIME_TO_FORMAT.get(base_mime, "OGG_OPUS")
 
         payload = {
@@ -66,6 +67,7 @@ class YandexSttService:
                 json=payload,
                 timeout=15.0,
             )
+            logger.info(f"Yandex STT status={response.status_code} body={response.text[:500]}")
             response.raise_for_status()
             operation_id = response.json().get("id")
             if not operation_id:
