@@ -49,12 +49,14 @@ export const DialogPage = () => {
   const [chatInput, setChatInput] = useState('');
   const [isChatSending, setIsChatSending] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
+  const [isBubbleHeld, setIsBubbleHeld] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const countdownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const describeMutation = useDescribeMutation();
   const ocrMutation = useOcrMutation();
@@ -269,7 +271,11 @@ export const DialogPage = () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const ic = new (window as any).ImageCapture(track);
         blob = (await ic.takePhoto()) as Blob;
-        console.log('[capture] ImageCapture.takePhoto()', `${(blob.size / 1024).toFixed(0)} KB`, blob.type);
+        console.log(
+          '[capture] ImageCapture.takePhoto()',
+          `${(blob.size / 1024).toFixed(0)} KB`,
+          blob.type,
+        );
       } catch (e) {
         console.warn('[capture] ImageCapture failed, fallback to canvas', e);
       }
@@ -318,7 +324,27 @@ export const DialogPage = () => {
     [runAnalysis],
   );
 
+  const handleBubblePointerDown = useCallback(() => {
+    const release = () => {
+      if (holdTimerRef.current) {
+        clearTimeout(holdTimerRef.current);
+        holdTimerRef.current = null;
+      }
+      setIsBubbleHeld(false);
+      document.removeEventListener('pointerup', release);
+      document.removeEventListener('pointercancel', release);
+    };
+    document.addEventListener('pointerup', release);
+    document.addEventListener('pointercancel', release);
+
+    holdTimerRef.current = setTimeout(() => {
+      holdTimerRef.current = null;
+      setIsBubbleHeld(true);
+    }, 600);
+  }, []);
+
   const handleRetake = () => {
+    setIsBubbleHeld(false);
     setResultText(null);
     setPhase('camera');
   };
@@ -461,13 +487,21 @@ export const DialogPage = () => {
           <img src={photoUrl} alt="" aria-hidden="true" className="dialog-page__photo" />
         )}
 
-        <div className="dialog-page__result" role="article">
+        <div
+          className={`dialog-page__result${isBubbleHeld ? ' dialog-page__result--held' : ''}`}
+          role="article"
+          aria-label="Ответ от нейропомощника. Удерживайте, чтобы временно скрыть."
+          onPointerDown={handleBubblePointerDown}
+        >
           <p className="dialog-page__result-label">ответ от нейропомощника:</p>
           <p
             className={`dialog-page__result-text${resultIsError ? ' dialog-page__result-text--error' : ''}`}
             aria-live="polite"
           >
             {resultText}
+          </p>
+          <p className="dialog-page__result-hint" aria-hidden="true">
+            Удерживайте чтобы скрыть
           </p>
         </div>
 
