@@ -99,21 +99,24 @@ export const DialogPage = () => {
           videoRef.current.srcObject = stream;
         }
 
-        // Включаем непрерывный автофокус, если камера поддерживает
+        // Автофокус, баланс белого, экспозиция + компенсация зума ультраширокого объектива
         const track = stream.getVideoTracks()[0];
         if (track) {
           type ExtConstraints = MediaTrackConstraintSet & {
             focusMode?: string;
             whiteBalanceMode?: string;
             exposureMode?: string;
+            zoom?: number;
           };
           type ExtCapabilities = MediaTrackCapabilities & {
             focusMode?: string[];
             whiteBalanceMode?: string[];
             exposureMode?: string[];
+            zoom?: { min: number; max: number; step: number };
           };
           const caps = track.getCapabilities() as ExtCapabilities;
           const advanced: ExtConstraints[] = [];
+
           if (caps.focusMode?.includes('continuous')) {
             advanced.push({ focusMode: 'continuous' });
           }
@@ -123,6 +126,13 @@ export const DialogPage = () => {
           if (caps.exposureMode?.includes('continuous')) {
             advanced.push({ exposureMode: 'continuous' });
           }
+          // getUserMedia на Android часто выбирает ультраширокий объектив (0.6x).
+          // Зум ~1.3x приближает картинку к основному объективу (1x в нативной камере).
+          if (caps.zoom) {
+            const targetZoom = Math.min(1.3, caps.zoom.max);
+            advanced.push({ zoom: targetZoom });
+          }
+
           if (advanced.length > 0) {
             await track
               .applyConstraints({ advanced: advanced as MediaTrackConstraintSet[] })
@@ -233,32 +243,64 @@ export const DialogPage = () => {
   );
 
   const doCapture = useCallback(async () => {
+    const track = streamRef.current?.getVideoTracks()[0];
     const video = videoRef.current;
-    if (!video || video.videoWidth === 0) {
+    if (!track || !video || video.videoWidth === 0) {
       return;
     }
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      return;
+
+    // Попытка залочить фокус перед снимком
+    type ExtConstraints = MediaTrackConstraintSet & { focusMode?: string };
+    type ExtCapabilities = MediaTrackCapabilities & { focusMode?: string[] };
+    const caps = track.getCapabilities() as ExtCapabilities;
+    if (caps.focusMode?.includes('single-shot')) {
+      await track
+        .applyConstraints({ advanced: [{ focusMode: 'single-shot' } as ExtConstraints] })
+        .catch(() => {});
+      // Samsung Browser / Chrome на Android — фокус-лок занимает до 600–800ms
+      await new Promise<void>((r) => setTimeout(r, 700));
     }
-    ctx.drawImage(video, 0, 0);
+
+    let blob: Blob | null = null;
+
+    // ImageCapture — аппаратный затвор, нативное разрешение (Chrome / Android)
+    if ('ImageCapture' in window) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const ic = new (window as any).ImageCapture(track);
+        blob = (await ic.takePhoto()) as Blob;
+        console.log('[capture] ImageCapture.takePhoto()', `${(blob.size / 1024).toFixed(0)} KB`, blob.type);
+      } catch (e) {
+        console.warn('[capture] ImageCapture failed, fallback to canvas', e);
+      }
+    }
+
+    // Fallback: читаем текущий кадр через canvas
+    if (!blob) {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        return;
+      }
+      ctx.drawImage(video, 0, 0);
+      blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/jpeg', 0.92));
+      if (blob) {
+        console.log('[capture] canvas fallback', `${(blob.size / 1024).toFixed(0)} KB`, blob.type);
+      }
+    }
+
+    track.stop();
     streamRef.current?.getTracks().forEach((t) => t.stop());
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          return;
-        }
-        const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
-        const url = URL.createObjectURL(file);
-        setPhotoUrl(url);
-        void runAnalysis(file);
-      },
-      'image/jpeg',
-      0.9,
-    );
+
+    if (!blob) {
+      return;
+    }
+    const file = new File([blob], 'photo.jpg', { type: blob.type || 'image/jpeg' });
+    const url = URL.createObjectURL(file);
+    setPhotoUrl(url);
+    void runAnalysis(file);
   }, [runAnalysis]);
 
   const handleGalleryPick = useCallback(
