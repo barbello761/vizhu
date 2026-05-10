@@ -21,7 +21,7 @@ const phoneSchema = z.object({
     .refine((v) => {
       const digits = v.replace(/\D/g, '');
       return digits.length === 10 || digits.length === 11;
-    }, 'Введите корректный номер — 10 или 11 цифр, например 912 345-67-89'),
+    }, 'Введите корректный номер'),
 });
 
 type FormValues = z.infer<typeof phoneSchema>;
@@ -47,10 +47,17 @@ export const PhoneAuthPage = () => {
 
   const onSubmit = async (data: FormValues) => {
     const digits = data.phone.replace(/\D/g, '');
-    const normalized = digits.length === 10 ? `+7${digits}` : `+${digits}`;
+    const normalized =
+      digits.length === 10
+        ? `7${digits}`
+        : digits.startsWith('8')
+          ? `7${digits.slice(1)}`
+          : digits.startsWith('+7')
+            ? digits.slice(1)
+            : digits;
 
     try {
-      await authApi.requestCode(normalized);
+      await authApi.sendOtp(normalized);
       setPhone(normalized);
       void navigate('/auth/code');
     } catch (err) {
@@ -87,7 +94,7 @@ export const PhoneAuthPage = () => {
       >
         <Input
           {...register('phone')}
-          label="ТЕЛЕФОН"
+          label="Телефон"
           type="tel"
           inputMode="numeric"
           placeholder="+7 900 000-00-00"
@@ -98,7 +105,7 @@ export const PhoneAuthPage = () => {
         />
 
         <p className="phone-auth__hint" aria-hidden="true">
-          SMS бесплатно · придёт за ~30 секунд
+          SMS бесплатны по всей России
         </p>
 
         <Button type="submit" disabled={isSubmitting} aria-label="Получить код подтверждения">

@@ -1,20 +1,22 @@
 @use 'shared/styles/_mixins' as m;
 
-.phone-auth {
+.reg-vision {
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
   height: 100dvh;
   padding: var(--pad-4);
-  overflow: hidden;
+  overflow-y: auto;
 
   &__back {
     display: flex;
+    flex-shrink: 0;
     padding-top: var(--space-3);
   }
 
   &__head {
     display: flex;
+    flex-shrink: 0;
     flex-direction: column;
     gap: var(--space-3);
   }
@@ -28,21 +30,11 @@
   &__desc {
     @include m.text-16;
 
-    margin-bottom: 0;
+    margin-top: 0;
     color: var(--color-text-muted);
   }
 
-  &__form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  &__hint {
-    @include m.text-14;
-
-    margin-top: calc(-1 * var(--space-2));
-    color: var(--color-text-muted);
-    text-align: center;
+  &__options {
+    flex: 1;
   }
 }
