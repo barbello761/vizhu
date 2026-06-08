@@ -26,7 +26,16 @@ class GigaChatService:
             ))
             return response.choices[0].message.content, response.model
 
-    async def vision(self, image_base64: str, mime_type: str, prompt: str) -> tuple[str, str]:
+    async def vision(
+        self,
+        image_base64: str,
+        mime_type: str,
+        prompt: str,
+        system: str | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
+        profanity_check: bool | None = None,
+    ) -> tuple[str, str]:
         image_bytes = base64.b64decode(image_base64)
 
         with self._client() as giga:
@@ -35,14 +44,23 @@ class GigaChatService:
                 ("image.jpg", BytesIO(image_bytes), mime_type)
             )
 
+            messages = []
+            if system:
+                # системная роль задаёт контекст и снижает ложные срабатывания фильтра
+                messages.append(Messages(role=MessagesRole.SYSTEM, content=system))
+            messages.append(Messages(
+                role=MessagesRole.USER,
+                content=prompt,
+                attachments=[uploaded.id_]  # передаём id загруженного файла
+            ))
+
+            # temperature/top_p/profanity_check передаём только если заданы —
+            # иначе берётся дефолт модели
             response = giga.chat(Chat(
-                messages=[
-                    Messages(
-                        role=MessagesRole.USER,
-                        content=prompt,
-                        attachments=[uploaded.id_]  # передаём id загруженного файла
-                    )
-                ],
-                model="GigaChat-2-Max"
+                messages=messages,
+                model="GigaChat-2-Max",
+                temperature=temperature,
+                top_p=top_p,
+                profanity_check=profanity_check,
             ))
             return response.choices[0].message.content, response.model
