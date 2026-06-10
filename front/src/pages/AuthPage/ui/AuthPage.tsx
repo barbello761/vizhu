@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 
 import { useAuthStore } from '@/features/auth';
 import { useOnboardingStore } from '@/features/onboarding';
-import { announceRouteChange } from '@/shared/lib/a11y/announcer';
+// import { announceRouteChange } from '@/shared/lib/a11y/announcer';
 import { Button } from '@/shared/ui/Button';
 import { Logo } from '@/shared/ui/Logo';
 
@@ -23,9 +23,9 @@ export const AuthPage = () => {
     void navigate('/auth/phone');
   };
 
-  const handleGosuslugiAuth = () => {
-    announceRouteChange('Вход через Госуслуги — функция в разработке');
-  };
+  // const handleGosuslugiAuth = () => {
+  //   announceRouteChange('Вход через Госуслуги — функция в разработке');
+  // };
 
   return (
     <main id="main-content" className="auth" tabIndex={-1} aria-labelledby="auth-title">
@@ -38,8 +38,8 @@ export const AuthPage = () => {
           Вход или регистрация
         </h1>
         <p className="auth__desc">
-          Введите номер телефона — отправим код в SMS. Если вы новый пользователь — создадим
-          аккаунт.
+          Введите номер телефона — наш голосовой ассистент продиктует код в звонке. Если вы новый
+          пользователь — создадим аккаунт.
         </p>
       </div>
 
@@ -53,13 +53,13 @@ export const AuthPage = () => {
           Войти по номеру
         </Button>
 
-        <Button
+        {/* <Button
           iconPosition="right"
           onClick={handleGosuslugiAuth}
           aria-label="Войти через портал Госуслуг"
         >
           Войти через Госуслуги
-        </Button>
+        </Button> */}
 
         <div className="auth__separator" role="separator" aria-label="или">
           <span aria-hidden="true">или</span>
