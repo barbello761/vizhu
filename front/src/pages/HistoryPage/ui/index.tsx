@@ -17,7 +17,7 @@ export const HistoryPage = () => {
   const [query, setQuery] = useState('');
   const [voiceOpen, setVoiceOpen] = useState(false);
 
-  const { data: entries = [], isLoading } = useHistory();
+  const { data: entries = [], isFetching, isPending } = useHistory();
   const sttMutation = useSttMutation();
 
   const filtered = useMemo(() => {
@@ -57,44 +57,46 @@ export const HistoryPage = () => {
         />
       </div>
 
-      {isLoading && (
+      {(isFetching || isPending) && (
         <p className="history-page__empty" role="status" aria-live="polite">
           Загрузка…
         </p>
       )}
 
-      {!isLoading && filtered.length === 0 && (
+      {!isFetching && !isPending && filtered.length === 0 && (
         <p className="history-page__empty" aria-live="polite">
           {query ? 'Ничего не найдено' : 'История пуста'}
         </p>
       )}
 
-      {groups.map(({ label, items }) => (
-        <section
-          key={label}
-          className="history-page__group"
-          aria-labelledby={`history-group-${label}`}
-        >
-          <h2 id={`history-group-${label}`} className="history-page__group-title">
-            {label}
-          </h2>
-          <ul className="history-page__list" role="list">
-            {items.map((entry) => (
-              <li key={entry.id}>
-                <Button
-                  spread
-                  subtitle={`${REQUEST_TYPE_LABELS[entry.type]} • ${formatTime(entry.createdAt)}`}
-                  icon={<ArrowUpRight size={24} aria-hidden="true" />}
-                  aria-label={`${entry.title}, ${REQUEST_TYPE_LABELS[entry.type]}, ${formatTime(entry.createdAt)}`}
-                  onClick={() => void navigate(`/history/${entry.id}`)}
-                >
-                  {entry.title}
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+      {!isFetching &&
+        !isPending &&
+        groups.map(({ label, items }) => (
+          <section
+            key={label}
+            className="history-page__group"
+            aria-labelledby={`history-group-${label}`}
+          >
+            <h2 id={`history-group-${label}`} className="history-page__group-title">
+              {label}
+            </h2>
+            <ul className="history-page__list" role="list">
+              {items.map((entry) => (
+                <li key={entry.id}>
+                  <Button
+                    spread
+                    subtitle={`${REQUEST_TYPE_LABELS[entry.type]} • ${formatTime(entry.createdAt)}`}
+                    icon={<ArrowUpRight size={24} aria-hidden="true" />}
+                    aria-label={`${entry.title}, ${REQUEST_TYPE_LABELS[entry.type]}, ${formatTime(entry.createdAt)}`}
+                    onClick={() => void navigate(`/history/${entry.id}`)}
+                  >
+                    {entry.title}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
 
       {voiceOpen && (
         <VoiceRecordOverlay
