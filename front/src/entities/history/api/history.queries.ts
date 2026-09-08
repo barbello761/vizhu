@@ -12,7 +12,7 @@ export const useHistory = () =>
   useQuery({
     queryKey: historyKeys.list(),
     queryFn: historyApi.getAll,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
   });
 
 export const useHistoryEntry = (id: string | undefined) =>
