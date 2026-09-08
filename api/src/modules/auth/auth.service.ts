@@ -7,6 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes, randomInt } from 'crypto';
 import { SmsService } from '../sms/sms.service';
 import { OtpCode } from './otp-code.entity';
@@ -41,11 +42,21 @@ export class AuthService {
     private readonly refreshTokenRepo: Repository<RefreshToken>,
     private readonly sms: SmsService,
     private readonly jwt: JwtService,
+    private readonly config: ConfigService,
   ) {}
+
+  //режим дев-разработки не делает звонок в smsc - для этого есть секретный мастер-ключ.
+  private get bypassCode(): string | null {
+    if (this.config.get<string>('NODE_ENV') === 'production') return null;
+    const code = this.config.get<string>('OTP_BYPASS')?.trim();
+    if (!code || !/^\d{4}$/.test(code)) return null;
+    return code;
+  }
 
   async sendOtp(phone: string): Promise<void> {
     const normalizedPhone = this.normalizePhone(phone);
-    const code = randomInt(1000, 10000).toString();
+    const bypass = this.bypassCode;
+    const code = bypass ?? randomInt(1000, 10000).toString();
 
     await this.otpRepo.delete({ phone: normalizedPhone });
 
@@ -58,6 +69,14 @@ export class AuthService {
       attempts: 0,
       expiresAt,
     });
+
+    if (bypass) {
+      this.logger.warn(
+        `OTP_BYPASS активен: звонок не выполняется, код для ${normalizedPhone} — ${code}`,
+      );
+      return;
+    }
+
     await this.sms.sendOtp(normalizedPhone, code);
     this.logger.log(`OTP отправлен на ${normalizedPhone}`);
   }

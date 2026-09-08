@@ -25,6 +25,10 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((v) => v === 'true'),
+  VITE_ENABLE_MOCKS: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true'),
 });
 
 const parsed = envSchema.safeParse(import.meta.env);
@@ -46,4 +50,6 @@ export const env = {
   isProd: import.meta.env.PROD,
   /** DevTools включены только если VITE_ENABLE_DEVTOOLS=true (или в dev-режиме по умолчанию) */
   enableDevtools: parsed.data.VITE_ENABLE_DEVTOOLS ?? import.meta.env.DEV,
+  /** MSW-моки вместо настоящего бэкенда. Только dev, только по явному флагу. */
+  enableMocks: parsed.data.VITE_ENABLE_MOCKS,
 } as const;

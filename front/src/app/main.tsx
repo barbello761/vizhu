@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 
 import { bootstrapAuth } from '@/features/auth';
+import { env } from '@/shared/config';
 import { isNativePlatform } from '@/shared/platform';
 
 import { initPlatform } from './platform-init';
@@ -80,7 +81,8 @@ const bootstrap = async () => {
   startApp();
 };
 
-if (import.meta.env.DEV) {
+// Моки включаются явным флагом, а не самим фактом dev-сборки
+if (import.meta.env.DEV && env.enableMocks) {
   // MSW должен стартовать до bootstrapAuth — refresh-запрос идёт через моки.
   await import('@/shared/api/mocks/browser').then(({ worker }) => {
     void worker
