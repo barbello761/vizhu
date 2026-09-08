@@ -11,8 +11,6 @@ build
 .env
 .env.local
 .env.*.local
-.env.development
-.env.production
 .env.native
 
 # ─── Test output ─────────────────────────────────────────────────────────────
