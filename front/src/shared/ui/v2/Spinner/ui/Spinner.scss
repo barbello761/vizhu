@@ -1,0 +1,11 @@
+.spinner {
+  width: var(--size-icon-slot);
+  height: var(--size-icon-slot);
+  animation: spinner-rotate 0.9s linear infinite;
+}
+
+@keyframes spinner-rotate {
+  to {
+    transform: rotate(1turn);
+  }
+}
