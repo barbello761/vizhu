@@ -1,4 +1,6 @@
 @import 'modern-normalize';
+@import './styles/fonts.css';
+@import './styles/tokens.css';
 
 :root {
   color-scheme: light dark;
@@ -74,7 +76,7 @@
   --pad-6: 24px;
   --pad-7: 32px;
 
-  --font-sans: 'Onest', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Onest Rounded', 'Onest', ui-sans-serif, system-ui, sans-serif;
   --lh-tight: 1.2;
   --lh-normal: 1.5;
 }

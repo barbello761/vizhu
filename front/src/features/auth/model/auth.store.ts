@@ -4,10 +4,13 @@ import { STORAGE_KEYS } from '@/shared/config/storage-keys';
 import { queryClient } from '@/shared/lib/tanstack-query';
 import { createPersistedStore } from '@/shared/lib/zustand';
 
+export type UserRole = 'user' | 'volunteer';
+
 interface AuthState {
   isAuthed: boolean;
   phone: string | null;
   userName: string | null;
+  role: UserRole | null;
 }
 
 interface AuthActions {
@@ -15,6 +18,7 @@ interface AuthActions {
   logout: () => void;
   setPhone: (phone: string) => void;
   setUserName: (name: string) => void;
+  setRole: (role: UserRole) => void;
 }
 
 type AuthStore = AuthState & AuthActions;
@@ -33,6 +37,7 @@ export const useAuthStore = createPersistedStore<AuthStore>(
     isAuthed: false,
     phone: null,
     userName: null,
+    role: null,
     login: (accessToken) =>
       set((draft) => {
         draft.isAuthed = true;
@@ -45,6 +50,7 @@ export const useAuthStore = createPersistedStore<AuthStore>(
         draft.isAuthed = false;
         draft.phone = null;
         draft.userName = null;
+        draft.role = null;
         setAccessToken(null);
         // Натив: refresh-токен из защищённого хранилища тоже удаляем.
         void clearStoredRefreshToken();
@@ -58,6 +64,10 @@ export const useAuthStore = createPersistedStore<AuthStore>(
     setUserName: (name) =>
       set((draft) => {
         draft.userName = name;
+      }),
+    setRole: (role) =>
+      set((draft) => {
+        draft.role = role;
       }),
   }),
   {

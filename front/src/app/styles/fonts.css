@@ -1,0 +1,52 @@
+/* Onest Rounded — гарнитура макета. Файлов пока нет: до их появления
+   браузер по правилам @font-face падает на следующий шрифт стека. */
+
+@font-face {
+  font-family: 'Onest Rounded';
+  font-style: normal;
+  font-weight: 500;
+  src: url('/assets/fonts/OnestRounded-Medium.woff2') format('woff2');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Onest Rounded';
+  font-style: normal;
+  font-weight: 700;
+  src: url('/assets/fonts/OnestRounded-Bold.woff2') format('woff2');
+  font-display: swap;
+}
+
+/* ── Onest ─────────────────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: Onest;
+  font-style: normal;
+  font-weight: 400;
+  src: url('/assets/fonts/Onest-Regular.woff2') format('woff2');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Onest;
+  font-style: normal;
+  font-weight: 500;
+  src: url('/assets/fonts/Onest-Medium.woff2') format('woff2');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Onest;
+  font-style: normal;
+  font-weight: 600;
+  src: url('/assets/fonts/Onest-SemiBold.woff2') format('woff2');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Onest;
+  font-style: normal;
+  font-weight: 700;
+  src: url('/assets/fonts/Onest-Bold.woff2') format('woff2');
+  font-display: swap;
+}
