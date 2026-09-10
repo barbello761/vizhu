@@ -3,25 +3,26 @@ import { createBrowserRouter, redirect } from 'react-router';
 import { useAuthStore } from '@/features/auth';
 import { useOnboardingStore } from '@/features/onboarding';
 import { AccountPage } from '@/pages/AccountPage';
-import { AuthPage } from '@/pages/AuthPage';
-import { CallCodePage } from '@/pages/CallCodePage';
+import { AgreementsPage } from '@/pages/AgreementsPage';
 import { CallRoomPage } from '@/pages/CallRoomPage';
 import { CallWaitingPage } from '@/pages/CallWaitingPage';
+import { CodePage } from '@/pages/CodePage';
 import { DialogPage } from '@/pages/DialogPage';
 import { HelpPage } from '@/pages/HelpPage';
 import { HistoryDetailPage } from '@/pages/HistoryDetailPage';
 import { HistoryPage } from '@/pages/HistoryPage';
 import { HomePage } from '@/pages/HomePage';
+import { InvitationPage } from '@/pages/InvitationPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 import { PhoneAuthPage } from '@/pages/PhoneAuthPage';
+import { REGISTRATION_FIELD_STEPS, RegistrationFieldPage } from '@/pages/RegistrationFieldPage';
 import { RegistrationIpraPage } from '@/pages/RegistrationIpraPage';
-import { RegistrationNamePage } from '@/pages/RegistrationNamePage';
 import { RegistrationPermissionsPage } from '@/pages/RegistrationPermissionsPage';
 import { RegistrationVisionPage } from '@/pages/RegistrationVisionPage';
+import { StartPage } from '@/pages/StartPage';
 import { VolunteerPage } from '@/pages/VolunteerPage';
 import { WelcomePage } from '@/pages/WelcomePage';
-import { OnboardingLayout } from '@/widgets/OnboardingLayout';
 import { PageLayout } from '@/widgets/PageLayout';
 import { RootLayout } from '@/widgets/RootLayout';
 
@@ -97,16 +98,41 @@ export const createAppRouter = () =>
           path: 'auth',
           loader: redirectIfAuthed,
           children: [
-            { index: true, element: <AuthPage /> },
-            { path: 'phone', element: <PhoneAuthPage /> },
-            { path: 'code', element: <CallCodePage />, loader: requirePhone },
+            { index: true, element: <StartPage />, handle: { title: 'Вход' } },
+            {
+              path: 'phone',
+              element: <PhoneAuthPage />,
+              handle: { title: 'Ввод номера телефона' },
+            },
+            {
+              path: 'code',
+              element: <CodePage />,
+              loader: requirePhone,
+              handle: { title: 'Ввод кода из СМС' },
+            },
           ],
         },
         {
           path: 'registration',
           loader: requireAuthOnly,
           children: [
-            { path: 'name', element: <RegistrationNamePage /> },
+            {
+              path: 'agreements',
+              element: <AgreementsPage />,
+              handle: { title: 'Согласие на обработку данных' },
+            },
+            {
+              path: 'name',
+              // key заставляет форму перемонтироваться при переходе между шагами:
+              // без него react-router переиспользует инстанс и defaultValues остаются от прошлого шага.
+              element: <RegistrationFieldPage key="name" step={REGISTRATION_FIELD_STEPS.name} />,
+              handle: { title: 'Ввод имени' },
+            },
+            {
+              path: 'email',
+              element: <RegistrationFieldPage key="email" step={REGISTRATION_FIELD_STEPS.email} />,
+              handle: { title: 'Ввод электронной почты' },
+            },
             { path: 'vision', element: <RegistrationVisionPage /> },
             { path: 'ipra', element: <RegistrationIpraPage /> },
             { path: 'permissions', element: <RegistrationPermissionsPage /> },
@@ -114,8 +140,14 @@ export const createAppRouter = () =>
           ],
         },
         {
-          element: <OnboardingLayout />,
-          children: [{ path: 'onboarding', element: <OnboardingPage /> }],
+          path: 'onboarding',
+          element: <OnboardingPage />,
+          handle: { title: 'Добро пожаловать' },
+        },
+        {
+          path: 'invitation',
+          element: <InvitationPage />,
+          handle: { title: 'Приглашение' },
         },
         { path: 'dialog', element: <DialogPage />, loader: requireAuth },
         { path: 'call/waiting', element: <CallWaitingPage />, loader: requireAuth },

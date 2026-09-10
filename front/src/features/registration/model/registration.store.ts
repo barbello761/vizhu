@@ -3,13 +3,13 @@ import { createPersistedStore } from '@/shared/lib/zustand';
 
 interface RegistrationState {
   name: string;
-  age: string;
+  email: string;
   blindnessTypeId: number | null;
 }
 
 interface RegistrationActions {
   setName: (name: string) => void;
-  setAge: (age: string) => void;
+  setEmail: (email: string) => void;
   setBlindnessTypeId: (id: number) => void;
   reset: () => void;
 }
@@ -20,15 +20,15 @@ export const useRegistrationStore = createPersistedStore<RegistrationStore>(
   'Registration',
   (set) => ({
     name: '',
-    age: '',
+    email: '',
     blindnessTypeId: null,
     setName: (name) =>
       set((draft) => {
         draft.name = name;
       }),
-    setAge: (age) =>
+    setEmail: (email) =>
       set((draft) => {
-        draft.age = age;
+        draft.email = email;
       }),
     setBlindnessTypeId: (id) =>
       set((draft) => {
@@ -37,7 +37,7 @@ export const useRegistrationStore = createPersistedStore<RegistrationStore>(
     reset: () =>
       set((draft) => {
         draft.name = '';
-        draft.age = '';
+        draft.email = '';
         draft.blindnessTypeId = null;
       }),
   }),

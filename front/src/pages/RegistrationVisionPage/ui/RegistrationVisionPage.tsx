@@ -50,7 +50,7 @@ export const RegistrationVisionPage = () => {
         <RoundButton
           aria-label="Назад"
           icon={<ChevronLeft size={24} />}
-          onClick={() => void navigate('/registration/name')}
+          onClick={() => void navigate('/registration/email')}
         />
       </div>
 
