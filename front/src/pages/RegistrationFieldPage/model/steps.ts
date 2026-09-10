@@ -42,6 +42,7 @@ export const REGISTRATION_FIELD_STEPS = {
     inputType: 'text',
     autoComplete: 'given-name',
     next: '/registration/email',
+    back: '/registration/agreements',
   },
   email: {
     field: 'email',
@@ -56,7 +57,7 @@ export const REGISTRATION_FIELD_STEPS = {
     inputType: 'email',
     autoComplete: 'email',
     icon: MailIcon,
-    next: '/registration/vision',
+    next: '/registration/ipra',
     back: '/registration/name',
   },
 } satisfies Record<RegistrationFieldName, RegistrationFieldStep>;

@@ -1,0 +1,52 @@
+@use 'shared/styles/_mixins' as m;
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-close);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: var(--size-touch-target-l);
+  height: 100%;
+  min-height: var(--size-touch-target-l);
+  padding: var(--space-related);
+  overflow: hidden;
+  color: var(--text-on-accent);
+  text-decoration: none;
+  background-color: var(--accent-default);
+  border-radius: var(--radius-l);
+  transition: background-color 0.15s ease;
+
+  @include m.pressed {
+    background-color: var(--accent-active);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 3px var(--bg-page),
+      0 0 0 6px var(--accent-default);
+  }
+
+  &__slot {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+
+    /* В макете слот задан сырыми 96×96 — отдельной переменной под него нет. */
+    width: 96px;
+    height: 96px;
+    overflow: hidden;
+  }
+
+  &__label {
+    font-family: var(--font-sans);
+    font-size: var(--heading-2-font-size);
+    font-weight: var(--heading-2-font-weight);
+    line-height: var(--heading-2-line-height);
+    text-align: center;
+    white-space: pre-line;
+  }
+}

@@ -1,0 +1,138 @@
+.camera-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg-camera);
+
+  /* ── Кадр камеры или снятое фото ─────────────────────────────────────── */
+
+  &__backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /**
+   * Пока ИИ обдумывает ответ, экран подсвечивается по контуру голубым-синим —
+   * так это описано в аннотации к макету «Сделать фото».
+   */
+  &__glow {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    box-shadow:
+      inset 0 0 40px 4px var(--accent-loading),
+      inset 0 0 100px 24px var(--fixed-active);
+    animation: camera-glow 1.6s ease-in-out infinite;
+  }
+
+  &__file-input {
+    display: none;
+  }
+
+  /* ── Каркас экрана ───────────────────────────────────────────────────── */
+
+  &__body {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 0;
+
+    /**
+     * Нативное превью рисуется во весь экран под системными панелями,
+     * поэтому верхний ряд кнопок отодвигаем на высоту шторки уведомлений.
+     */
+    padding: calc(var(--space-close) + env(safe-area-inset-top))
+      calc(var(--space-grouped) + env(safe-area-inset-right)) 0
+      calc(var(--space-grouped) + env(safe-area-inset-left));
+  }
+
+  &__row {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 0;
+  }
+
+  &__countdown {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-touch-target-xl);
+    height: var(--size-touch-target-xl);
+    font-family: var(--font-sans);
+    font-size: var(--heading-1-font-size);
+    font-weight: var(--heading-1-font-weight);
+    line-height: var(--heading-1-line-height);
+    color: var(--fixed-main);
+    background: var(--bg-camera);
+    border-radius: var(--radius-max);
+    transform: translate(-50%, -50%);
+  }
+
+  &__error {
+    position: relative;
+    z-index: 2;
+    padding: var(--space-close);
+    margin: var(--space-close) 0;
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-default);
+    line-height: var(--body-line-height);
+    color: var(--fixed-main);
+    text-align: center;
+    background: var(--danger-default);
+    border-radius: var(--radius-l);
+  }
+
+  /* ── Ряд кнопок ──────────────────────────────────────────────────────── */
+
+  &__controls {
+    display: flex;
+    flex-shrink: 0;
+    gap: var(--space-distant);
+    align-items: center;
+    padding: var(--space-grouped) 0 calc(var(--space-grouped) + env(safe-area-inset-bottom));
+  }
+
+  &__controls-spacer {
+    width: var(--size-touch-target-l);
+    height: var(--size-touch-target-l);
+  }
+}
+
+@keyframes camera-glow {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .camera-page__glow {
+    animation: none;
+  }
+}

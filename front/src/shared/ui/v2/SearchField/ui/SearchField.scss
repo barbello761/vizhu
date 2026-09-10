@@ -1,0 +1,91 @@
+@use 'shared/styles/_mixins' as m;
+
+.search-field {
+  display: flex;
+  gap: var(--space-bonded);
+  align-items: center;
+  width: 100%;
+  min-height: var(--size-touch-target-m);
+  padding: var(--space-related) var(--space-close);
+  background-color: var(--bg-surface);
+
+  /* Рамка есть всегда — прозрачная, чтобы поле не подпрыгивало в фокусе. */
+  border: var(--border-weight) solid transparent;
+  border-radius: var(--radius-l);
+  transition: border-color 0.15s ease;
+
+  &:focus-within {
+    border-color: var(--accent-default);
+  }
+
+  &__slot {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-slot);
+    height: var(--size-icon-slot);
+    color: var(--text-secondary);
+  }
+
+  &__control {
+    flex: 1 0 0;
+    min-width: 0;
+    padding: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-default);
+    line-height: var(--body-line-height);
+    color: var(--text-main);
+    background: none;
+    border: 0;
+
+    &:focus {
+      outline: none;
+    }
+
+    &::placeholder {
+      color: var(--placeholder-default);
+      opacity: 1;
+    }
+
+    /* Свой крестик у type="search" в WebKit ломает сетку слотов. */
+    &::-webkit-search-cancel-button {
+      appearance: none;
+    }
+  }
+
+  /**
+   * Глиф 32×32, как в макете: внутренний отступ с равным отрицательным
+   * внешним поднимает зону нажатия до 44×44, не сдвигая иконку.
+   */
+  &__submit {
+    display: flex;
+    flex-shrink: 0;
+    padding: var(--space-bonded);
+    margin: calc(-1 * var(--space-bonded));
+    color: var(--accent-default);
+    cursor: pointer;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-s);
+
+    @include m.pressed {
+      color: var(--accent-active);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow:
+        0 0 0 3px var(--bg-surface),
+        0 0 0 6px var(--accent-default);
+    }
+
+    &:disabled {
+      color: var(--text-disabled);
+      cursor: not-allowed;
+    }
+  }
+}

@@ -1,0 +1,48 @@
+@use 'shared/styles/_mixins' as m;
+
+.cam-button {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-touch-target-l);
+  height: var(--size-touch-target-l);
+  padding: var(--space-bonded);
+  color: var(--fixed-main);
+  cursor: pointer;
+  background-color: transparent;
+  border: var(--border-weight) solid currentcolor;
+  border-radius: var(--radius-max);
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+
+  @include m.pressed {
+    color: var(--fixed-active);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 3px var(--bg-camera),
+      0 0 0 6px var(--fixed-active);
+  }
+
+  &:disabled {
+    /* Состояния «недоступно» у кам-кнопок в макете нет — приглушаем прозрачностью. */
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  &--shutter {
+    width: var(--size-touch-target-xl);
+    height: var(--size-touch-target-xl);
+  }
+
+  &__disc {
+    width: 100%;
+    height: 100%;
+    background-color: currentcolor;
+    border-radius: var(--radius-max);
+  }
+}

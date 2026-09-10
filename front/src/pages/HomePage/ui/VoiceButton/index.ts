@@ -1,1 +1,0 @@
-export { VoiceButton } from './VoiceButton';

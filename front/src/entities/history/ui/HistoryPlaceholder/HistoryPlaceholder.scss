@@ -1,0 +1,33 @@
+.history-placeholder {
+  display: flex;
+
+  /* Занимает свободную высоту списка и центрируется в ней, как в макете. */
+  flex-grow: 1;
+  flex-direction: column;
+  gap: var(--space-related);
+  align-items: center;
+  justify-content: center;
+  padding-top: var(--space-related);
+  text-align: center;
+
+  &__icon {
+    display: flex;
+    flex-shrink: 0;
+  }
+
+  &__message {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--heading-3-font-size);
+    font-weight: var(--heading-3-font-weight);
+    line-height: var(--heading-3-line-height);
+  }
+
+  &--empty {
+    color: var(--placeholder-default);
+  }
+
+  &--error {
+    color: var(--danger-default);
+  }
+}

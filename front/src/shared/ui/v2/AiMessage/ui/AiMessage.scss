@@ -1,0 +1,82 @@
+@use 'shared/styles/_mixins' as m;
+
+.ai-message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+
+  &__text {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-default);
+    line-height: var(--body-line-height);
+    color: var(--text-main);
+    overflow-wrap: anywhere;
+  }
+
+  &__row {
+    display: flex;
+    gap: var(--space-related);
+    align-items: center;
+    padding: var(--space-compressed);
+  }
+
+  /* Лист звезды 32×48 — выше иконочного слота, поэтому слот задан явно. */
+  &__avatar {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 48px;
+    color: var(--accent-default);
+  }
+
+  /**
+   * Глиф 32×32, как в макете, но внутренний отступ с равным отрицательным
+   * внешним расширяет зону нажатия до 44×44, не сдвигая саму иконку.
+   */
+  &__action {
+    display: flex;
+    flex-shrink: 0;
+    padding: var(--space-bonded);
+    margin: calc(-1 * var(--space-bonded));
+    color: var(--placeholder-default);
+    cursor: pointer;
+    border-radius: var(--radius-s);
+
+    @include m.pressed {
+      color: var(--accent-default);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow:
+        0 0 0 3px var(--bg-page),
+        0 0 0 6px var(--accent-default);
+    }
+  }
+
+  &__status,
+  &__time {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--text-secondary);
+  }
+
+  &__status {
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-default);
+    line-height: var(--body-line-height);
+    white-space: pre-line;
+  }
+
+  &__time {
+    font-size: var(--caption-font-size);
+    font-weight: var(--caption-font-weight);
+    line-height: var(--caption-line-height);
+    white-space: nowrap;
+  }
+}

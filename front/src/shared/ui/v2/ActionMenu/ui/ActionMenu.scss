@@ -1,0 +1,78 @@
+@use 'shared/styles/_mixins' as m;
+
+.action-menu {
+  display: flex;
+  flex-direction: column;
+  min-height: var(--size-touch-target-s);
+  padding: var(--space-bonded) 0;
+  margin: 0;
+  overflow: hidden;
+  list-style: none;
+  background-color: var(--bg-page);
+  border: var(--border-weight) solid var(--accent-default);
+  border-radius: var(--radius-m);
+
+  &__row {
+    display: flex;
+  }
+
+  &__item {
+    display: flex;
+    flex: 1 0 0;
+    gap: var(--space-related);
+    align-items: center;
+    min-width: 0;
+    min-height: var(--size-touch-target-s);
+    padding: var(--space-bonded) var(--space-related);
+    color: var(--text-main);
+    cursor: pointer;
+    background-color: var(--bg-page);
+
+    @include m.pressed {
+      background-color: var(--accent-muted);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: inset 0 0 0 var(--border-weight) var(--accent-default);
+    }
+
+    &:disabled {
+      color: var(--text-disabled);
+      cursor: not-allowed;
+      background-color: var(--bg-disabled);
+    }
+
+    &--danger {
+      color: var(--danger-default);
+    }
+  }
+
+  &__slot {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-slot);
+    height: var(--size-icon-slot);
+    color: var(--accent-default);
+
+    /* У красного и недоступного пункта иконка красится вместе с подписью. */
+    .action-menu__item--danger &,
+    .action-menu__item:disabled & {
+      color: inherit;
+    }
+  }
+
+  &__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-sans);
+    font-size: var(--label-font-size);
+    font-weight: var(--label-font-weight);
+    line-height: var(--label-line-height);
+    text-align: left;
+    white-space: nowrap;
+  }
+}

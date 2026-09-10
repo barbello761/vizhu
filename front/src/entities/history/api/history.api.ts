@@ -10,6 +10,10 @@ export const historyApi = {
   getById: (id: string): Promise<HistoryEntry> =>
     api.get<HistoryEntry>(`/history/${id}`).then((r) => r.data),
 
+  // PATCH /api/history/:id
+  rename: (id: string, title: string): Promise<HistoryEntry> =>
+    api.patch<HistoryEntry>(`/history/${id}`, { title }).then((r) => r.data),
+
   // DELETE /api/history/:id
   deleteById: (id: string): Promise<void> => api.delete(`/history/${id}`).then(() => undefined),
 };
