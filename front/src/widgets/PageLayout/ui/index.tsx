@@ -23,14 +23,13 @@ type RouteHandle =
  *   { index: true, element: <HomePage />, handle: { headerVariant: 'logo' } }
  *   { path: 'camera', element: <CameraPage />, handle: { headerVariant: 'none' } }
  *
- * 'none' — экран без хедера (так нарисован главный): остаётся только контент и таб-бар.
+ * 'none' — экран без хедера: остаётся только контент и таб-бар.
  *
  * Новый вариант хедера — добавь компонент рядом (LogoHeader/BackHeader) и новое значение в RouteHandle.
  *
  * <main id="main-content"> обязателен: на него ведёт skip-link из RootLayout,
  * и туда RootLayout сдвигает фокус при смене роута.
  */
-
 export const PageLayout = () => {
   const matches = useMatches();
   const handle = matches.at(-1)?.handle as RouteHandle | undefined;

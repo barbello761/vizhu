@@ -43,7 +43,7 @@
     cursor: pointer;
     background: var(--color-primary);
     border: 2px solid transparent;
-    border-radius: var(--radius-xl);
+    border-radius: 32px; // легаси-экран; v2-редизайн заменит на токен
     transition:
       background 0.18s ease,
       box-shadow 0.18s ease,

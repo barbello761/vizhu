@@ -15,10 +15,8 @@ interface AnswerBubbleProps {
 }
 
 /**
- * Плашка с ответом нейропомощника поверх кадра.
- *
- * Удержание прячет плашку, чтобы посмотреть снимок целиком. Скринридеру об
- * этом сказано в имени области — иначе жест остался бы незаметным.
+ * Удержание прячет плашку ответа, чтобы посмотреть снимок целиком. Скринридеру
+ * об этом сказано в имени области — иначе жест остался бы незаметным.
  */
 export const AnswerBubble = ({ text, isError = false, className }: AnswerBubbleProps) => {
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

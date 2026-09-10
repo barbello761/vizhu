@@ -2,10 +2,6 @@ interface IconProps {
   className?: string;
 }
 
-/**
- * Иллюстрация для тайла: в макете лист 95×95 (на полпикселя меньше слота 96×96),
- * поэтому размер задан атрибутами и класс `.icon` не подключается.
- */
 export const TextIcon = ({ className }: IconProps) => (
   <svg
     className={className}

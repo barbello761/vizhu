@@ -3,8 +3,8 @@ export const formatTime = (iso: string): string =>
 
 /**
  * Метка дня для записи: «Сегодня», «Вчера» или «12 марта».
- * В новом макете истории она стоит прямо в строке записи, а не в заголовке
- * группы, поэтому нужна и снаружи `groupByDate`.
+ * Нужна и снаружи `groupByDate` — в истории она стоит прямо в строке записи,
+ * а не в заголовке группы.
  */
 export const formatDateGroup = (iso: string): string => {
   const d = new Date(iso);

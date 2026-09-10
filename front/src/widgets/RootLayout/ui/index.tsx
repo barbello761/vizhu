@@ -18,7 +18,6 @@ import './root-layout.scss';
  * Для фуллскрин страниц (камера и т.п.) можно подключать прямо под RootLayout без PageLayout —
  * тогда нужно самостоятельно добавить <main id="main-content" tabIndex={-1}> на странице.
  */
-
 const APP_NAME = 'ВИЖУ';
 
 /** Название страницы для вкладки и скринридера — из `handle.title` роута. */

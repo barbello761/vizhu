@@ -1,2 +1,2 @@
-export { Button } from './ui';
-export type { ButtonProps, ButtonVariant } from './ui';
+export { Button, ActionLink } from './ui';
+export type { ButtonProps, ButtonVariant, ActionLinkProps } from './ui';
