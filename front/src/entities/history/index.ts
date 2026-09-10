@@ -6,4 +6,6 @@ export {
   useHistory,
   useHistoryEntry,
   useDeleteHistoryEntry,
+  useRenameHistoryEntry,
 } from './api/history.queries';
+export { HistoryItem, HistoryItemSkeleton, HistoryPlaceholder } from './ui';

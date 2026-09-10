@@ -1,77 +1,53 @@
-import { Check, ChevronLeft } from 'lucide-react';
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import { announceRouteChange } from '@/shared/lib/a11y/announcer';
-import { Button } from '@/shared/ui/Button';
-import { RoundButton } from '@/shared/ui/RoundButton';
+import { registrationApi, useRegistrationStore } from '@/features/registration';
+import { Button } from '@/shared/ui/v2';
+import { FormScreen } from '@/widgets/FormScreen';
 
 import './RegistrationIpraPage.scss';
 
-const BENEFITS = [
-  'Неограниченный AI 24/7',
-  'Приоритет в очереди волонтёров',
-  'GPT-4o опционально',
-  'Бесплатное обслуживание по ИПРА',
-];
+const IN_PROGRESS_NOTE = 'Подтверждение через Госуслуги пока в разработке';
 
 export const RegistrationIpraPage = () => {
   const navigate = useNavigate();
+  const { name, blindnessTypeId, reset } = useRegistrationStore();
+  const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    announceRouteChange('Шаг 3 из 4. Подтверждение ИПРА и получение Premium.');
-  }, []);
-
-  const handleGosuslugi = () => {
-    announceRouteChange('Вход через Госуслуги — функция в разработке');
-  };
-
-  const handleSkip = () => {
-    void navigate('/registration/permissions');
+  const handleSkip = async () => {
+    setIsSaving(true);
+    try {
+      await registrationApi.createProfile({
+        name,
+        ...(blindnessTypeId !== null && { blindnessTypeId }),
+      });
+      reset();
+    } finally {
+      setIsSaving(false);
+      void navigate('/onboarding', { replace: true });
+    }
   };
 
   return (
-    <main id="main-content" className="reg-ipra" tabIndex={-1} aria-labelledby="reg-ipra-title">
-      <div className="reg-ipra__back">
-        <RoundButton
-          aria-label="Назад"
-          icon={<ChevronLeft size={24} />}
-          onClick={() => void navigate('/registration/vision')}
-        />
-      </div>
+    <FormScreen
+      title="Подтвердите статус ИПРА"
+      description="Если у вас оформлен статус ИПРА, доступ к ВИЖУ без ограничений оплачивает государство — подтвердите статус через Госуслуги, это займёт меньше минуты. Мы не запрашиваем и не храним сам документ, только факт подтверждённого статуса."
+      onBack={() => void navigate('/registration/email')}
+      actions={
+        <>
+          <Button disabled aria-label={`Подтвердить статус ИПРА. ${IN_PROGRESS_NOTE}`}>
+            Подтвердить статус ИПРА
+          </Button>
 
-      <div className="reg-ipra__head">
-        <h1 id="reg-ipra-title" className="reg-ipra__title">
-          Подтвердите ИПРА — и Premium бесплатно
-        </h1>
-        <p className="reg-ipra__desc">
-          Один раз войдите через Госуслуги — проверим статус инвалида по зрению через ФРИ. Данные не
-          сохраняем.
-        </p>
-      </div>
-
-      <div className="reg-ipra__benefits" aria-label="Что вы получите">
-        <ul className="reg-ipra__benefits-list">
-          {BENEFITS.map((benefit) => (
-            <li key={benefit} className="reg-ipra__benefit">
-              <span className="reg-ipra__benefit-icon" aria-hidden="true">
-                <Check size={18} />
-              </span>
-              {benefit}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="reg-ipra__actions">
-        <Button onClick={handleGosuslugi} aria-label="Войти через портал Госуслуг">
-          Войти через Госуслуги
-        </Button>
-
-        <Button onClick={handleSkip} aria-label="Пропустить подтверждение ИПРА и продолжить">
-          Пропустить
-        </Button>
-      </div>
-    </main>
+          <Button variant="secondary" loading={isSaving} onClick={() => void handleSkip()}>
+            Подтвердить позже
+          </Button>
+        </>
+      }
+    >
+      <p className="reg-ipra__note" role="status">
+        {IN_PROGRESS_NOTE}
+      </p>
+    </FormScreen>
   );
 };

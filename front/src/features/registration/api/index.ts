@@ -7,7 +7,6 @@ export type BlindnessType = {
 
 export type ProfilePayload = {
   name: string;
-  age?: number;
   blindnessTypeId?: number;
 };
 

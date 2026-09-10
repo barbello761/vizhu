@@ -6,10 +6,10 @@ import { AccountPage } from '@/pages/AccountPage';
 import { AgreementsPage } from '@/pages/AgreementsPage';
 import { CallRoomPage } from '@/pages/CallRoomPage';
 import { CallWaitingPage } from '@/pages/CallWaitingPage';
+import { CameraPage } from '@/pages/CameraPage';
 import { CodePage } from '@/pages/CodePage';
 import { DialogPage } from '@/pages/DialogPage';
 import { HelpPage } from '@/pages/HelpPage';
-import { HistoryDetailPage } from '@/pages/HistoryDetailPage';
 import { HistoryPage } from '@/pages/HistoryPage';
 import { HomePage } from '@/pages/HomePage';
 import { InvitationPage } from '@/pages/InvitationPage';
@@ -18,11 +18,8 @@ import { OnboardingPage } from '@/pages/OnboardingPage';
 import { PhoneAuthPage } from '@/pages/PhoneAuthPage';
 import { REGISTRATION_FIELD_STEPS, RegistrationFieldPage } from '@/pages/RegistrationFieldPage';
 import { RegistrationIpraPage } from '@/pages/RegistrationIpraPage';
-import { RegistrationPermissionsPage } from '@/pages/RegistrationPermissionsPage';
-import { RegistrationVisionPage } from '@/pages/RegistrationVisionPage';
 import { StartPage } from '@/pages/StartPage';
 import { VolunteerPage } from '@/pages/VolunteerPage';
-import { WelcomePage } from '@/pages/WelcomePage';
 import { PageLayout } from '@/widgets/PageLayout';
 import { RootLayout } from '@/widgets/RootLayout';
 
@@ -71,11 +68,16 @@ export const createAppRouter = () =>
           element: <PageLayout />,
           loader: requireAuth,
           children: [
-            { index: true, element: <HomePage />, handle: { title: 'Главная' } },
             {
+              index: true,
+              element: <HomePage />,
+              handle: { title: 'ИИ-камера', headerVariant: 'none' },
+            },
+            {
+              // Заголовок «История» нарисован в самом экране — хедер не нужен.
               path: 'history',
               element: <HistoryPage />,
-              handle: { title: 'История', headerVariant: 'back' },
+              handle: { headerVariant: 'none' },
             },
             {
               path: 'help',
@@ -133,10 +135,11 @@ export const createAppRouter = () =>
               element: <RegistrationFieldPage key="email" step={REGISTRATION_FIELD_STEPS.email} />,
               handle: { title: 'Ввод электронной почты' },
             },
-            { path: 'vision', element: <RegistrationVisionPage /> },
-            { path: 'ipra', element: <RegistrationIpraPage /> },
-            { path: 'permissions', element: <RegistrationPermissionsPage /> },
-            { path: 'welcome', element: <WelcomePage /> },
+            {
+              path: 'ipra',
+              element: <RegistrationIpraPage />,
+              handle: { title: 'Подтверждение статуса ИПРА' },
+            },
           ],
         },
         {
@@ -149,10 +152,12 @@ export const createAppRouter = () =>
           element: <InvitationPage />,
           handle: { title: 'Приглашение' },
         },
+        { path: 'camera', element: <CameraPage />, loader: requireAuth },
         { path: 'dialog', element: <DialogPage />, loader: requireAuth },
+        // Запись из истории открывается тем же экраном диалога о фото.
+        { path: 'dialog/:id', element: <DialogPage />, loader: requireAuth },
         { path: 'call/waiting', element: <CallWaitingPage />, loader: requireAuth },
         { path: 'call/room', element: <CallRoomPage />, loader: requireAuth },
-        { path: 'history/:id', element: <HistoryDetailPage />, loader: requireAuth },
         { path: '*', element: <NotFoundPage /> },
       ],
     },

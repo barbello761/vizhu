@@ -22,6 +22,17 @@ export const useHistoryEntry = (id: string | undefined) =>
     enabled: Boolean(id),
   });
 
+export const useRenameHistoryEntry = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, title }: { id: string; title: string }) => historyApi.rename(id, title),
+    onSuccess: (entry) => {
+      queryClient.setQueryData(historyKeys.detail(entry.id), entry);
+      return queryClient.invalidateQueries({ queryKey: historyKeys.list() });
+    },
+  });
+};
+
 export const useDeleteHistoryEntry = () => {
   const queryClient = useQueryClient();
   return useMutation({

@@ -63,7 +63,7 @@ export const CodePage = () => {
 
   const nextRouteAfterLogin = (isNewUser: boolean) => {
     if (isNewUser) {
-      return '/registration/name';
+      return '/registration/agreements';
     }
     return hasSeenOnboarding ? '/' : '/onboarding';
   };

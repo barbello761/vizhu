@@ -1,11 +1,14 @@
-/* Onest Rounded — гарнитура макета. Файлов пока нет: до их появления
-   браузер по правилам @font-face падает на следующий шрифт стека. */
+/* Onest Rounded — гарнитура макета. В public лежат только .ttf, поэтому
+   woff2 указан первым «на вырост»: как только его положат рядом, браузер
+   возьмёт именно его, а до тех пор — ttf. */
 
 @font-face {
   font-family: 'Onest Rounded';
   font-style: normal;
   font-weight: 500;
-  src: url('/assets/fonts/OnestRounded-Medium.woff2') format('woff2');
+  src:
+    url('/assets/fonts/OnestRounded-Medium.woff2') format('woff2'),
+    url('/assets/fonts/OnestRounded-Medium.ttf') format('truetype');
   font-display: swap;
 }
 
@@ -13,7 +16,9 @@
   font-family: 'Onest Rounded';
   font-style: normal;
   font-weight: 700;
-  src: url('/assets/fonts/OnestRounded-Bold.woff2') format('woff2');
+  src:
+    url('/assets/fonts/OnestRounded-Bold.woff2') format('woff2'),
+    url('/assets/fonts/OnestRounded-Bold.ttf') format('truetype');
   font-display: swap;
 }
 
