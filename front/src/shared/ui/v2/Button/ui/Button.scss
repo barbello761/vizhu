@@ -38,6 +38,13 @@
     cursor: not-allowed;
   }
 
+  /* «В разработке»: остаётся в потоке фокуса и озвучивается скринридером
+     (в отличие от `disabled`), обработчик клика гасится на стороне вызова. */
+  &[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
   &.btn-v2--loading {
     cursor: progress;
   }
@@ -90,7 +97,14 @@
     --btn-fg: var(--accent-default);
 
     width: 100%;
+    height: auto;
     min-height: var(--size-touch-target-s);
+
+    /* Текст-ссылка: длинную подпись переносим, а не режем многоточием. */
+    .btn-v2__label {
+      overflow: visible;
+      white-space: normal;
+    }
 
     @include m.pressed {
       --btn-fg: var(--accent-active);
@@ -170,5 +184,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+}
+
+/* Ссылка, оформленная как кнопка (ActionLink) — тот же `.btn-v2`, но <a>. */
+a.btn-v2 {
+  text-decoration: none;
+
+  &:visited {
+    color: var(--btn-fg);
   }
 }

@@ -1,0 +1,22 @@
+.profile-menu {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-grouped);
+  width: 100%;
+  padding-bottom: var(--space-close);
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-related);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  &__theme {
+    /* Прижимаем переключатель темы к низу — над таб-баром, как в макете. */
+    margin-top: auto;
+  }
+}

@@ -2,11 +2,6 @@ interface IconProps {
   className?: string;
 }
 
-/**
- * Фирменная звезда-иллюстрация для пустых состояний: лист 95×95, а не
- * иконочный слот 32×32, поэтому размер задан атрибутами и класс `.icon`
- * не подключается.
- */
 export const VizhuStarIcon = ({ className }: IconProps) => (
   <svg
     className={className}

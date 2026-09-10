@@ -2,10 +2,6 @@ interface IconProps {
   className?: string;
 }
 
-/**
- * Иллюстрация для тайла: лист 96×96, а не иконочный слот 32×32,
- * поэтому размер задан атрибутами и класс `.icon` не подключается.
- */
 export const EyeIcon = ({ className }: IconProps) => (
   <svg
     className={className}

@@ -2,11 +2,6 @@ interface IconProps {
   className?: string;
 }
 
-/**
- * Фирменная звезда рядом с ответом нейропомощника: лист 32×48, а не
- * иконочный слот 32×32, поэтому размер задан атрибутами и класс `.icon`
- * не подключается.
- */
 export const VizhuIcon = ({ className }: IconProps) => (
   <svg
     className={className}
