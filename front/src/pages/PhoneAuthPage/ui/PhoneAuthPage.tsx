@@ -1,16 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
-import { ChevronLeft } from 'lucide-react';
-import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
 
-import { authApi, useAuthStore } from '@/features/auth';
-import { announceRouteChange } from '@/shared/lib/a11y/announcer';
-import { Button } from '@/shared/ui/Button';
-import { Input } from '@/shared/ui/Input';
-import { RoundButton } from '@/shared/ui/RoundButton';
+import { authApi, formatPhone, normalizePhone, useAuthStore } from '@/features/auth';
+import { announceRouteChange } from '@/shared/lib/a11y';
+import { Button, CallIcon, Input } from '@/shared/ui/v2';
+import { FormScreen } from '@/widgets/FormScreen';
 
 import './PhoneAuthPage.scss';
 
@@ -18,13 +15,13 @@ const phoneSchema = z.object({
   phone: z
     .string()
     .min(1, 'Введите номер телефона')
-    .refine((v) => {
-      const digits = v.replace(/\D/g, '');
-      return digits.length === 10 || digits.length === 11;
-    }, 'Введите корректный номер'),
+    .refine((value) => normalizePhone(value) !== null, 'В номере должно быть 11 цифр'),
 });
 
 type FormValues = z.infer<typeof phoneSchema>;
+
+// Кнопка «Продолжить» живёт в нижней стопке, вне <form> — связываем их по id.
+const FORM_ID = 'phone-auth-form';
 
 export const PhoneAuthPage = () => {
   const navigate = useNavigate();
@@ -38,57 +35,50 @@ export const PhoneAuthPage = () => {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(phoneSchema),
-    defaultValues: { phone: storedPhone ?? '' },
+    defaultValues: { phone: storedPhone ? formatPhone(storedPhone) : '' },
   });
 
-  useEffect(() => {
-    announceRouteChange('Ввод номера телефона');
-  }, []);
-
-  const onSubmit = async (data: FormValues) => {
-    const digits = data.phone.replace(/\D/g, '');
-    const normalized =
-      digits.length === 10
-        ? `7${digits}`
-        : digits.startsWith('8')
-          ? `7${digits.slice(1)}`
-          : digits.startsWith('+7')
-            ? digits.slice(1)
-            : digits;
+  const onSubmit = async ({ phone }: FormValues) => {
+    const normalized = normalizePhone(phone);
+    if (!normalized) {
+      return;
+    }
 
     try {
       await authApi.sendOtp(normalized);
       setPhone(normalized);
       void navigate('/auth/code');
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 429) {
-        setError('phone', { message: 'Слишком много запросов. Подождите немного.' });
-      } else {
-        setError('phone', { message: 'Не удалось отправить SMS. Попробуйте позже.' });
-      }
+    } catch (error) {
+      const tooManyRequests = axios.isAxiosError(error) && error.response?.status === 429;
+      setError('phone', {
+        message: tooManyRequests
+          ? 'Слишком много запросов. Подождите немного.'
+          : 'Не удалось отправить СМС. Попробуйте позже.',
+      });
     }
   };
 
   return (
-    <main id="main-content" className="phone-auth" tabIndex={-1} aria-labelledby="phone-auth-title">
-      <div className="phone-auth__back">
-        <RoundButton
-          aria-label="Назад"
-          icon={<ChevronLeft size={24} />}
-          onClick={() => void navigate('/auth')}
-        />
-      </div>
-
-      <div className="phone-auth__head">
-        <h1 id="phone-auth-title" className="phone-auth__title">
-          Ваш номер телефона
-        </h1>
-        <p className="phone-auth__desc">
-          Наш голосовой ассистент позвонит Вам и продиктует код подтверждения.
-        </p>
-      </div>
-
+    <FormScreen
+      title="Введите номер телефона"
+      description="Отправим вам СМС с кодом подтверждения"
+      onBack={() => void navigate('/auth')}
+      actions={
+        <>
+          <Button type="submit" form={FORM_ID} loading={isSubmitting}>
+            Продолжить
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => announceRouteChange('Вход через почту — функция в разработке')}
+          >
+            Войти через почту
+          </Button>
+        </>
+      }
+    >
       <form
+        id={FORM_ID}
         className="phone-auth__form"
         onSubmit={handleSubmit(onSubmit)}
         noValidate
@@ -96,24 +86,15 @@ export const PhoneAuthPage = () => {
       >
         <Input
           {...register('phone')}
-          label="Телефон"
+          label="Номер телефона"
           type="tel"
-          inputMode="numeric"
-          placeholder="+7 900 000-00-00"
+          inputMode="tel"
           autoComplete="tel"
-          autoFocus
+          placeholder="8 (888) 888-88-88"
+          startIcon={<CallIcon />}
           error={errors.phone?.message}
-          aria-label="Номер телефона"
         />
-
-        <p className="phone-auth__hint" aria-hidden="true">
-          С Вас не взимается плата за звонок
-        </p>
-
-        <Button type="submit" disabled={isSubmitting} aria-label="Получить код подтверждения">
-          {isSubmitting ? 'Отправляем...' : 'Получить код'}
-        </Button>
       </form>
-    </main>
+    </FormScreen>
   );
 };

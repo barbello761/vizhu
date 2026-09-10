@@ -1,0 +1,54 @@
+.form-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-distant);
+  align-items: flex-start;
+  justify-content: space-between;
+  height: 100%;
+  padding: var(--space-close) var(--space-close) max(var(--space-close), env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background: var(--bg-page);
+
+  &__top {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-distant);
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  &__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-grouped);
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: var(--heading-1-font-size);
+    font-weight: var(--heading-1-font-weight);
+    line-height: var(--heading-1-line-height);
+    color: var(--text-main);
+  }
+
+  &__description {
+    margin: 0;
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-default);
+    line-height: var(--body-line-height);
+    color: var(--text-main);
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-related);
+    width: 100%;
+  }
+
+  &--inset-top &__top {
+    padding-top: var(--space-unrelated);
+  }
+}

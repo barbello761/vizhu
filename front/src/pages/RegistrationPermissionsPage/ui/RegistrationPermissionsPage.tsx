@@ -52,7 +52,7 @@ const requestPermissions = async (perms: Record<PermKey, boolean>) => {
 
 export const RegistrationPermissionsPage = () => {
   const navigate = useNavigate();
-  const { name, age, blindnessTypeId, reset } = useRegistrationStore();
+  const { name, blindnessTypeId, reset } = useRegistrationStore();
   const [enabled, setEnabled] = useState<Record<PermKey, boolean>>({
     camera: true,
     microphone: true,
@@ -73,10 +73,8 @@ export const RegistrationPermissionsPage = () => {
     setIsLoading(true);
     try {
       await requestPermissions(enabled);
-      const parsedAge = age ? parseInt(age, 10) : undefined;
       await registrationApi.createProfile({
         name,
-        ...(parsedAge !== undefined && !isNaN(parsedAge) && { age: parsedAge }),
         ...(blindnessTypeId !== null && { blindnessTypeId }),
       });
       reset();
