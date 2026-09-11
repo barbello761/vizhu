@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router';
+import { Outlet, useMatches } from 'react-router';
 
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { CallsOrchestrator } from '@/widgets/CallsOrchestrator';
@@ -18,14 +18,29 @@ import './root-layout.scss';
  * Для фуллскрин страниц (камера и т.п.) можно подключать прямо под RootLayout без PageLayout —
  * тогда нужно самостоятельно добавить <main id="main-content" tabIndex={-1}> на странице.
  */
+const APP_NAME = 'ВИЖУ';
+
+/** Название страницы для вкладки и скринридера — из `handle.title` роута. */
+const useRouteTitle = () => {
+  const matches = useMatches();
+
+  // Берём заголовок самого глубокого совпавшего роута: вложенный уточняет родителя.
+  return matches.reduce<string | undefined>(
+    (title, match) => (match.handle as { title?: string } | undefined)?.title ?? title,
+    undefined,
+  );
+};
 
 export const RootLayout = () => {
-  const { pathname } = useLocation();
+  const routeTitle = useRouteTitle();
 
   useEffect(() => {
+    // document.title раньше не выставлялся нигде и навсегда оставался «ВИЖУ»
+    // из index.html — скринридер на каждом переходе слышал одно и то же.
+    document.title = routeTitle ? `${routeTitle} — ${APP_NAME}` : APP_NAME;
     document.getElementById('main-content')?.focus();
     announceRouteChange(document.title);
-  }, [pathname]);
+  }, [routeTitle]);
 
   return (
     <>

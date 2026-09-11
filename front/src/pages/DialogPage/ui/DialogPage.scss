@@ -1,331 +1,93 @@
-@use 'shared/styles/_mixins' as m;
-
 .dialog-page {
-  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   height: 100dvh;
   overflow: hidden;
-  background: #0b0f14;
+  background: var(--bg-page);
 
-  /* ── Camera ─────────────────────────────────────────────────────────── */
-
-  &__camera {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  &__photo {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  &__countdown {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 88px;
-    height: 88px;
-    font-family: var(--font-sans);
-    font-size: 3rem;
-    font-weight: 700;
-    color: #fff;
-    background: rgb(0 0 0 / 55%);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  &__cam-error {
-    position: relative;
-    z-index: 1;
-    padding: var(--pad-4);
-    margin: var(--pad-4);
-    color: #fff;
-    text-align: center;
-    background: var(--color-danger);
-    border-radius: var(--radius-lg);
-
-    p {
-      @include m.text-16;
-
-      margin: 0;
-    }
-  }
-
-  &__file-input {
-    display: none;
-  }
-
-  /* ── Controls row ────────────────────────────────────────────────────── */
-
-  &__controls {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    gap: var(--space-5);
-    align-items: center;
-    justify-content: center;
-    padding: var(--pad-5) var(--pad-4);
-
-    .round-button.dialog-page__btn-cancel {
-      color: #fff;
-      background: var(--color-danger);
-      border-color: var(--color-danger);
-    }
-
-    .round-button.dialog-page__btn-capture {
-      width: 72px;
-      height: 72px;
-      color: #fff;
-      background: transparent;
-      border: 3px solid #fff;
-    }
-
-    .round-button.dialog-page__btn-gallery {
-      color: #fff;
-      background: rgb(255 255 255 / 15%);
-      border-color: #fff;
-    }
-
-    .round-button.dialog-page__btn-retake {
-      color: #fff;
-      background: rgb(255 255 255 / 15%);
-      border-color: #fff;
-    }
-  }
-
-  /* ── Processing overlay ──────────────────────────────────────────────── */
-
-  &--processing {
-    justify-content: center;
-  }
-
-  &__processing-overlay {
-    position: relative;
-    inset: 0;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    align-items: center;
-    justify-content: center;
-    padding: var(--pad-6);
-    margin: var(--pad-4);
-    background: rgb(0 0 0 / 55%);
-    border-radius: var(--radius-lg);
-  }
-
-  &__processing-text {
-    @include m.text-16;
-
-    margin: 0;
-    color: #fff;
-  }
-
-  &__spinner {
-    color: #fff;
-    animation: spin 1s linear infinite;
-  }
-
-  /* ── Result bubble ───────────────────────────────────────────────────── */
-
-  &__result {
-    position: relative;
-    z-index: 2;
-    max-height: 55dvh;
-    padding: var(--pad-4);
-    margin: 0 var(--pad-4);
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
-    background: #fff;
-    border-radius: var(--radius-lg);
-    transition:
-      opacity 150ms ease,
-      transform 150ms ease;
-    touch-action: pan-y;
-    user-select: none;
-
-    &--held {
-      opacity: 0;
-      transform: translateY(8px);
-      pointer-events: none;
-    }
-  }
-
-  &__result-hint {
-    @include m.text-12;
-
-    margin: var(--space-2) 0 0;
-    color: #9ca3af;
-    text-align: center;
-  }
-
-  &__result-label {
-    @include m.text-12;
-
-    margin: 0 0 var(--space-2);
-    font-weight: 700;
-    color: var(--color-primary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-
-    &::before {
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      margin-right: 6px;
-      content: '';
-      background: var(--color-primary);
-      border-radius: 50%;
-    }
-  }
-
-  &__result-text {
-    @include m.text-16;
-
-    margin: 0;
-    color: #0b0f14;
-
-    &--error {
-      color: var(--color-danger);
-    }
-  }
-
-  /* ── Chat phase ──────────────────────────────────────────────────────── */
-
-  &--chat {
-    justify-content: flex-start;
-    background: var(--color-bg);
-  }
-
-  &__chat-header {
+  &__header {
     display: flex;
     flex-shrink: 0;
-    gap: var(--space-4);
+    gap: var(--space-close);
     align-items: center;
-    padding: var(--pad-3) var(--pad-4);
-    border-bottom: 1px solid var(--color-border, #e5e7eb);
+    padding: var(--inset-top) var(--space-close) var(--space-close);
+    background: var(--bg-page);
   }
 
-  &__chat-title {
-    @include m.text-16;
-
+  &__title {
+    flex: 1 0 0;
+    min-width: 0;
     margin: 0;
-    font-weight: 700;
-    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-accent);
+    line-height: var(--body-line-height);
+    color: var(--text-main);
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* Правый слот шириной с кнопку возврата — заголовок остаётся по центру. */
+  &__header-spacer {
+    flex-shrink: 0;
+    width: var(--size-touch-target-m);
+  }
+
+  &__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 0;
+    padding: var(--space-close) var(--space-close) 0;
   }
 
   &__messages {
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: var(--space-3);
-    padding: var(--pad-4);
+    gap: var(--space-adjacent);
+    min-height: 0;
+    padding-bottom: var(--space-adjacent);
     overflow-y: auto;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-  }
+    scrollbar-width: none;
 
-  &__bubble {
-    max-width: 80%;
-    padding: var(--pad-3) var(--pad-4);
-    border-radius: var(--radius-lg);
-
-    p {
-      @include m.text-16;
-
-      margin: 0;
+    /* Короткая переписка прижата к полю ввода, как в макете. */
+    > :first-child {
+      margin-top: auto;
     }
 
-    &--user {
-      align-self: flex-end;
-      color: #fff;
-      background: var(--color-primary);
-      border-bottom-right-radius: 4px;
+    &::-webkit-scrollbar {
+      display: none;
     }
-
-    &--assistant {
-      align-self: flex-start;
-      color: var(--color-text);
-      background: var(--color-surface, #f3f4f6);
-      border-bottom-left-radius: 4px;
-    }
-
-    &--typing {
-      display: flex;
-      align-items: center;
-      padding: var(--pad-3);
-    }
-  }
-
-  &__bubble-label {
-    @include m.text-12;
-
-    display: block;
-    margin-bottom: var(--space-1);
-    font-weight: 700;
-    color: var(--color-primary);
-  }
-
-  &__chat-input {
-    display: flex;
-    flex-shrink: 0;
-    gap: var(--space-3);
-    align-items: center;
-    padding: var(--pad-3) var(--pad-4);
-    border-top: 1px solid var(--color-border, #e5e7eb);
   }
 
   &__input {
-    @include m.text-16;
-
-    flex: 1;
-    padding: var(--pad-2) var(--pad-3);
-    color: var(--color-text);
-    outline: none;
-    background: var(--color-surface, #f3f4f6);
-    border: 1px solid var(--color-border, #e5e7eb);
-    border-radius: var(--radius-lg);
-
-    &:focus {
-      border-color: var(--color-primary);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-    }
-  }
-
-  .round-button.dialog-page__btn-voice {
     flex-shrink: 0;
-    color: var(--color-primary);
+    padding-bottom: max(var(--space-close), var(--inset-bottom));
   }
-}
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+  &__file-input {
+    display: none;
   }
-}
 
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  white-space: nowrap;
-  border: 0;
-  clip-path: rect(0, 0, 0, 0);
+  /* Загрузка записи из истории и сообщение «не нашлось». */
+  &__status {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-close);
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-default);
+    line-height: var(--body-line-height);
+    color: var(--text-secondary);
+    text-align: center;
+  }
 }

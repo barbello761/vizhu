@@ -1,6 +1,7 @@
+import type { UserRole } from '@/entities/user';
 import { api } from '@/shared/api';
 
-export type UserRole = 'blind' | 'volunteer';
+export type { UserRole };
 
 export type BlindnessTypeRef = {
   id: number;
@@ -14,11 +15,18 @@ export type Profile = {
   age: number | null;
   role: UserRole;
   phone: string | null;
+  email: string | null;
   blindnessType: BlindnessTypeRef | null;
   isVerified: boolean;
   createdAt: string;
 };
 
+/** Поля, которые пользователь может поменять на экране «Настройки профиля». */
+export type ProfileUpdate = Partial<Pick<Profile, 'name' | 'phone' | 'email'>>;
+
 export const profileApi = {
   getProfile: () => api.get<Profile>('/profile'),
+
+  // PATCH /profile — точечное обновление своих данных, отдаёт свежий профиль целиком.
+  updateProfile: (patch: ProfileUpdate) => api.patch<Profile>('/profile', patch),
 };

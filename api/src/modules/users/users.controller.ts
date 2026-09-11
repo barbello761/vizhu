@@ -19,21 +19,22 @@ import {
 import { UsersService } from './users.service';
 import * as jwtGuard from '../../common/guards/jwt.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { UserRole } from './user-role.enum';
 
 class CreateProfileBody {
   @ApiProperty({ example: 'Иван', description: 'Имя пользователя' })
   name?: unknown;
 
-  @ApiProperty({ example: 25, description: 'Возраст', required: false })
-  age?: unknown;
-
   @ApiProperty({
-    example: 1,
-    description: 'ID типа слепоты из /blindness-types',
-    required: false,
+    enum: UserRole,
+    example: UserRole.BLIND,
+    description: 'Роль пользователя — незрячий или волонтёр',
   })
-  blindnessTypeId?: unknown;
+  role?: unknown;
 }
+
+/** Значения enum'а одним списком — для проверки и для текста ошибки. */
+const USER_ROLES = Object.values(UserRole) as string[];
 
 @ApiTags('profile')
 @Controller('profile')
@@ -53,31 +54,21 @@ export class UsersController {
     @CurrentUser() user: jwtGuard.JwtPayload,
     @Body() body: CreateProfileBody,
   ) {
-    const { name, age, blindnessTypeId } = body;
+    const { name, role } = body;
     if (typeof name !== 'string' || name.trim().length < 2) {
       throw new BadRequestException('Укажите имя (минимум 2 символа)');
     }
-    if (age !== undefined && age !== null) {
-      if (typeof age !== 'number' || !Number.isInteger(age) || age < 0) {
-        throw new BadRequestException(
-          'Возраст должен быть целым неотрицательным числом',
-        );
-      }
-    }
-    if (blindnessTypeId !== undefined && blindnessTypeId !== null) {
-      if (
-        typeof blindnessTypeId !== 'number' ||
-        !Number.isInteger(blindnessTypeId)
-      ) {
-        throw new BadRequestException('blindnessTypeId должен быть числом');
-      }
+    // Роль приходит из тела запроса, то есть это `unknown`: сверяем со списком
+    // значений enum'а, иначе в БД уедет что угодно и упадёт уже драйвер.
+    if (typeof role !== 'string' || !USER_ROLES.includes(role)) {
+      throw new BadRequestException(
+        `Укажите роль: ${USER_ROLES.join(' или ')}`,
+      );
     }
 
     return this.users.createProfile(user.sub, {
       name: name.trim(),
-      age: typeof age === 'number' ? age : undefined,
-      blindnessTypeId:
-        typeof blindnessTypeId === 'number' ? blindnessTypeId : undefined,
+      role: role as UserRole,
     });
   }
 

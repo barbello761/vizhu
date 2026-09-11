@@ -1,0 +1,40 @@
+.profile-menu {
+  display: flex;
+
+  /* `1 0 auto`, а не `1`: растём на свободном месте (тогда переключатель темы
+     прижат к низу, как в макете), но НИКОГДА не ужимаемся. С `flex: 1` база
+     равна нулю и колонка схлопывалась — на тесных экранах и при увеличенном
+     системном шрифте переключателю темы уже не хватало места. Теперь колонка
+     честно вырастает по содержимому, а прокручивает её page-layout__main. */
+  flex: 1 0 auto;
+  flex-direction: column;
+  gap: var(--space-grouped);
+  width: 100%;
+  padding-bottom: var(--space-close);
+
+  &__title {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--heading-2-font-size);
+    font-weight: var(--heading-2-font-weight);
+    line-height: var(--heading-2-line-height);
+    color: var(--text-main);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-related);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  &__theme {
+    /* Прижимаем переключатель темы к низу — над таб-баром, как в макете.
+       Когда места нет, auto-отступ схлопывается в ноль, и переключатель
+       просто идёт следом за меню. */
+    flex-shrink: 0;
+    margin-top: auto;
+  }
+}

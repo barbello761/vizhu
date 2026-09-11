@@ -1,0 +1,57 @@
+/* Onest Rounded — гарнитура макета. В public лежат только .ttf, поэтому
+   woff2 указан первым «на вырост»: как только его положат рядом, браузер
+   возьмёт именно его, а до тех пор — ttf. */
+
+@font-face {
+  font-family: 'Onest Rounded';
+  font-style: normal;
+  font-weight: 500;
+  src:
+    url('/assets/fonts/OnestRounded-Medium.woff2') format('woff2'),
+    url('/assets/fonts/OnestRounded-Medium.ttf') format('truetype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Onest Rounded';
+  font-style: normal;
+  font-weight: 700;
+  src:
+    url('/assets/fonts/OnestRounded-Bold.woff2') format('woff2'),
+    url('/assets/fonts/OnestRounded-Bold.ttf') format('truetype');
+  font-display: swap;
+}
+
+/* ── Onest ─────────────────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: Onest;
+  font-style: normal;
+  font-weight: 400;
+  src: url('/assets/fonts/Onest-Regular.woff2') format('woff2');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Onest;
+  font-style: normal;
+  font-weight: 500;
+  src: url('/assets/fonts/Onest-Medium.woff2') format('woff2');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Onest;
+  font-style: normal;
+  font-weight: 600;
+  src: url('/assets/fonts/Onest-SemiBold.woff2') format('woff2');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Onest;
+  font-style: normal;
+  font-weight: 700;
+  src: url('/assets/fonts/Onest-Bold.woff2') format('woff2');
+  font-display: swap;
+}

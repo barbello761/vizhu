@@ -221,6 +221,19 @@ const MOCK_HISTORY: HistoryEntry[] = [
   },
 ];
 
+/** Профиль текущего пользователя для мока. PATCH /profile его мутирует. */
+let mockProfile = {
+  uuid: 'mock-user-uuid',
+  name: 'Светлана Иванова',
+  age: 63,
+  role: 'volunteer',
+  phone: '79001234567',
+  email: 'svetlana.ivanova@example.com',
+  blindnessType: { id: 1, name: 'Незрячий' },
+  isVerified: true,
+  createdAt: new Date().toISOString(),
+};
+
 export const handlers = [
   // ─── Auth ──────────────────────────────────────────────────────────────────
   // Запрос OTP: любой номер → успех ~600 мс
@@ -310,18 +323,18 @@ export const handlers = [
     return new HttpResponse(null, { status: 201 });
   }),
 
-  http.get('*/profile', () =>
-    HttpResponse.json({
-      uuid: 'mock-user-uuid',
-      name: 'Светлана Иванова',
-      age: 63,
-      role: 'volunteer',
-      phone: '79001234567',
-      blindnessType: { id: 1, name: 'Незрячий' },
-      isVerified: true,
-      createdAt: new Date().toISOString(),
-    }),
-  ),
+  http.get('*/profile', () => HttpResponse.json(mockProfile)),
+
+  // Снимок пула свободных волонтёров — запрашивается на экране поиска.
+  http.get('*/calls/availability', () => HttpResponse.json({ available: 3 })),
+
+  // PATCH /profile — точечное обновление; в моке правки живут до перезагрузки.
+  http.patch('*/profile', async ({ request }) => {
+    await new Promise((r) => setTimeout(r, 500));
+    const patch = (await request.json()) as Partial<typeof mockProfile>;
+    mockProfile = { ...mockProfile, ...patch };
+    return HttpResponse.json(mockProfile);
+  }),
 
   http.get('*/history', () => HttpResponse.json(MOCK_HISTORY)),
 

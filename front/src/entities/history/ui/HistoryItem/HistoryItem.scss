@@ -1,0 +1,227 @@
+@use 'shared/styles/_mixins' as m;
+
+.history-item {
+  position: relative;
+  display: flex;
+  gap: var(--space-related);
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--size-touch-target-l);
+  padding: var(--space-related);
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-m);
+  transition: background-color 0.15s ease;
+
+  /* «Доп. меню» из макета: пока меню открыто, карточка подсвечена. */
+  &--active {
+    background-color: var(--accent-muted);
+  }
+
+  /**
+   * Открывает запись. Псевдоэлемент растягивает зону нажатия на всю карточку,
+   * кроме кнопки меню — она лежит выше по z-оси.
+   */
+  &__open {
+    display: flex;
+    flex: 1 0 0;
+    flex-direction: column;
+    gap: var(--space-bonded);
+    align-items: flex-start;
+    min-width: 0;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-s);
+
+    &::after {
+      position: absolute;
+      inset: 0;
+      content: '';
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow:
+        0 0 0 3px var(--bg-page),
+        0 0 0 6px var(--accent-default);
+    }
+  }
+
+  &__title {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-default);
+    line-height: var(--body-line-height);
+    color: var(--text-main);
+    white-space: nowrap;
+  }
+
+  &__meta {
+    display: flex;
+    gap: var(--space-bonded);
+    align-items: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-sans);
+    font-size: var(--label-font-size);
+    font-weight: var(--label-font-weight);
+    line-height: var(--label-line-height);
+    color: var(--text-main);
+    white-space: nowrap;
+  }
+
+  &__more {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-shrink: 0;
+    padding: var(--space-bonded);
+    margin: calc(-1 * var(--space-bonded));
+    color: var(--text-main);
+    cursor: pointer;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-s);
+
+    @include m.pressed {
+      color: var(--accent-default);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow:
+        0 0 0 3px var(--bg-page),
+        0 0 0 6px var(--accent-default);
+    }
+  }
+
+  /* В макете меню прижато к правому верхнему углу карточки с отступом 8px. */
+  &__menu {
+    position: absolute;
+    top: var(--space-compressed);
+    right: var(--space-compressed);
+    z-index: 2;
+    width: max-content;
+    max-width: calc(100% - 2 * var(--space-compressed));
+  }
+
+  /* ── Правка названия ─────────────────────────────────────────────────── */
+
+  &__rename {
+    display: flex;
+    flex: 1 0 0;
+    gap: var(--space-bonded);
+    align-items: center;
+    min-width: 0;
+  }
+
+  &__rename-field {
+    flex: 1 0 0;
+    min-width: 0;
+    padding: var(--space-compressed) var(--space-bonded);
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-default);
+    line-height: var(--body-line-height);
+    color: var(--text-main);
+    background-color: var(--bg-page);
+    border: var(--border-weight) solid var(--accent-default);
+    border-radius: var(--radius-s);
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  &__rename-action {
+    display: flex;
+    flex-shrink: 0;
+    padding: var(--space-bonded);
+    margin: calc(-1 * var(--space-bonded));
+    color: var(--accent-default);
+    cursor: pointer;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-s);
+
+    @include m.pressed {
+      color: var(--accent-active);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow:
+        0 0 0 3px var(--bg-surface),
+        0 0 0 6px var(--accent-default);
+    }
+  }
+
+  /* ── Скелетон ────────────────────────────────────────────────────────── */
+
+  &__skeleton-col {
+    display: flex;
+    flex: 1 0 0;
+    flex-direction: column;
+    gap: var(--space-bonded);
+    align-items: flex-start;
+    min-width: 0;
+  }
+
+  &__skeleton-row {
+    display: flex;
+    gap: var(--space-bonded);
+    align-items: center;
+    max-width: 100%;
+  }
+
+  &__skeleton-bar {
+    background-color: var(--bg-elevated);
+    border-radius: var(--radius-s);
+    animation: history-item-pulse 1.4s ease-in-out infinite;
+
+    /* Ширины полосок взяты из макета — они имитируют заголовок и мету. */
+    &--title {
+      width: 154px;
+      height: 30px;
+    }
+
+    &--date {
+      width: 61px;
+      height: 24px;
+    }
+
+    &--time {
+      width: 121px;
+      height: 24px;
+    }
+  }
+
+  &__skeleton-slot {
+    display: flex;
+    flex-shrink: 0;
+    color: var(--bg-elevated);
+  }
+}
+
+@keyframes history-item-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .history-item__skeleton-bar {
+    animation: none;
+  }
+}

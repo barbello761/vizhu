@@ -24,6 +24,14 @@ export default defineConfig({
     // jsdom эмулирует браузерное окружение для компонентных тестов
     environment: 'jsdom',
 
+    // shared/config/env.ts валидирует переменные окружения на импорте и падает
+    // без VITE_API_URL. В тестах .env не подхватывается, поэтому любой модуль,
+    // который тянет config (а через createPersistedStore — почти любой стор),
+    // ронял весь сьют. Адрес фиктивный: запросы всё равно перехватывает MSW.
+    env: {
+      VITE_API_URL: 'http://localhost:3000/api',
+    },
+
     // Setup-файл запускается перед каждым тест-файлом (jest-dom матчеры + MSW-сервер)
     setupFiles: ['./src/tests/setup.ts'],
 

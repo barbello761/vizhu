@@ -1,0 +1,63 @@
+@use 'shared/styles/_mixins' as m;
+
+.about {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-distant);
+  height: 100%;
+  padding: var(--space-close) var(--space-close) max(var(--space-close), var(--inset-bottom));
+
+  /* Скроллится только тело, см. миксин m.scroll-body ниже. */
+  overflow: hidden;
+  background: var(--bg-page);
+
+  &__top {
+    flex-shrink: 0;
+  }
+
+  &__content {
+    @include m.scroll-body;
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-distant);
+    align-items: center;
+    justify-content: center;
+    padding-bottom: var(--space-unrelated);
+    text-align: center;
+
+    /* `safe` — центрируем, пока содержимое влезает, и прижимаем к началу,
+       когда нет: иначе центрирование во флексе срезает верх при переполнении
+       и до него не доскроллить. */
+    @supports (justify-content: safe center) {
+      justify-content: safe center;
+    }
+  }
+
+  &__logo {
+    width: 209px;
+    height: 80px;
+    color: var(--accent-default);
+  }
+
+  &__version {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-default);
+    line-height: var(--body-line-height);
+    color: var(--text-main);
+  }
+
+  &__links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-related);
+    align-items: center;
+    align-self: stretch;
+  }
+
+  &__actions {
+    flex-shrink: 0;
+  }
+}

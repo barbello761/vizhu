@@ -1,0 +1,102 @@
+@use 'shared/styles/_mixins' as m;
+
+.inviting {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-distant);
+  height: 100%;
+  padding: var(--space-close) var(--space-close) max(var(--space-close), var(--inset-bottom));
+
+  /* Скроллится только тело, см. миксин m.scroll-body ниже. */
+  overflow: hidden;
+  background: var(--bg-page);
+
+  &:focus {
+    outline: none;
+  }
+
+  &__top {
+    flex-shrink: 0;
+  }
+
+  &__content {
+    @include m.scroll-body;
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-grouped);
+    align-items: center;
+    text-align: center;
+  }
+
+  &__title {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--heading-1-font-size);
+    font-weight: var(--heading-1-font-weight);
+    line-height: var(--heading-1-line-height);
+    color: var(--text-main);
+  }
+
+  &__subtitle {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-default);
+    line-height: var(--body-line-height);
+    color: var(--text-main);
+  }
+
+  &__link {
+    display: flex;
+    gap: var(--space-bonded);
+    align-items: center;
+    width: 100%;
+    min-height: var(--size-touch-target-m);
+    padding: var(--space-related) var(--space-close);
+    background-color: var(--bg-surface);
+    border-radius: var(--radius-l);
+  }
+
+  &__link-value {
+    flex: 1 0 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-default);
+    line-height: var(--body-line-height);
+    color: var(--text-main);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  &__copy {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-slot);
+    height: var(--size-icon-slot);
+    color: var(--accent-default);
+    cursor: pointer;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-s);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow:
+        0 0 0 3px var(--bg-surface),
+        0 0 0 6px var(--accent-default);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    padding-top: var(--space-distant);
+  }
+}
