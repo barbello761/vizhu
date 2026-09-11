@@ -1,0 +1,118 @@
+:root {
+  /* ── Текст ─────────────────────────────────────────────────────────────── */
+  --text-main: #16171f; /* Neutral/950 */
+  --text-secondary: #5b5c72; /* Neutral/600 */
+  --text-disabled: #8f91a3; /* Neutral/400 */
+  --text-on-accent: #fff; /* Neutral/50 */
+
+  /* ── Плейсхолдеры ──────────────────────────────────────────────────────── */
+  --placeholder-default: #b7b8c8; /* Neutral/300 */
+  --placeholder-disabled: #8f91a3; /* Neutral/400 */
+
+  /* ── Фон ───────────────────────────────────────────────────────────────── */
+  --bg-page: #fff; /* Neutral/50 */
+  --bg-surface: #ededf5; /* Neutral/100 */
+  --bg-elevated: #dbdbe4; /* Neutral/200 */
+  --bg-disabled: #a1a2b4; /* Neutral/350 */
+  --bg-info: #94b5ff; /* Blue/200 */
+  --bg-camera: #16171f; /* Neutral/950 */
+
+  /* ── Акцент ────────────────────────────────────────────────────────────── */
+  --accent-default: #004ac0; /* Blue/500 */
+  --accent-active: #003574; /* Blue/700 */
+  --accent-loading: #006bf0; /* Blue/400 */
+  --accent-disabled: #5b5c72; /* Neutral/600 */
+  --accent-muted: #cadaff; /* Blue/100 */
+
+  /* ── Опасное действие ──────────────────────────────────────────────────── */
+  --danger-default: #be0926; /* Red/700 */
+  --danger-loading: #e20d37; /* Red/600 */
+  --danger-active: #960515; /* Red/800 */
+
+  /* ── Одинаковые в обеих темах ──────────────────────────────────────────── */
+  --fixed-main: #fff; /* Neutral/50 */
+  --fixed-text: #16171f; /* Neutral/950 */
+  --fixed-active: #cadaff; /* Blue/100 */
+
+  /* ── Границы ───────────────────────────────────────────────────────────── */
+  --border-weight: 3px;
+
+  /* ── Отступы (Space/*) ─────────────────────────────────────────────────── */
+  --space-compressed: 4px;
+  --space-bonded: 6px;
+  --space-related: 12px;
+  --space-close: 16px;
+  --space-adjacent: 20px;
+  --space-grouped: 24px;
+  --space-distant: 36px;
+  --space-unrelated: 96px;
+
+  /* ── Радиусы ───────────────────────────────────────────────────────────── */
+  --radius-s: 6px;
+  --radius-m: 12px;
+  --radius-l: 16px;
+  --radius-xl: 20px;
+  --radius-max: 99999px;
+
+  /* ── Размеры ───────────────────────────────────────────────────────────── */
+  --size-touch-target-s: 48px;
+  --size-touch-target-m: 64px;
+  --size-touch-target-l: 72px;
+  --size-touch-target-xl: 96px;
+  --size-icon-slot: 32px;
+
+  /* ── Типографика ───────────────────────────────────────────────────────── */
+  --heading-1-font-size: 2.25rem; /* 36px */
+  --heading-1-line-height: 1.2222; /* 44px */
+  --heading-1-font-weight: 700;
+  --heading-2-font-size: 2rem; /* 32px */
+  --heading-2-line-height: 1.25; /* 40px */
+  --heading-2-font-weight: 700;
+  --heading-3-font-size: 1.5rem; /* 24px */
+  --heading-3-line-height: 1.3333; /* 32px */
+  --heading-3-font-weight: 500;
+  --body-font-size: 1.25rem; /* 20px */
+  --body-line-height: 1.5; /* 30px */
+  --body-weight-default: 500;
+  --body-weight-accent: 700;
+  --label-font-size: 1.125rem; /* 18px */
+  --label-line-height: 1.3333; /* 24px */
+  --label-font-weight: 500;
+  --caption-font-size: 1rem; /* 16px */
+  --caption-line-height: 1.375; /* 22px */
+  --caption-font-weight: 500;
+  --caption-2-font-size: 0.875rem; /* 14px */
+  --caption-2-line-height: 1.4286; /* 20px */
+  --caption-2-font-weight: 500;
+  --caption-3-font-size: 0.75rem; /* 12px */
+  --caption-3-line-height: 1.5; /* 18px */
+  --caption-3-font-weight: 500;
+
+  /* ── Сетка (Layout guides/*, Mobile) ───────────────────────────────────── */
+  --layout-margin: 16px;
+  --layout-gutter: 16px;
+  --layout-columns: 4;
+}
+
+[data-theme='dark'] {
+  --text-main: #fff; /* Neutral/50 */
+  --text-secondary: #5b5c72; /* Neutral/600 */
+  --text-disabled: #484a5c; /* Neutral/700 */
+  --text-on-accent: #fff; /* Neutral/50 */
+  --placeholder-default: #6f7084; /* Neutral/500 */
+  --placeholder-disabled: #383949; /* Neutral/800 */
+  --bg-page: #16171f; /* Neutral/950 */
+  --bg-surface: #272936; /* Neutral/900 */
+  --bg-elevated: #383949; /* Neutral/800 */
+  --bg-disabled: #1d1e29; /* Neutral/925 */
+  --bg-info: #94b5ff; /* Blue/200 */
+  --bg-camera: #16171f; /* Neutral/950 */
+  --accent-default: #006bf0; /* Blue/400 */
+  --accent-active: #004ac0; /* Blue/500 */
+  --accent-loading: #006bf0; /* Blue/400 */
+  --accent-disabled: #1d1e29; /* Neutral/925 */
+  --accent-muted: #002957; /* Blue/800 */
+  --danger-default: #e20d37; /* Red/600 */
+  --danger-loading: #fd3d5a; /* Red/500 */
+  --danger-active: #be0926; /* Red/700 */
+}

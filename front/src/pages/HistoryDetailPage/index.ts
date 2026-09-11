@@ -1,1 +1,0 @@
-export { HistoryDetailPage } from './ui';

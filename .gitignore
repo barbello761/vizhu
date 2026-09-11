@@ -1,8 +1,11 @@
 # Env
 .env
 *.env.local
+# Резервные копии .env
+.env.bak*
+*.env.bak*
 
-# SSL ключи — никогда не коммитить
+# SSL ключи 
 infra/nginx/ssl/
 *.key
 *.crt

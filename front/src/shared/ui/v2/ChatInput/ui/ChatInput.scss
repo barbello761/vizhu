@@ -1,0 +1,104 @@
+@use 'shared/styles/_mixins' as m;
+
+.chat-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-bonded);
+  align-items: flex-start;
+  width: 100%;
+
+  &__menu {
+    width: 100%;
+    max-width: 294px;
+  }
+
+  &__row {
+    display: flex;
+    gap: var(--space-related);
+    align-items: flex-end;
+    width: 100%;
+    min-height: var(--size-touch-target-l);
+    max-height: 320px;
+    padding: var(--space-adjacent) var(--space-close);
+    background-color: var(--bg-surface);
+
+    /* Рамка есть всегда — прозрачная, чтобы поле не подпрыгивало в фокусе. */
+    border: var(--border-weight) solid transparent;
+    border-radius: var(--radius-m);
+
+    &--filled,
+    &:focus-within {
+      border-color: var(--accent-default);
+    }
+  }
+
+  /**
+   * Глифы 32×32, как в макете: внутренний отступ с равным отрицательным
+   * внешним поднимает зону нажатия до 44×44, не сдвигая иконку.
+   */
+  &__attach,
+  &__send {
+    display: flex;
+    flex-shrink: 0;
+    padding: var(--space-bonded);
+    margin: calc(-1 * var(--space-bonded));
+    cursor: pointer;
+    border-radius: var(--radius-s);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow:
+        0 0 0 3px var(--bg-surface),
+        0 0 0 6px var(--accent-default);
+    }
+  }
+
+  &__attach {
+    color: var(--accent-default);
+
+    @include m.pressed {
+      color: var(--accent-active);
+    }
+  }
+
+  &__send {
+    color: var(--accent-default);
+
+    @include m.pressed {
+      color: var(--accent-active);
+    }
+
+    &:disabled {
+      color: var(--text-disabled);
+      cursor: not-allowed;
+    }
+  }
+
+  &__field {
+    flex: 1 0 0;
+    min-width: 0;
+    max-height: 240px;
+    padding: 0;
+    overflow-y: auto;
+    font-family: var(--font-sans);
+    font-size: var(--label-font-size);
+    font-weight: var(--label-font-weight);
+    line-height: var(--label-line-height);
+    color: var(--text-main);
+    resize: none;
+    background: none;
+    border: none;
+
+    &::placeholder {
+      color: var(--placeholder-default);
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    &:disabled {
+      color: var(--placeholder-disabled);
+    }
+  }
+}

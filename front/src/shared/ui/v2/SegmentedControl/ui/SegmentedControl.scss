@@ -1,0 +1,62 @@
+@use 'shared/styles/_mixins' as m;
+
+.segmented-control {
+  display: flex;
+  gap: var(--space-related);
+  align-items: stretch;
+  width: 100%;
+  min-height: var(--size-touch-target-l);
+  padding: var(--space-related);
+  overflow: hidden;
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-xl);
+
+  &__option {
+    display: flex;
+    flex: 1 0 0;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: var(--size-touch-target-s);
+    padding: var(--space-compressed);
+    font-family: var(--font-sans);
+    font-size: var(--label-font-size);
+    font-weight: var(--label-font-weight);
+    line-height: var(--label-line-height);
+    color: var(--text-main);
+
+    /* Подпись переносится, а не режется многоточием: при увеличенном системном
+       шрифте «Светлая тема» не влезала в половину ширины и превращалась
+       в «Светлая т…» — прочитать вариант было нельзя. Переключатель просто
+       становится выше, `min-height` держит нижнюю границу. */
+    text-align: center;
+    text-wrap: balance;
+    cursor: pointer;
+    background-color: var(--bg-page);
+    border: 0;
+    border-radius: var(--radius-m);
+    transition:
+      color 0.15s ease,
+      background-color 0.15s ease;
+
+    @include m.pressed {
+      background-color: var(--accent-muted);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow:
+        0 0 0 3px var(--bg-surface),
+        0 0 0 6px var(--accent-default);
+    }
+
+    &--selected {
+      color: var(--text-on-accent);
+      background-color: var(--accent-default);
+
+      @include m.pressed {
+        background-color: var(--accent-active);
+      }
+    }
+  }
+}

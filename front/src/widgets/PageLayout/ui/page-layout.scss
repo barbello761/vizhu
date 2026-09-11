@@ -4,7 +4,6 @@
   display: flex;
   flex-direction: column;
   height: 100dvh;
-  padding: 0 var(--pad-4);
   overflow: hidden;
 
   &__header {
@@ -12,7 +11,7 @@
     gap: var(--space-3);
     align-items: center;
     justify-content: space-between;
-    padding: var(--pad-3) 0;
+    padding: var(--pad-3) var(--pad-4);
     color: var(--color-primary);
   }
 
@@ -36,8 +35,13 @@
     display: flex;
     flex: 1;
     flex-direction: column;
-    padding-top: var(--pad-6);
+    padding: var(--pad-6) var(--pad-4) 0;
     overflow: hidden auto;
+
+    /* Резинка на краях списка не должна уезжать в документ и утаскивать
+       за собой таб-бар: экран короче вьюпорта (кабинет волонтёра) тянулся
+       целиком, вместе с нижней навигацией. */
+    overscroll-behavior-y: contain;
     scrollbar-width: none;
 
     &::-webkit-scrollbar {
@@ -47,39 +51,57 @@
     &:focus {
       outline: none;
     }
+
+    /* Экран без хедера (главный): отступ сверху задаёт сам макет — 16px. */
+    &--flush {
+      padding-top: var(--space-close);
+    }
   }
 
   &__nav {
     display: flex;
-    align-items: center;
+    flex-shrink: 0;
+    align-items: flex-end;
     justify-content: space-between;
-    padding: var(--pad-3) 0;
-    background: var(--color-bg);
+    min-height: var(--size-touch-target-l);
 
-    a {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 44px;
-      min-height: 44px;
+    /* Нижний отступ учитывает системную панель жестов. С targetSdk 36 Android
+       рисует приложение под системными панелями (с 15-й версии edge-to-edge
+       принудительный), поэтому 100dvh включает полосу жестов — без этого
+       отступа таб-бар уходил под неё, и всему экрану не хватало её высоты
+       (те самые «5% снизу»). max() оставляет прежние 6px там, где панели нет. */
+    padding: var(--space-bonded) var(--space-related) max(var(--space-bonded), var(--inset-bottom));
+    background: var(--bg-page);
+  }
+
+  &__nav-item {
+    display: flex;
+    flex: 1 0 0;
+    flex-direction: column;
+    gap: var(--space-compressed);
+    align-items: center;
+    min-width: 0;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: var(--radius-s);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow:
+        0 0 0 3px var(--bg-page),
+        0 0 0 6px var(--accent-default);
     }
 
-    .nav-link {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-      align-items: center;
-      padding: var(--pad-3) var(--pad-6);
-      color: var(--blue-700);
-      border-radius: var(--radius-md);
-      transition: all 0.5s cubic-bezier(0.075, 0.82, 0.165, 1);
-
-      @include m.text-14;
-
-      &--active {
-        color: var(--color-surface);
-        background-color: var(--blue-700);
-      }
+    &--active {
+      color: var(--accent-default);
     }
+  }
+
+  &__nav-label {
+    font-family: var(--font-sans);
+    font-size: var(--caption-2-font-size);
+    font-weight: var(--caption-2-font-weight);
+    line-height: var(--caption-2-line-height);
+    text-align: center;
   }
 }

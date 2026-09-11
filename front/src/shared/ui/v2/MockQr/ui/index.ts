@@ -1,0 +1,1 @@
+export { MockQr } from './MockQr';

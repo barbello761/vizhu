@@ -8,6 +8,25 @@ export default defineConfig(async ({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const isProd = mode === 'production';
 
+  // Куда vite-сервер проксирует /api и /socket.io при запуске БЕЗ докера
+  const devProxyTarget = env.VITE_DEV_PROXY_TARGET || 'http://localhost:3000';
+
+  // Благодаря относительному VITE_API_URL=/api фронт и api для браузера
+  // остаются одним origin — как в проде за nginx, и CORS не участвует.
+  const devProxy = {
+    '/api': {
+      target: devProxyTarget,
+      changeOrigin: true,
+      rewrite: (path: string) => path.replace(/^\/api/, ''),
+    },
+    // Socket.IO матчинга волонтёров — тем же origin, что и в проде.
+    '/socket.io': {
+      target: devProxyTarget,
+      changeOrigin: true,
+      ws: true,
+    },
+  };
+
   // Анализатор бандла — включается через: ANALYZE=true npm run build
   const extraPlugins: Plugin[] = [];
   if (env.ANALYZE) {
@@ -29,7 +48,7 @@ export default defineConfig(async ({ mode }) => {
     manifest: false,
 
     workbox: {
-      globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+      globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webm,mp4}'],
 
       runtimeCaching: [
         {
@@ -65,12 +84,10 @@ export default defineConfig(async ({ mode }) => {
 
     // ─── Dev-сервер ───────────────────────────────────────────────────────
     server: {
-      port: 3000,
+      port: 5173,
       strictPort: false,
-      open: true,
-      proxy: {
-        '/api': { target: 'https://vizhu.su', changeOrigin: true },
-      },
+      open: !process.env.DOCKER_DEV,
+      proxy: devProxy,
     },
 
     // ─── Сборка ───────────────────────────────────────────────────────────
@@ -105,9 +122,7 @@ export default defineConfig(async ({ mode }) => {
     // ─── Preview (vite preview) ───────────────────────────────────────────
     preview: {
       port: 4173,
-      proxy: {
-        '/api': { target: 'https://vizhu.su', changeOrigin: true },
-      },
+      proxy: devProxy,
     },
   };
 });
