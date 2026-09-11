@@ -2,6 +2,9 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { StatusBar } from '@capacitor/status-bar';
 import { CameraPreview } from '@capgo/camera-preview';
 
+import { resolveActiveTheme } from '@/shared/lib/theme';
+
+import { syncStatusBar } from '../status-bar';
 import type { CapturedPhoto, PhotoCameraPort } from '../types';
 
 /**
@@ -60,7 +63,14 @@ const runExclusive = (task: () => Promise<void>): Promise<void> => {
   return next;
 };
 
+/**
+ * Прозрачность всех слоёв над нативным превью (toBack рисует его ПОЗАДИ
+ * WebView). Класс вешаем и на `<html>`, и на `<body>`: корневой элемент тоже
+ * покрашен (index.css + инлайновый синий прелоадера в index.html), и пока он
+ * непрозрачен, на Android камеры не видно вообще — виден фон приложения.
+ */
 const setTransparent = (on: boolean) => {
+  document.documentElement.classList.toggle(CAMERA_PREVIEW_ACTIVE_CLASS, on);
   document.body.classList.toggle(CAMERA_PREVIEW_ACTIVE_CLASS, on);
 };
 
@@ -115,6 +125,9 @@ export const nativePhotoCamera: PhotoCameraPort = {
       // доложить об успехе, нативное превью уже могло подняться.
       setTransparent(false);
       await StatusBar.setOverlaysWebView({ overlay: false });
+      // overlay:false сбрасывает цвет полосы — возвращаем его под тему,
+      // иначе после съёмки статус-бар остаётся прозрачным.
+      await syncStatusBar(resolveActiveTheme());
       await CameraPreview.stop().catch(() => {});
     }),
 

@@ -4,10 +4,18 @@ import './CamButton.scss';
 
 interface CamButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
   /**
-   * `control` — 72×72, в слот кладётся иконка 32×32;
-   * `shutter` — 96×96 с диском внутри кольца, содержимое не принимает.
+   * `control` — круглая кнопка с иконкой в слоте;
+   * `shutter` — затвор с диском внутри кольца, содержимое не принимает.
    */
   variant?: 'control' | 'shutter';
+  /**
+   * Тон обводки и иконки:
+   * `neutral` — белая (по умолчанию), `active` — голубая (включённое состояние),
+   * `danger` — красная (завершение звонка).
+   */
+  tone?: 'neutral' | 'active' | 'danger';
+  /** Размер: `l` — 72 (по умолчанию), `xl` — 96. */
+  size?: 'l' | 'xl';
   /** Кнопки этого типа всегда без подписи, поэтому имя обязательно. */
   'aria-label': string;
   children?: ReactNode;
@@ -15,12 +23,22 @@ interface CamButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, '
 
 export const CamButton = ({
   variant = 'control',
+  tone = 'neutral',
+  size = 'l',
   children,
   className,
   type = 'button',
   ...nativeProps
 }: CamButtonProps) => {
-  const cls = ['cam-button', `cam-button--${variant}`, className].filter(Boolean).join(' ');
+  const cls = [
+    'cam-button',
+    `cam-button--${variant}`,
+    tone !== 'neutral' && `cam-button--${tone}`,
+    size === 'xl' && 'cam-button--xl',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <button {...nativeProps} type={type} className={cls}>

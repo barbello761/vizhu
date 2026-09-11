@@ -6,7 +6,7 @@
     <link rel="icon" href="/assets/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="/assets/icons/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#1a1a1a" />
+    <meta name="theme-color" content="#0a25a9" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="ВИЖУ" />
@@ -18,9 +18,11 @@
          только CSS и инлайновый SVG: ни бандла, ни шрифтов приложения на этот
          момент ещё нет. React снимает её через main.tsx (класс `hidden`).
 
-         Фон в макете — шейдер «moving gradient»: перетекающая синяя сетка.
-         Здесь она собрана из двух размытых пятен поверх глубокого синего
-         градиента; пятна двигаются трансформами, то есть на композиторе.
+         Фон в макете — шейдер «moving gradient»: перетекающая синяя сетка
+         (Preloader.webm). Оригинал (2.7 МБ) пережат в крошечное видео
+         (240px, 20 fps, VP9 ~15 КБ / H.264 ~35 КБ) и лежит поверх статичного
+         синего градиента-подложки — тот виден, пока видео грузится, и на
+         устройствах с `prefers-reduced-motion`.
       ──────────────────────────────────────────────────────────────────── */
       *,
       *::before,
@@ -38,6 +40,10 @@
         font-display: swap;
       }
 
+      /* Синий прелоадера держим и на html, и на body: первый кадр (до применения
+         бандла и до монтирования React) должен быть сразу синим, без вспышки
+         белого/чёрного. Фон приложения (#root) перекроет это после старта. */
+      html,
       body {
         margin: 0;
         background: #0a25a9;
@@ -53,8 +59,15 @@
         justify-content: center;
         overflow: hidden;
         font-family: 'Onest Rounded', 'Onest', ui-sans-serif, system-ui, sans-serif;
-        background-color: #0a25a9;
-        background-image: radial-gradient(140% 100% at 50% 35%, #0e34ba 0%, #031c94 100%);
+
+        /* Базовый синий — под всеми перетекающими пятнами, полностью непрозрачен. */
+        background-color: #05207f;
+        background-image: radial-gradient(
+          120% 120% at 50% 0%,
+          #0d38c0 0%,
+          #041a72 60%,
+          #03135a 100%
+        );
         transition:
           opacity 0.35s ease,
           visibility 0.35s ease;
@@ -66,50 +79,32 @@
         pointer-events: none;
       }
 
-      /* Перетекающие пятна фона. */
-      .pre-glow {
+      /* ── Фоновое видео ───────────────────────────────────────────────────
+         Пережатый макетный шейдер «moving gradient». Апскейл с 240px
+         сглаживаем размытием; scale(1.08) прячет мягкий край от blur.
+
+         opacity: 0 до события `playing` — принципиально. Пока видео не
+         заиграло, Android WebView рисует на его месте свою заглушку (белый
+         фон с кнопкой «плей» во весь экран). Показываем элемент только когда
+         кадры реально пошли; если автоплей запрещён — под ним остаётся
+         статичный градиент, и заглушка не видна вообще. Плюс poster 1×1
+         в цвет фона — на случай, если WebView рисует заглушку ещё раньше. */
+      .pre-video {
         position: absolute;
-        border-radius: 50%;
-        filter: blur(60px);
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
         pointer-events: none;
+        background-color: #05207f;
+        opacity: 0;
+        filter: blur(6px);
+        transform: scale(1.08);
+        transition: opacity 0.5s ease;
       }
 
-      .pre-glow--top {
-        top: -30%;
-        left: -10%;
-        width: 120%;
-        height: 70%;
-        background: radial-gradient(closest-side, #4f8ce6 0%, rgba(79, 140, 230, 0) 100%);
-        animation: pre-drift-top 9s ease-in-out infinite alternate;
-      }
-
-      .pre-glow--bottom {
-        bottom: -25%;
-        left: -35%;
-        width: 110%;
-        height: 65%;
-        background: radial-gradient(closest-side, #2a76de 0%, rgba(42, 118, 222, 0) 100%);
-        animation: pre-drift-bottom 11s ease-in-out infinite alternate;
-      }
-
-      @keyframes pre-drift-top {
-        from {
-          transform: translate3d(-6%, 0, 0) scale(1);
-        }
-
-        to {
-          transform: translate3d(8%, 6%, 0) scale(1.15);
-        }
-      }
-
-      @keyframes pre-drift-bottom {
-        from {
-          transform: translate3d(0, 4%, 0) scale(1.1);
-        }
-
-        to {
-          transform: translate3d(14%, -6%, 0) scale(0.95);
-        }
+      .pre-video.is-playing {
+        opacity: 1;
       }
 
       .pre-center {
@@ -165,9 +160,13 @@
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .pre-glow,
         .pre-center {
           animation: none;
+        }
+
+        /* Без движущегося фона — остаётся статичный градиент-подложка. */
+        .pre-video {
+          display: none;
         }
       }
     </style>
@@ -176,8 +175,22 @@
   <body>
     <!-- Заставка — React снимает её после монтирования (см. main.tsx) -->
     <div id="app-preloader" role="status">
-      <span class="pre-glow pre-glow--top"></span>
-      <span class="pre-glow pre-glow--bottom"></span>
+      <video
+        class="pre-video"
+        aria-hidden="true"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="auto"
+        tabindex="-1"
+        disablepictureinpicture
+        poster="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR42mNgVagHAADSAKW/j3nHAAAAAElFTkSuQmCC"
+        onplaying="this.classList.add('is-playing')"
+      >
+        <source src="/assets/moving-gradient.webm" type="video/webm" />
+        <source src="/assets/moving-gradient.mp4" type="video/mp4" />
+      </video>
 
       <div class="pre-center">
         <svg

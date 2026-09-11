@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router';
 
 import { announceRouteChange } from '@/shared/lib/a11y';
+import { useGoBack } from '@/shared/lib/navigation';
 import { ActionLink, Button, ChevronBackIcon, Logo } from '@/shared/ui/v2';
 
 import { APP_RELEASE, APP_VERSION, SUPPORT_TELEGRAM_URL } from '../model/about';
@@ -11,7 +11,7 @@ import './AboutPage.scss';
 const SOON = (what: string) => `${what} появится в одном из следующих обновлений`;
 
 export const AboutPage = () => {
-  const navigate = useNavigate();
+  const goBack = useGoBack('/profile');
 
   useEffect(() => {
     announceRouteChange(`О приложении ВИЖУ. Версия ${APP_VERSION}.`);
@@ -20,7 +20,7 @@ export const AboutPage = () => {
   return (
     <main id="main-content" className="about" tabIndex={-1} aria-labelledby="about-title">
       <div className="about__top">
-        <Button variant="icon" aria-label="Назад" onClick={() => void navigate(-1)}>
+        <Button variant="icon" aria-label="Назад" onClick={goBack}>
           <ChevronBackIcon />
         </Button>
       </div>

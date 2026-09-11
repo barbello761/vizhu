@@ -1,4 +1,3 @@
-import { Mic, MicOff, PhoneOff, SwitchCamera, User, Video, VideoOff } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -6,6 +5,19 @@ import { useCallStore, useLiveKitRoom } from '@/features/calls';
 import type { EndReason, MatchInfo } from '@/features/calls';
 import type { UserRole } from '@/features/profile';
 import { announceRouteChange } from '@/shared/lib/a11y/announcer';
+import { BLANK_POSTER } from '@/shared/lib/media';
+import {
+  Alert,
+  AlertCircleIcon,
+  CallEndIcon,
+  CamButton,
+  MicIcon,
+  MicOffIcon,
+  VideocamIcon,
+  VideocamOffIcon,
+} from '@/shared/ui/v2';
+
+import './CallRoomPage.scss';
 
 type CallRoomStageProps = {
   match: MatchInfo;
@@ -15,7 +27,7 @@ type CallRoomStageProps = {
 const CONNECTION_LABEL: Record<string, string> = {
   connecting: 'Соединяем…',
   connected: 'На связи',
-  reconnecting: 'Переподключаемся…',
+  reconnecting: 'Связь нестабильна, переподключаемся…',
   disconnected: 'Звонок завершён',
   failed: 'Не удалось подключиться',
 };
@@ -30,8 +42,6 @@ export const CallRoomStage = ({ match, role }: CallRoomStageProps) => {
   const [seconds, setSeconds] = useState(0);
 
   const isBlind = role === 'blind';
-  // Имена скрыты: стороны анонимны друг для друга.
-  const remoteLabel = isBlind ? 'Волонтёр' : 'Собеседник';
 
   const finish = (reason: EndReason) => {
     if (finishedRef.current) {
@@ -59,14 +69,10 @@ export const CallRoomStage = ({ match, role }: CallRoomStageProps) => {
     connectionState,
     micEnabled,
     cameraEnabled,
-    remoteConnected,
     remoteVideoActive,
-    canUseCamera,
-    facingMode,
     cameraSwitching,
     toggleMic,
     toggleCamera,
-    switchCamera,
     leave,
     setRemoteVideoEl,
     setLocalVideoEl,
@@ -77,7 +83,7 @@ export const CallRoomStage = ({ match, role }: CallRoomStageProps) => {
     leave();
   };
 
-  // Секундомер разговора — со момента установления связи.
+  // Секундомер разговора — с момента установления связи.
   useEffect(() => {
     if (connectionState !== 'connected') {
       return;
@@ -86,135 +92,94 @@ export const CallRoomStage = ({ match, role }: CallRoomStageProps) => {
     return () => clearInterval(id);
   }, [connectionState]);
 
+  const showLocalVideo = isBlind && cameraEnabled && !cameraSwitching;
+  const showRemoteVideo = !isBlind && remoteVideoActive;
+  const unstable = connectionState === 'reconnecting';
+
+  const hint = isBlind
+    ? cameraEnabled
+      ? null
+      : 'Камера выключена — волонтёр вас не видит'
+    : remoteVideoActive
+      ? null
+      : 'Ожидаем видео с камеры собеседника…';
+
   return (
     <main id="main-content" className="call-room" tabIndex={-1} aria-label="Видеозвонок">
+      {showLocalVideo && (
+        <video
+          ref={setLocalVideoEl}
+          className="call-room__video"
+          autoPlay
+          playsInline
+          muted
+          poster={BLANK_POSTER}
+          aria-label="Ваша камера — её видит волонтёр"
+        />
+      )}
+      {showRemoteVideo && (
+        <video
+          ref={setRemoteVideoEl}
+          className="call-room__video"
+          autoPlay
+          playsInline
+          muted
+          poster={BLANK_POSTER}
+          aria-label="Видео с камеры собеседника"
+        />
+      )}
+
+      {hint && !unstable && <p className="call-room__hint">{hint}</p>}
+
       <header className="call-room__top">
-        <p className="call-room__conn" role="status" aria-live="polite">
-          {CONNECTION_LABEL[connectionState] ?? ''}
-        </p>
         <p className="call-room__timer" aria-label={`Длительность звонка ${formatTime(seconds)}`}>
           {formatTime(seconds)}
         </p>
+        {unstable && (
+          <Alert icon={<AlertCircleIcon />} tone="danger" className="call-room__alert">
+            Нестабильное соединение
+          </Alert>
+        )}
+        <span className="visually-hidden" role="status" aria-live="polite">
+          {CONNECTION_LABEL[connectionState] ?? ''}
+        </span>
       </header>
 
-      {/* ─── Главная сцена: собеседник ─────────────────────────────────────── */}
-      <section className="call-room__stage" aria-label={`Собеседник: ${remoteLabel}`}>
-        {!isBlind && remoteVideoActive ? (
-          <video
-            ref={setRemoteVideoEl}
-            className="call-room__remote-video"
-            autoPlay
-            playsInline
-            muted
-            aria-label={`Видео с камеры собеседника: ${remoteLabel}`}
-          />
-        ) : (
-          <div className="call-room__card call-room__card--remote">
-            <span className="call-room__avatar" aria-hidden="true">
-              <User size={64} />
-            </span>
-            <p className="call-room__card-name">{remoteLabel}</p>
-            <p className="call-room__card-sub">
-              {remoteConnected
-                ? isBlind
-                  ? 'Волонтёр на связи, слушает вас'
-                  : 'Камера выключена'
-                : 'Ожидаем собеседника…'}
-            </p>
-          </div>
-        )}
-
-        <span className="call-room__stage-badge">{remoteLabel}</span>
-      </section>
-
-      {/* ─── Своя карточка (правый нижний угол) ────────────────────────────── */}
-      <section
-        className="call-room__self"
-        aria-label={`Вы. ${micEnabled ? 'Микрофон включён' : 'Микрофон выключен'}`}
-      >
-        {isBlind && cameraEnabled && !cameraSwitching ? (
-          <video
-            ref={setLocalVideoEl}
-            className={`call-room__self-video${
-              facingMode === 'user' ? ' call-room__self-video--mirrored' : ''
-            }`}
-            autoPlay
-            playsInline
-            muted
-            aria-label="Ваша камера — её видит волонтёр"
-          />
-        ) : (
-          <span className="call-room__self-avatar" aria-hidden="true">
-            <User size={28} />
-          </span>
-        )}
-        <div className="call-room__self-meta">
-          <span
-            className={`call-room__self-mic${micEnabled ? '' : ' call-room__self-mic--off'}`}
-            aria-hidden="true"
-          >
-            {micEnabled ? <Mic size={16} /> : <MicOff size={16} />}
-          </span>
-          <span className="call-room__self-name">Вы</span>
-        </div>
-      </section>
-
-      {/* ─── Управление ────────────────────────────────────────────────────── */}
+      {/* Сетка 1fr auto 1fr: «завершить» строго по центру экрана, слева
+          микрофон, справа камера (у волонтёра камеры нет — правая ячейка
+          остаётся пустой, но центр не съезжает). */}
       <div className="call-room__controls" role="group" aria-label="Управление звонком">
-        <button
-          type="button"
-          className={`call-room__ctrl${micEnabled ? '' : ' call-room__ctrl--off'}`}
-          onClick={toggleMic}
-          aria-pressed={micEnabled}
-          aria-label={micEnabled ? 'Выключить микрофон' : 'Включить микрофон'}
-        >
-          {micEnabled ? (
-            <Mic size={26} aria-hidden="true" />
-          ) : (
-            <MicOff size={26} aria-hidden="true" />
-          )}
-          <span className="call-room__ctrl-label">Микрофон</span>
-        </button>
-
-        {canUseCamera && (
-          <button
-            type="button"
-            className={`call-room__ctrl${cameraEnabled ? '' : ' call-room__ctrl--off'}`}
-            onClick={toggleCamera}
-            aria-pressed={cameraEnabled}
-            aria-label={cameraEnabled ? 'Выключить камеру' : 'Включить камеру'}
+        <div className="call-room__controls-group">
+          <CamButton
+            aria-label={micEnabled ? 'Выключить микрофон' : 'Включить микрофон'}
+            aria-pressed={micEnabled}
+            onClick={toggleMic}
           >
-            {cameraEnabled ? (
-              <Video size={26} aria-hidden="true" />
-            ) : (
-              <VideoOff size={26} aria-hidden="true" />
-            )}
-            <span className="call-room__ctrl-label">Камера</span>
-          </button>
-        )}
+            {micEnabled ? <MicIcon /> : <MicOffIcon />}
+          </CamButton>
+        </div>
 
-        {canUseCamera && (
-          <button
-            type="button"
-            className="call-room__ctrl"
-            onClick={switchCamera}
-            disabled={!cameraEnabled || cameraSwitching}
-            aria-label="Переключить камеру (передняя или задняя)"
-          >
-            <SwitchCamera size={26} aria-hidden="true" />
-            <span className="call-room__ctrl-label">Сменить</span>
-          </button>
-        )}
-
-        <button
-          type="button"
-          className="call-room__ctrl call-room__ctrl--end"
-          onClick={handleEnd}
+        <CamButton
+          size="xl"
+          tone="danger"
           aria-label="Завершить звонок"
+          onClick={handleEnd}
+          className="call-room__end"
         >
-          <PhoneOff size={26} aria-hidden="true" />
-          <span className="call-room__ctrl-label">Завершить</span>
-        </button>
+          <CallEndIcon />
+        </CamButton>
+
+        <div className="call-room__controls-group call-room__controls-group--end">
+          {isBlind && (
+            <CamButton
+              aria-label={cameraEnabled ? 'Выключить камеру' : 'Включить камеру'}
+              aria-pressed={cameraEnabled}
+              onClick={toggleCamera}
+            >
+              {cameraEnabled ? <VideocamIcon /> : <VideocamOffIcon />}
+            </CamButton>
+          )}
+        </div>
       </div>
     </main>
   );

@@ -81,7 +81,8 @@ export const CodePage = () => {
 
     try {
       const { data } = await authApi.verifyOtp(phone ?? '', code);
-      login(data.accessToken);
+      // Не первый вход — профиль на бэке уже есть, регистрацию проходить не нужно.
+      login(data.accessToken, !data.isNewUser);
       void navigate(nextRouteAfterLogin(data.isNewUser), { replace: true });
     } catch (verifyError) {
       setError(verifyErrorMessage(verifyError));

@@ -1,6 +1,7 @@
+import type { UserRole } from '@/entities/user';
 import { api } from '@/shared/api';
 
-export type UserRole = 'blind' | 'volunteer';
+export type { UserRole };
 
 export type BlindnessTypeRef = {
   id: number;

@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router';
 
 import { announceRouteChange } from '@/shared/lib/a11y';
-import { Button, ChevronBackIcon, CopyIcon, MockQr } from '@/shared/ui/v2';
+import { useGoBack } from '@/shared/lib/navigation';
+import { Button, ChevronBackIcon, CopyIcon, MockQr, Notice } from '@/shared/ui/v2';
 
 import { INVITE_URL, INVITE_URL_LABEL } from '../model/invite';
 
@@ -18,7 +18,7 @@ const copyToClipboard = async (text: string): Promise<boolean> => {
 };
 
 export const InvitingPage = () => {
-  const navigate = useNavigate();
+  const goBack = useGoBack('/help');
 
   useEffect(() => {
     announceRouteChange('Пригласите близкого. Покажите QR-код или отправьте ссылку-приглашение.');
@@ -55,7 +55,7 @@ export const InvitingPage = () => {
   return (
     <main id="main-content" className="inviting" tabIndex={-1} aria-labelledby="inviting-title">
       <div className="inviting__top">
-        <Button variant="icon" aria-label="Назад" onClick={() => void navigate(-1)}>
+        <Button variant="icon" aria-label="Назад" onClick={goBack}>
           <ChevronBackIcon />
         </Button>
       </div>
@@ -79,6 +79,10 @@ export const InvitingPage = () => {
             <CopyIcon />
           </button>
         </div>
+
+        {/* QR и ссылка выше — пока заглушки, бэка приглашений нет.
+            Говорим об этом прямо под ними, а не молчим. */}
+        <Notice variant="plain">Функционал в разработке, ссылки недействительны</Notice>
       </div>
 
       <div className="inviting__actions">

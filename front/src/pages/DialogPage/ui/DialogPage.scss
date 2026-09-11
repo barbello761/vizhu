@@ -10,7 +10,7 @@
     flex-shrink: 0;
     gap: var(--space-close);
     align-items: center;
-    padding: env(safe-area-inset-top) var(--space-close) var(--space-close);
+    padding: var(--inset-top) var(--space-close) var(--space-close);
     background: var(--bg-page);
   }
 
@@ -68,7 +68,7 @@
 
   &__input {
     flex-shrink: 0;
-    padding-bottom: max(var(--space-close), env(safe-area-inset-bottom));
+    padding-bottom: max(var(--space-close), var(--inset-bottom));
   }
 
   &__file-input {

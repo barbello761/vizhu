@@ -1,0 +1,31 @@
+.alert-v2 {
+  display: flex;
+  gap: var(--space-related);
+  align-items: center;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--body-font-size);
+  font-weight: var(--body-weight-default);
+  line-height: var(--body-line-height);
+
+  &--danger {
+    color: var(--danger-default);
+  }
+
+  &--info {
+    color: var(--text-secondary);
+  }
+
+  &__icon {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-slot);
+    height: var(--size-icon-slot);
+  }
+
+  &__text {
+    min-width: 0;
+  }
+}

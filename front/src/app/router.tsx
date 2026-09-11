@@ -33,11 +33,32 @@ import { PageLayout } from '@/widgets/PageLayout';
 import { RootLayout } from '@/widgets/RootLayout';
 
 const isAuthed = () => useAuthStore.getState().isAuthed;
+const isRegistered = () => useAuthStore.getState().isRegistered;
 const hasSeenOnboarding = () => useOnboardingStore.getState().hasSeen;
 
-const requireAuth = () => {
+/**
+ * Гард приложения. Порядок шагов = порядок экранов входа.
+ *
+ * Проверка `isRegistered` обязательна: `isAuthed` поднимается сразу после
+ * проверки кода, поэтому прерванная регистрация (закрыли приложение, упал
+ * POST /profile) оставляет валидный токен без профиля. Без этого шага такой
+ * пользователь при следующем запуске попадал прямо в приложение мимо
+ * регистрации — и без профиля на бэке.
+ */
+const requireRegistered = () => {
   if (!isAuthed()) {
     return redirect('/auth');
+  }
+  if (!isRegistered()) {
+    return redirect('/registration/agreements');
+  }
+  return null;
+};
+
+const requireAuth = () => {
+  const redirectTo = requireRegistered();
+  if (redirectTo) {
+    return redirectTo;
   }
   if (!hasSeenOnboarding()) {
     return redirect('/onboarding');
@@ -89,14 +110,18 @@ export const createAppRouter = () =>
               handle: { headerVariant: 'none' },
             },
             {
+              // Заголовок и «назад» в макете «Помощи» отсутствуют — только тело
+              // (плитка звонка волонтёру + близкие) и таб-бар.
               path: 'help',
               element: <HelpPage />,
-              handle: { title: 'Помощь', headerVariant: 'back' },
+              handle: { title: 'Помощь', headerVariant: 'none' },
             },
             {
+              // Заголовок нарисован в самом экране, «назад» не нужен —
+              // это корневой экран раздела с таб-баром.
               path: 'volunteer',
               element: <VolunteerPage />,
-              handle: { title: 'Кабинет волонтёра', headerVariant: 'back' },
+              handle: { title: 'Кабинет волонтёра', headerVariant: 'none' },
             },
             {
               // Заголовок и «назад» не нужны — это корневой экран раздела с таб-баром.
@@ -153,8 +178,11 @@ export const createAppRouter = () =>
           ],
         },
         {
+          // Онбординг идёт уже после регистрации — сюда нельзя попасть
+          // с токеном, но без профиля.
           path: 'onboarding',
           element: <OnboardingPage />,
+          loader: requireRegistered,
           handle: { title: 'Добро пожаловать' },
         },
         {

@@ -11,6 +11,11 @@ interface SharedProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'chi
   loading?: boolean;
   startIcon?: ReactNode;
   endIcon?: ReactNode;
+  /**
+   * Кнопка стоит на акцентном (синем) фоне: белая заливка, акцентный текст,
+   * фокус-ринг под тёмную подложку. Используется на экране поиска волонтёра.
+   */
+  onAccent?: boolean;
 }
 
 interface LabelledProps extends SharedProps {
@@ -27,6 +32,7 @@ export type ButtonProps = LabelledProps | IconOnlyProps;
 export const Button = ({
   variant = 'primary',
   loading = false,
+  onAccent = false,
   children,
   startIcon,
   endIcon,
@@ -37,7 +43,13 @@ export const Button = ({
 }: ButtonProps) => {
   const isIconOnly = variant === 'icon';
 
-  const cls = ['btn-v2', `btn-v2--${variant}`, loading && 'btn-v2--loading', className]
+  const cls = [
+    'btn-v2',
+    `btn-v2--${variant}`,
+    loading && 'btn-v2--loading',
+    onAccent && 'btn-v2--on-accent',
+    className,
+  ]
     .filter(Boolean)
     .join(' ');
 

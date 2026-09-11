@@ -1,4 +1,7 @@
 export { useCallStore } from './model/call.store';
+export { callsApi } from './api';
+export type { CallAvailability } from './api';
+export { useVolunteerAvailability, availabilityQueryKey } from './model/use-availability';
 export { getSocket } from './model/socket';
 export { useLiveKitRoom } from './lib/use-livekit-room';
 export { primeAudio, startRinging, stopRinging } from './lib/ringtone';

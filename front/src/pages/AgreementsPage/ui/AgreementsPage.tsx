@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { announceRouteChange } from '@/shared/lib/a11y';
+import { useHasHistory } from '@/shared/lib/navigation';
 import { Button, Checkbox } from '@/shared/ui/v2';
 import { FormScreen } from '@/widgets/FormScreen';
 
@@ -11,6 +12,11 @@ const INCOMPLETE_MESSAGE = 'Отметьте оба согласия, чтобы
 
 export const AgreementsPage = () => {
   const navigate = useNavigate();
+  // На этот экран можно попасть не только из ввода кода, но и редиректом гарда
+  // (сессия есть, профиля нет) — тогда в истории за ним пусто и navigate(-1)
+  // ничего не делает. Мёртвую кнопку не рисуем: назад здесь идти некуда,
+  // выход из незавершённой регистрации — только вперёд или разлогин.
+  const canGoBack = useHasHistory();
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +33,8 @@ export const AgreementsPage = () => {
   return (
     <FormScreen
       title="Нужно ваше согласие"
-      onBack={() => void navigate(-1)}
+      onBack={canGoBack ? () => void navigate(-1) : undefined}
+      insetTop={!canGoBack}
       actions={
         <div className="agreements__consent">
           <Checkbox

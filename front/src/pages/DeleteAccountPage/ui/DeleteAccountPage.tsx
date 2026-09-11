@@ -1,12 +1,11 @@
-import { useNavigate } from 'react-router';
-
 import { announceRouteChange } from '@/shared/lib/a11y';
+import { useGoBack } from '@/shared/lib/navigation';
 import { ActionScreen } from '@/widgets/ActionScreen';
 
 const IN_DEVELOPMENT = 'Удаление аккаунта появится в одном из следующих обновлений';
 
 export const DeleteAccountPage = () => {
-  const navigate = useNavigate();
+  const goBack = useGoBack('/profile/settings');
 
   return (
     <ActionScreen
@@ -16,7 +15,7 @@ export const DeleteAccountPage = () => {
       confirmLabel="Удалить аккаунт"
       confirmDisabled
       onConfirm={() => announceRouteChange(IN_DEVELOPMENT)}
-      onCancel={() => void navigate(-1)}
+      onCancel={goBack}
       announce="Удалить аккаунт? Действие необратимо: аккаунт, история и настройки будут стёрты."
     />
   );

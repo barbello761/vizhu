@@ -1,9 +1,9 @@
-import { Loader2 } from 'lucide-react';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
 import { useCallStore } from '@/features/calls';
 import { useProfile } from '@/features/profile';
+import { Spinner } from '@/shared/ui/v2';
 
 import { CallRoomStage } from './CallRoomStage';
 
@@ -25,7 +25,7 @@ export const CallRoomPage = () => {
   if (!match || isLoading || !profile) {
     return (
       <main id="main-content" className="call-room call-room--loading" tabIndex={-1}>
-        <Loader2 size={48} className="call-room__spinner" aria-hidden="true" />
+        <Spinner className="call-room__spinner" />
         <p role="status" aria-live="polite">
           Подключаемся к звонку…
         </p>

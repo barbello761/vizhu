@@ -1,11 +1,14 @@
+@use 'shared/styles/_mixins' as m;
+
 .result-screen {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  padding: var(--space-close) var(--space-close)
-    max(var(--space-close), env(safe-area-inset-bottom));
-  overflow-y: auto;
+  padding: var(--space-close) var(--space-close) max(var(--space-close), var(--inset-bottom));
+
+  /* Скроллится только тело, см. миксин m.scroll-body ниже. */
+  overflow: hidden;
   background: var(--bg-page);
 
   &:focus {
@@ -13,8 +16,9 @@
   }
 
   &__body {
+    @include m.scroll-body;
+
     display: flex;
-    flex: 1;
     flex-direction: column;
     gap: var(--space-grouped);
     padding-top: var(--space-unrelated);

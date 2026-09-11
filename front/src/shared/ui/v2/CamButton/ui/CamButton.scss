@@ -28,13 +28,38 @@
       0 0 0 6px var(--fixed-active);
   }
 
-  &:disabled {
+  &:disabled,
+  /* aria-disabled — кнопка остаётся в потоке фокуса и озвучивает причину
+     (фонарик, который устройство не потянуло), в отличие от «мёртвого»
+     disabled. Обработчик клика гасится на стороне вызова. */
+  &[aria-disabled='true'] {
     /* Состояния «недоступно» у кам-кнопок в макете нет — приглушаем прозрачностью. */
     cursor: not-allowed;
     opacity: 0.4;
   }
 
-  &--shutter {
+  /* ── Тона ─────────────────────────────────────────────────────────────── */
+  &--active {
+    color: var(--fixed-active);
+  }
+
+  &--danger {
+    color: var(--danger-default);
+
+    @include m.pressed {
+      color: var(--danger-active);
+    }
+
+    &:focus-visible {
+      box-shadow:
+        0 0 0 3px var(--bg-camera),
+        0 0 0 6px var(--danger-default);
+    }
+  }
+
+  /* ── Размеры ──────────────────────────────────────────────────────────── */
+  &--shutter,
+  &--xl {
     width: var(--size-touch-target-xl);
     height: var(--size-touch-target-xl);
   }

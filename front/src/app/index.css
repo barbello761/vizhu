@@ -5,6 +5,17 @@
 :root {
   color-scheme: light dark;
 
+  /* ── Системные отступы (статус-бар, панель жестов, вырез) ───────────────
+     На web и iOS их даёт `env(safe-area-inset-*)`. В Android WebView эта
+     функция для системных панелей всегда возвращает 0, поэтому значения
+     прокидывает нативная часть (MainActivity.java) — она переопределяет эти
+     переменные инлайном на <html>, и инлайн выигрывает у :root.
+     В коде пользуемся ТОЛЬКО `--inset-*`, напрямую `env()` больше не зовём. */
+  --inset-top: env(safe-area-inset-top, 0px);
+  --inset-right: env(safe-area-inset-right, 0px);
+  --inset-bottom: env(safe-area-inset-bottom, 0px);
+  --inset-left: env(safe-area-inset-left, 0px);
+
   --blue-50: #eff6ff;
   --blue-100: #dbeafe;
   --blue-200: #bfdbfe;
@@ -97,6 +108,22 @@
 *::before,
 *::after {
   box-sizing: border-box;
+
+  /* В нативной обёртке (Android WebView) тап по любому интерактивному элементу
+     заливал его прямоугольник полупрозрачным системным цветом. Гасим глобально —
+     нажатое состояние у нас рисуется через :active в самих компонентах. */
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  /* Долгое нажатие на кнопке/ссылке в WebView не должно поднимать
+     системное контекстное меню (копировать/поделиться ссылкой). */
+  -webkit-touch-callout: none;
+
+  /* Инлайновый прелоадер красит html/body в синий до загрузки бандла; после
+     загрузки возвращаем нейтральный фон приложения, чтобы rubber-band-оверскролл
+     не открывал синюю подложку. */
+  background: var(--color-bg);
 }
 
 html,
@@ -104,6 +131,11 @@ body,
 #root {
   width: 100%;
   height: 100%;
+
+  /* Документ не прокручивается — весь скролл живёт во внутренних контейнерах.
+     Без этого потяг за «пустое место» экрана раскачивал сам документ вместе
+     с таб-баром: приложение целиком уезжало вверх, открывая подложку. */
+  overscroll-behavior: none;
 }
 
 #root {
@@ -114,6 +146,10 @@ body,
      Иначе кратковременный оверфлоу (вход тоста/анимации) плодит документный
      скроллбар и дёргает весь экран по горизонтали. */
   overflow: clip;
+
+  /* Сплошной фон под #root: когда заставка гаснет, приложение уже отрисовано
+     на непрозрачной поверхности — просвета не видно. */
+  background: var(--color-bg);
 }
 
 /* На широких экранах приложение остаётся «мобильным»: узкая колонка по центру,
@@ -202,9 +238,22 @@ svg {
 /* ── Нативное превью камеры (Capacitor, @capgo/camera-preview) ──────────────
    Превью рисуется ПОЗАДИ WebView (toBack) — на время его работы весь фон
    страницы должен быть прозрачным, иначе камеру не видно. Класс вешает
-   нативная реализация photoCamera (shared/platform/native/photo-camera.ts). */
+   нативная реализация photoCamera (shared/platform/native/photo-camera.ts).
+
+   `.camera-page` обязателен: у него собственный непрозрачный фон
+   (var(--bg-camera)), который на Android перекрывал toBack-превью «плашкой».
+   Дочерние элементы (глоу, каунтдаун, ошибка, кнопки) свои фоны сохраняют.
+
+   `html` — тоже обязателен, и его легко упустить: прозрачными должны быть ВСЕ
+   слои над нативным превью, а корневой элемент красится и здесь, и инлайном
+   в index.html (синий прелоадера). Пока он оставался непрозрачным, на Android
+   вместо камеры был виден просто фон приложения. Поэтому класс вешается сразу
+   на documentElement и body (см. native/photo-camera.ts) — селектор с `:has()`
+   не используем, он есть не во всех WebView. */
+html.camera-preview-active,
 body.camera-preview-active,
 body.camera-preview-active #root,
-body.camera-preview-active .dialog-page {
+body.camera-preview-active .dialog-page,
+body.camera-preview-active .camera-page {
   background: transparent !important;
 }

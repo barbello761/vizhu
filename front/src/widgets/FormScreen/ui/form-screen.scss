@@ -1,3 +1,5 @@
+@use 'shared/styles/_mixins' as m;
+
 .form-screen {
   display: flex;
   flex-direction: column;
@@ -5,11 +7,15 @@
   align-items: flex-start;
   justify-content: space-between;
   height: 100%;
-  padding: var(--space-close) var(--space-close) max(var(--space-close), env(safe-area-inset-bottom));
-  overflow-y: auto;
+  padding: var(--space-close) var(--space-close) max(var(--space-close), var(--inset-bottom));
+
+  /* Скроллится только тело, см. миксин m.scroll-body ниже. */
+  overflow: hidden;
   background: var(--bg-page);
 
   &__top {
+    @include m.scroll-body;
+
     display: flex;
     flex-direction: column;
     gap: var(--space-distant);
@@ -43,6 +49,7 @@
 
   &__actions {
     display: flex;
+    flex-shrink: 0;
     flex-direction: column;
     gap: var(--space-related);
     width: 100%;

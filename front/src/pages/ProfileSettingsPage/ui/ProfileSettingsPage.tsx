@@ -11,12 +11,14 @@ import {
   validatePhone,
 } from '@/features/profile';
 import { announceRouteChange } from '@/shared/lib/a11y';
+import { useGoBack } from '@/shared/lib/navigation';
 import { Button, CallIcon, ChevronBackIcon, EditableField, MailIcon } from '@/shared/ui/v2';
 
 import './ProfileSettingsPage.scss';
 
 export const ProfileSettingsPage = () => {
   const navigate = useNavigate();
+  const goBack = useGoBack('/profile');
   const { data: profile } = useProfile();
   const updateProfile = useUpdateProfile();
 
@@ -37,7 +39,7 @@ export const ProfileSettingsPage = () => {
       aria-labelledby="profile-settings-title"
     >
       <div className="profile-settings__header">
-        <Button variant="icon" aria-label="Назад" onClick={() => void navigate(-1)}>
+        <Button variant="icon" aria-label="Назад" onClick={goBack}>
           <ChevronBackIcon />
         </Button>
         <h1 id="profile-settings-title" className="profile-settings__title">

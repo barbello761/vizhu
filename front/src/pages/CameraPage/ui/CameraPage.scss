@@ -50,9 +50,9 @@
      * Нативное превью рисуется во весь экран под системными панелями,
      * поэтому верхний ряд кнопок отодвигаем на высоту шторки уведомлений.
      */
-    padding: calc(var(--space-close) + env(safe-area-inset-top))
-      calc(var(--space-grouped) + env(safe-area-inset-right)) 0
-      calc(var(--space-grouped) + env(safe-area-inset-left));
+    padding: calc(var(--space-close) + var(--inset-top))
+      calc(var(--space-grouped) + var(--inset-right)) 0
+      calc(var(--space-grouped) + var(--inset-left));
   }
 
   &__row {
@@ -111,7 +111,7 @@
     flex-shrink: 0;
     gap: var(--space-distant);
     align-items: center;
-    padding: var(--space-grouped) 0 calc(var(--space-grouped) + env(safe-area-inset-bottom));
+    padding: var(--space-grouped) 0 calc(var(--space-grouped) + var(--inset-bottom));
   }
 
   &__controls-spacer {

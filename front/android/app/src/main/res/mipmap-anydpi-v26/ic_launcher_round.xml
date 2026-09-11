@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Слои адаптивной иконки рисуются во весь холст 108dp, без inset.
+  Раньше здесь стоял inset 16.7%: он ужимал и фон (у маски вылезала пустота),
+  и звезду — на домашнем экране она занимала около половины иконки.
+  Размер звезды задан прямо в ic_launcher_foreground.png: 70% видимой части.
+-->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background>
-        <inset android:drawable="@mipmap/ic_launcher_background" android:inset="16.7%" />
-    </background>
-    <foreground>
-        <inset android:drawable="@mipmap/ic_launcher_foreground" android:inset="16.7%" />
-    </foreground>
+    <background android:drawable="@mipmap/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
 </adaptive-icon>

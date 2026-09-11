@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Цвет статус-бара до старта JS. Дальше его переопределяет syncStatusBar()
+         под фактическую тему (см. src/shared/platform/status-bar.ts). Держим
+         светлый как значение по умолчанию — большинство пользователей в light. -->
+    <color name="statusBarColor">#FFFFFFFF</color>
+</resources>
