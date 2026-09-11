@@ -5,7 +5,8 @@ import { RouterProvider } from 'react-router-dom';
 
 import { bootstrapAuth } from '@/features/auth';
 import { env } from '@/shared/config';
-import { isNativePlatform } from '@/shared/platform';
+import { resolveActiveTheme } from '@/shared/lib/theme';
+import { isNativePlatform, syncStatusBar } from '@/shared/platform';
 
 import { initPlatform } from './platform-init';
 import { AppProviders } from './providers';
@@ -22,10 +23,11 @@ if (!root) {
 
 const removePreloader = () => {
   const preloader = document.getElementById('app-preloader');
-  if (preloader) {
-    preloader.classList.add('hidden');
-    setTimeout(() => preloader.remove(), 400);
+  if (!preloader || preloader.classList.contains('hidden')) {
+    return;
   }
+  preloader.classList.add('hidden');
+  setTimeout(() => preloader.remove(), 400);
 };
 
 const startApp = () => {
@@ -38,7 +40,13 @@ const startApp = () => {
       </AppProviders>
     </StrictMode>,
   );
-  removePreloader();
+  // Снимаем заставку не сразу после render(): initial-render в React 18
+  // коммитится асинхронно, и синхронное снятие показывало пустой #root за
+  // тающей заставкой (чёрно-белые вспышки в PWA/web). Double-rAF = после
+  // первого кадра с уже отрисованным приложением; setTimeout — страховка на
+  // случай, если вкладка свёрнута и rAF не срабатывает.
+  requestAnimationFrame(() => requestAnimationFrame(removePreloader));
+  setTimeout(removePreloader, 3000);
 };
 
 // PWA-сервис-воркер регистрируем только в браузере: внутри Capacitor ассеты
@@ -77,6 +85,9 @@ const bootstrap = async () => {
 
   if (isNativePlatform()) {
     await StatusBar.setOverlaysWebView({ overlay: false });
+    // Явно красим статус-бар под тему: без этого на части Android-прошивок
+    // (MIUI/HyperOS) полоса остаётся прозрачной и «съедает» верх экрана.
+    await syncStatusBar(resolveActiveTheme());
   }
   startApp();
 };

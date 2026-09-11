@@ -1,0 +1,68 @@
+@use 'shared/styles/_mixins' as m;
+
+.icon-list-item {
+  display: flex;
+  gap: var(--space-bonded);
+  align-items: center;
+  width: 100%;
+  min-height: var(--size-touch-target-l);
+  padding: var(--space-related) var(--space-close);
+  overflow: hidden;
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+  background-color: var(--bg-surface);
+  border: var(--border-weight) solid transparent;
+  border-radius: var(--radius-m);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+
+  @include m.pressed {
+    border-color: var(--accent-default);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 3px var(--bg-page),
+      0 0 0 6px var(--accent-default);
+  }
+
+  &--inactive {
+    cursor: not-allowed;
+    opacity: 0.5;
+
+    @include m.pressed {
+      border-color: transparent;
+    }
+  }
+
+  &__label {
+    flex: 1 0 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-default);
+    line-height: var(--body-line-height);
+    white-space: nowrap;
+  }
+
+  &__icon {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-touch-target-s);
+    height: var(--size-touch-target-s);
+    color: var(--accent-default);
+
+    /* В макете иконка строки занимает весь слот 48×48, а не 32 из `.icon`. */
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+}

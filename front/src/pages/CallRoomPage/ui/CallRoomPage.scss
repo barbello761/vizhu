@@ -1,247 +1,111 @@
-@use 'shared/styles/_mixins' as m;
-
 .call-room {
   position: relative;
   display: flex;
   flex-direction: column;
   height: 100dvh;
-  padding: var(--pad-4);
   overflow: hidden;
-  color: #fff;
-  background: linear-gradient(170deg, var(--gray-900), var(--black));
+  color: var(--text-on-accent);
+  background: var(--bg-camera);
 
   &--loading {
-    gap: var(--space-4);
+    gap: var(--space-close);
     align-items: center;
     justify-content: center;
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    line-height: var(--body-line-height);
   }
 
   &__spinner {
-    animation: call-room-spin 1s linear infinite;
+    width: var(--size-touch-target-l);
+    height: var(--size-touch-target-l);
   }
 
-  // ─── Верхняя панель ─────────────────────────────────────────────────────────
-  &__top {
-    display: flex;
-    gap: var(--space-3);
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--pad-2) var(--pad-2) var(--pad-3);
-  }
-
-  &__conn {
-    @include m.text-16;
-
-    margin: 0;
-    font-weight: 600;
-    opacity: 0.85;
-  }
-
-  &__timer {
-    @include m.text-16;
-
-    margin: 0;
-    font-variant-numeric: tabular-nums;
-    opacity: 0.85;
-  }
-
-  // ─── Главная сцена ──────────────────────────────────────────────────────────
-  &__stage {
-    position: relative;
-    display: flex;
-    flex: 1;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    background: var(--gray-800);
-    border-radius: var(--radius-lg);
-  }
-
-  &__remote-video {
+  /* ── Видео на весь экран ─────────────────────────────────────────────────
+     Незрячий видит свою заднюю камеру, волонтёр — камеру незрячего. */
+  &__video {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
 
-  &__card {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    align-items: center;
-    padding: var(--pad-6);
+  &__hint {
+    position: absolute;
+    inset-inline: var(--space-grouped);
+    top: 50%;
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-default);
+    line-height: var(--body-line-height);
+    color: var(--text-on-accent);
     text-align: center;
+    transform: translateY(-50%);
   }
 
-  &__avatar {
+  /* ── Верхняя панель: таймер по центру, под ним — плашка связи ────────────── */
+  &__top {
+    position: relative;
+    z-index: 1;
     display: flex;
+    flex-direction: column;
+    gap: var(--space-related);
     align-items: center;
-    justify-content: center;
-    width: 128px;
-    height: 128px;
-    color: #fff;
-    background: rgb(255 255 255 / 12%);
-    border-radius: 50%;
+    padding: calc(var(--space-close) + var(--inset-top))
+      calc(var(--space-grouped) + var(--inset-right)) 0
+      calc(var(--space-grouped) + var(--inset-left));
   }
 
-  &__card-name {
-    @include m.text-24;
-
-    margin: 0;
-  }
-
-  &__card-sub {
-    @include m.text-16;
-
-    margin: 0;
-    opacity: 0.75;
-  }
-
-  &__stage-badge {
-    @include m.text-14;
-
-    position: absolute;
-    bottom: var(--pad-3);
-    left: var(--pad-3);
-    padding: var(--pad-1) var(--pad-3);
-    font-weight: 600;
+  &__alert {
+    /* Плашка живёт на тёмном фоне камеры — иконка и текст в danger-цвете
+       читаются, но подложку добавляем для контраста поверх видео. */
+    padding: var(--space-bonded) var(--space-related);
     background: rgb(0 0 0 / 55%);
-    border-radius: 999px;
+    border-radius: var(--radius-m);
   }
 
-  // ─── Своя карточка ──────────────────────────────────────────────────────────
-  &__self {
-    position: absolute;
-    right: var(--pad-4);
-    bottom: 116px;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    width: 116px;
-    padding: var(--pad-2);
-    background: rgb(0 0 0 / 45%);
-    border: 1px solid rgb(255 255 255 / 15%);
-    border-radius: var(--radius-md);
-    backdrop-filter: blur(6px);
+  &__timer {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-accent);
+    font-variant-numeric: tabular-nums;
+    line-height: var(--body-line-height);
+    color: var(--text-on-accent);
+    text-shadow: 0 1px 4px rgb(0 0 0 / 55%);
   }
 
-  &__self-video {
-    width: 100%;
-    aspect-ratio: 3 / 4;
-    object-fit: cover;
-    background: var(--gray-800);
-    border-radius: var(--radius-sm);
-  }
-
-  /* Зеркалим только фронталку — так привычно для селфи. Заднюю камеру
-     зеркалить нельзя: незрячий наводит её на мир, и перевёрнутая картинка
-     ломает соответствие «сдвинул вправо — кадр уехал вправо». */
-  &__self-video--mirrored {
-    transform: scaleX(-1);
-  }
-
-  &__self-avatar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    aspect-ratio: 3 / 4;
-    color: #fff;
-    background: rgb(255 255 255 / 12%);
-    border-radius: var(--radius-sm);
-  }
-
-  &__self-meta {
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-    justify-content: center;
-  }
-
-  &__self-name {
-    @include m.text-14;
-
-    font-weight: 600;
-  }
-
-  &__self-mic {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-
-    &--off {
-      color: var(--color-danger);
-    }
-  }
-
-  // ─── Управление ─────────────────────────────────────────────────────────────
+  /* ── Нижний ряд управления ──────────────────────────────────────────────── */
   &__controls {
-    display: flex;
-    gap: var(--space-4);
-    align-items: flex-start;
-    justify-content: center;
-    padding: var(--pad-5) 0 var(--pad-3);
-  }
-
-  &__ctrl {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    column-gap: var(--space-adjacent);
     align-items: center;
-    min-width: 64px;
-    color: #fff;
-    cursor: pointer;
-
-    svg {
-      box-sizing: content-box;
-      width: 26px;
-      height: 26px;
-      padding: 18px;
-      background: rgb(255 255 255 / 15%);
-      border-radius: 50%;
-      transition: background 0.18s ease;
-    }
-
-    &:active svg {
-      filter: brightness(0.85);
-    }
-
-    &:focus-visible {
-      outline: none;
-
-      svg {
-        box-shadow:
-          0 0 0 3px rgb(0 0 0 / 40%),
-          0 0 0 6px #fff;
-      }
-    }
-
-    &--off svg {
-      color: var(--gray-900);
-      background: #fff;
-    }
-
-    &--end svg {
-      background: var(--color-danger);
-    }
-
-    &:disabled {
-      cursor: default;
-      opacity: 0.4;
-    }
+    padding: var(--space-grouped) calc(var(--space-grouped) + var(--inset-right))
+      calc(var(--space-grouped) + var(--inset-bottom))
+      calc(var(--space-grouped) + var(--inset-left));
+    margin-top: auto;
   }
 
-  &__ctrl-label {
-    @include m.text-12;
-
-    font-weight: 500;
-    opacity: 0.85;
+  /* Боковые группы прижаты к краям, а не к центру: сетка 1fr auto 1fr держит
+     «завершить» строго по центру экрана при любом числе кнопок по бокам
+     (слева микрофон и камера, справа фонарик). */
+  &__controls-group {
+    display: flex;
+    gap: var(--space-related);
+    align-items: center;
+    justify-self: start;
   }
-}
 
-@keyframes call-room-spin {
-  to {
-    transform: rotate(360deg);
+  &__controls-group--end {
+    justify-self: end;
+  }
+
+  &__end {
+    justify-self: center;
   }
 }

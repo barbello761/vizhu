@@ -48,7 +48,7 @@ export default defineConfig(async ({ mode }) => {
     manifest: false,
 
     workbox: {
-      globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+      globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webm,mp4}'],
 
       runtimeCaching: [
         {

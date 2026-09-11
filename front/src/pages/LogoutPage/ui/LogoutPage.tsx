@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { authApi, useAuthStore } from '@/features/auth';
+import { useGoBack } from '@/shared/lib/navigation';
 import { ActionScreen } from '@/widgets/ActionScreen';
 
 export const LogoutPage = () => {
   const navigate = useNavigate();
+  const goBack = useGoBack('/profile/settings');
   const storeLogout = useAuthStore((s) => s.logout);
   const [pending, setPending] = useState(false);
 
@@ -24,7 +26,7 @@ export const LogoutPage = () => {
       confirmLabel="Выйти из аккаунта"
       confirmLoading={pending}
       onConfirm={() => void handleConfirm()}
-      onCancel={() => void navigate(-1)}
+      onCancel={goBack}
       announce="Выйти из аккаунта? Вы сможете войти снова по номеру телефона."
     />
   );

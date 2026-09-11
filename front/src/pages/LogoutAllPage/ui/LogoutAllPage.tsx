@@ -1,12 +1,11 @@
-import { useNavigate } from 'react-router';
-
 import { announceRouteChange } from '@/shared/lib/a11y';
+import { useGoBack } from '@/shared/lib/navigation';
 import { ActionScreen } from '@/widgets/ActionScreen';
 
 const IN_DEVELOPMENT = 'Выход со всех устройств появится в одном из следующих обновлений';
 
 export const LogoutAllPage = () => {
-  const navigate = useNavigate();
+  const goBack = useGoBack('/profile/settings');
 
   return (
     <ActionScreen
@@ -15,7 +14,7 @@ export const LogoutAllPage = () => {
       confirmLabel="Выйти со всех устройств"
       confirmDisabled
       onConfirm={() => announceRouteChange(IN_DEVELOPMENT)}
-      onCancel={() => void navigate(-1)}
+      onCancel={goBack}
       announce="Выйти со всех устройств? Сеансы на других устройствах будут завершены."
     />
   );

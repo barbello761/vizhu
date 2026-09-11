@@ -1,1 +1,1 @@
-export { useTheme, type ThemeMode } from './use-theme';
+export { resolveActiveTheme, useTheme, type ThemeMode } from './use-theme';

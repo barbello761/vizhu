@@ -1,12 +1,11 @@
-import { Phone } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { useShallow } from 'zustand/shallow';
 
-import { useCallStore } from '@/features/calls';
+import { useCallStore, useVolunteerAvailability } from '@/features/calls';
 import { useProfile } from '@/features/profile';
 import { announceRouteChange } from '@/shared/lib/a11y/announcer';
-import { Button } from '@/shared/ui/Button';
+import { Button, MovingGradient } from '@/shared/ui/v2';
 
 import './CallWaitingPage.scss';
 
@@ -22,9 +21,16 @@ const STATUS: Record<string, string> = {
 
 export const CallWaitingPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [seconds, setSeconds] = useState(0);
   const { data: profile, isLoading } = useProfile();
+  const { data: availability } = useVolunteerAvailability();
   const isVolunteer = profile?.role === 'volunteer';
+
+  // ?contact=<имя> — звонок конкретному близкому. Ручки на бэке пока нет, экран
+  // достижим только по прямой ссылке (в списке «Помощи» близкие отключены).
+  const contactName = searchParams.get('contact');
+  const isContactCall = contactName !== null && contactName !== '';
 
   const { phase, requestHelp } = useCallStore(
     useShallow((s) => ({ phase: s.phase, requestHelp: s.requestHelp })),
@@ -37,9 +43,10 @@ export const CallWaitingPage = () => {
     }
   }, [isLoading, isVolunteer, navigate]);
 
-  // Стартуем запрос при входе на экран; на выходе без матча — отменяем.
+  // Поиск свободного волонтёра стартуем при входе; на выходе без матча — отменяем.
+  // Для звонка близкому сокет не трогаем — это заглушка.
   useEffect(() => {
-    if (isVolunteer) {
+    if (isVolunteer || isContactCall) {
       return;
     }
     requestHelp();
@@ -51,7 +58,13 @@ export const CallWaitingPage = () => {
         cancelRequest();
       }
     };
-  }, [requestHelp, isVolunteer]);
+  }, [requestHelp, isVolunteer, isContactCall]);
+
+  useEffect(() => {
+    if (isContactCall) {
+      announceRouteChange(`Звоним: ${contactName ?? ''}. Ожидаем ответа.`);
+    }
+  }, [isContactCall, contactName]);
 
   // Секундомер ожидания.
   useEffect(() => {
@@ -61,51 +74,66 @@ export const CallWaitingPage = () => {
 
   // Озвучиваем смену статуса незрячему.
   useEffect(() => {
+    if (isContactCall) {
+      return;
+    }
     if (phase === 'searching') {
       announceRouteChange('Волонтёр найден, дозваниваемся.');
     }
     if (phase === 'waiting') {
       announceRouteChange('Все волонтёры заняты, вы в очереди.');
     }
-  }, [phase]);
+  }, [phase, isContactCall]);
 
   const handleCancel = () => {
-    useCallStore.getState().cancelRequest();
+    if (!isContactCall) {
+      useCallStore.getState().cancelRequest();
+    }
     announceRouteChange('Вызов отменён.');
     void navigate('/help', { replace: true });
   };
 
+  const title = isContactCall ? (contactName ?? '') : 'Поиск волонтёра';
+  const statusText = isContactCall ? 'Ожидаем ответа…' : (STATUS[phase] ?? STATUS.requesting);
+  const privacyText = isContactCall
+    ? 'Как только контакт ответит — он увидит видео с задней камеры вашего телефона.'
+    : 'Волонтёр увидит только видео с задней камеры вашего телефона. Ваше лицо, имя, номер телефона и местоположение ему не передаются.';
+
   return (
-    <main id="main-content" className="call-wait" tabIndex={-1} aria-label="Поиск волонтёра">
-      <div className="call-wait__head">
-        <h1 className="call-wait__title">Ищем волонтёра</h1>
-        <p className="call-wait__timer" aria-hidden="true">
-          {formatTime(seconds)}
-        </p>
-        <p className="call-wait__status" role="status" aria-live="polite" aria-atomic="true">
-          {STATUS[phase] ?? STATUS.requesting}
-        </p>
+    <main id="main-content" className="call-search" tabIndex={-1} aria-label="Поиск волонтёра">
+      <MovingGradient />
+
+      <div className="call-search__body">
+        <h1 className="call-search__title">{title}</h1>
+
+        <div className="call-search__pending">
+          {!isContactCall && (
+            <p className="call-search__timer" aria-label={`Время ожидания ${formatTime(seconds)}`}>
+              {formatTime(seconds)}
+            </p>
+          )}
+          {!isContactCall && availability !== undefined && (
+            <p className="call-search__count">
+              {availability.available > 0
+                ? `Доступных волонтёров: ${availability.available}`
+                : 'Свободных волонтёров сейчас нет — ждём, пока кто-то освободится'}
+            </p>
+          )}
+          <p className="call-search__status" role="status" aria-live="polite" aria-atomic="true">
+            {statusText}
+          </p>
+        </div>
+
+        <p className="call-search__privacy">{privacyText}</p>
       </div>
 
-      <div className="call-wait__pulse" aria-hidden="true">
-        <span className="call-wait__ring call-wait__ring--1" />
-        <span className="call-wait__ring call-wait__ring--2" />
-        <span className="call-wait__disc">
-          <Phone size={56} />
-        </span>
-      </div>
-
-      <section className="call-wait__info" aria-label="Что доступно волонтёру">
-        <h2 className="call-wait__info-title">Что доступно волонтёру</h2>
-        <ul className="call-wait__info-list">
-          <li className="call-wait__info-yes">Поток с задней камеры</li>
-          <li className="call-wait__info-yes">Ваш голос</li>
-          <li className="call-wait__info-no">Имя, телефон, локация — скрыты</li>
-        </ul>
-      </section>
-
-      <Button danger outline onClick={handleCancel} aria-label="Отменить вызов волонтёра">
-        Отменить
+      <Button
+        onAccent
+        className="call-search__cancel"
+        onClick={handleCancel}
+        aria-label={isContactCall ? 'Отменить звонок' : 'Отменить вызов волонтёра'}
+      >
+        Отмена
       </Button>
     </main>
   );

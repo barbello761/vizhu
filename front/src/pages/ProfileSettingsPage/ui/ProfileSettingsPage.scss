@@ -3,8 +3,7 @@
   flex-direction: column;
   gap: var(--space-distant);
   height: 100%;
-  padding: var(--space-close) var(--space-close)
-    max(var(--space-close), env(safe-area-inset-bottom));
+  padding: var(--space-close) var(--space-close) max(var(--space-close), var(--inset-bottom));
   overflow-y: auto;
   background: var(--bg-page);
 

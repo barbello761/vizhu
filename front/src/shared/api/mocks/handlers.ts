@@ -325,6 +325,9 @@ export const handlers = [
 
   http.get('*/profile', () => HttpResponse.json(mockProfile)),
 
+  // Снимок пула свободных волонтёров — запрашивается на экране поиска.
+  http.get('*/calls/availability', () => HttpResponse.json({ available: 3 })),
+
   // PATCH /profile — точечное обновление; в моке правки живут до перезагрузки.
   http.patch('*/profile', async ({ request }) => {
     await new Promise((r) => setTimeout(r, 500));

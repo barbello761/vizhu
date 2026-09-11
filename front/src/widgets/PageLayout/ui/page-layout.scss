@@ -37,6 +37,11 @@
     flex-direction: column;
     padding: var(--pad-6) var(--pad-4) 0;
     overflow: hidden auto;
+
+    /* Резинка на краях списка не должна уезжать в документ и утаскивать
+       за собой таб-бар: экран короче вьюпорта (кабинет волонтёра) тянулся
+       целиком, вместе с нижней навигацией. */
+    overscroll-behavior-y: contain;
     scrollbar-width: none;
 
     &::-webkit-scrollbar {
@@ -55,10 +60,17 @@
 
   &__nav {
     display: flex;
+    flex-shrink: 0;
     align-items: flex-end;
     justify-content: space-between;
     min-height: var(--size-touch-target-l);
-    padding: var(--space-bonded) var(--space-related);
+
+    /* Нижний отступ учитывает системную панель жестов. С targetSdk 36 Android
+       рисует приложение под системными панелями (с 15-й версии edge-to-edge
+       принудительный), поэтому 100dvh включает полосу жестов — без этого
+       отступа таб-бар уходил под неё, и всему экрану не хватало её высоты
+       (те самые «5% снизу»). max() оставляет прежние 6px там, где панели нет. */
+    padding: var(--space-bonded) var(--space-related) max(var(--space-bonded), var(--inset-bottom));
     background: var(--bg-page);
   }
 

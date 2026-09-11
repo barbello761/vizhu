@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 import { createPersistedStore } from '@/shared/lib/zustand';
+import { syncStatusBar } from '@/shared/platform';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -33,8 +34,18 @@ function getResolvedTheme(mode: ThemeMode): 'light' | 'dark' {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
+/**
+ * Фактическая тема из персиста — для кода вне React (бутстрап в main.tsx),
+ * которому нужна тема до монтирования провайдеров.
+ */
+export function resolveActiveTheme(): 'light' | 'dark' {
+  return getResolvedTheme(useThemeStore.getState().mode);
+}
+
 function applyTheme(mode: ThemeMode) {
-  document.documentElement.setAttribute('data-theme', getResolvedTheme(mode));
+  const resolved = getResolvedTheme(mode);
+  document.documentElement.setAttribute('data-theme', resolved);
+  void syncStatusBar(resolved);
 }
 
 /**
@@ -66,7 +77,9 @@ export function useTheme() {
 
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = (e: MediaQueryListEvent) => {
-      document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+      const resolved = e.matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', resolved);
+      void syncStatusBar(resolved);
     };
 
     mq.addEventListener('change', handler);

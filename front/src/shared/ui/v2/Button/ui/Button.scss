@@ -170,6 +170,35 @@
     }
   }
 
+  /* ── На акцентном фоне ─────────────────────────────────────────────────── */
+  &--on-accent {
+    --btn-bg: var(--fixed-main);
+    --btn-fg: var(--accent-default);
+
+    @include m.pressed {
+      --btn-bg: var(--fixed-active);
+      --btn-border: var(--fixed-active);
+    }
+
+    &:focus-visible {
+      box-shadow:
+        0 0 0 3px var(--accent-default),
+        0 0 0 6px var(--fixed-main);
+    }
+
+    /* Второстепенное действие на акцентном фоне (напр. «Отклонить» на экране
+       входящего звонка): без заливки, белый текст. */
+    &.btn-v2--tertiary {
+      --btn-bg: transparent;
+      --btn-fg: var(--fixed-main);
+
+      @include m.pressed {
+        --btn-bg: color-mix(in oklab, var(--fixed-main) 16%, transparent);
+        --btn-border: transparent;
+      }
+    }
+  }
+
   &__slot {
     display: inline-flex;
     flex-shrink: 0;

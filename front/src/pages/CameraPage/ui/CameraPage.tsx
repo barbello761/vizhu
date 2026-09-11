@@ -8,6 +8,7 @@ import {
   usePhotoCamera,
   usePhotoDialogStore,
 } from '@/features/ai-dialog';
+import { BLANK_POSTER } from '@/shared/lib/media';
 import {
   AnswerBubble,
   CamButton,
@@ -83,6 +84,7 @@ export const CameraPage = () => {
           autoPlay
           playsInline
           muted
+          poster={BLANK_POSTER}
           className="camera-page__backdrop"
           aria-hidden="true"
         />

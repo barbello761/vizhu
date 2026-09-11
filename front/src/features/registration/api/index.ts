@@ -1,3 +1,4 @@
+import type { UserRole } from '@/entities/user';
 import { api } from '@/shared/api';
 
 export type BlindnessType = {
@@ -5,9 +6,14 @@ export type BlindnessType = {
   name: string;
 };
 
+/**
+ * Тело POST /profile. Бэк принимает ровно два поля (см.
+ * `api/src/modules/users/users.controller.ts`): имя и роль — возраст и тип
+ * слепоты из контракта убраны.
+ */
 export type ProfilePayload = {
   name: string;
-  blindnessTypeId?: number;
+  role: UserRole;
 };
 
 export const registrationApi = {

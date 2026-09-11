@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router';
 
-import { useAuthStore, type UserRole } from '@/features/auth';
+import type { UserRole } from '@/entities/user';
+import { useAuthStore } from '@/features/auth';
 import { Button, Logo } from '@/shared/ui/v2';
 import { HeroScreen } from '@/widgets/HeroScreen';
 
@@ -30,7 +31,7 @@ export const StartPage = () => {
         Опишем, что вокруг, прочитаем текст, соединим с волонтёром по видеосвязи
       </p>
 
-      <Button onClick={continueAs('user')}>Начать</Button>
+      <Button onClick={continueAs('blind')}>Начать</Button>
     </HeroScreen>
   );
 };

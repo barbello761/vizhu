@@ -13,6 +13,11 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- Явный цвет статус-бара для кадра до старта JS: без него часть
+             прошивок (MIUI/HyperOS) оставляет полосу прозрачной. Дальше цвет
+             под тему выставляет syncStatusBar() из JS. -->
+        <item name="android:statusBarColor">@color/statusBarColor</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 
 

@@ -1,11 +1,14 @@
+@use 'shared/styles/_mixins' as m;
+
 .about {
   display: flex;
   flex-direction: column;
   gap: var(--space-distant);
   height: 100%;
-  padding: var(--space-close) var(--space-close)
-    max(var(--space-close), env(safe-area-inset-bottom));
-  overflow-y: auto;
+  padding: var(--space-close) var(--space-close) max(var(--space-close), var(--inset-bottom));
+
+  /* Скроллится только тело, см. миксин m.scroll-body ниже. */
+  overflow: hidden;
   background: var(--bg-page);
 
   &__top {
@@ -13,14 +16,22 @@
   }
 
   &__content {
+    @include m.scroll-body;
+
     display: flex;
-    flex: 1;
     flex-direction: column;
     gap: var(--space-distant);
     align-items: center;
     justify-content: center;
     padding-bottom: var(--space-unrelated);
     text-align: center;
+
+    /* `safe` — центрируем, пока содержимое влезает, и прижимаем к началу,
+       когда нет: иначе центрирование во флексе срезает верх при переполнении
+       и до него не доскроллить. */
+    @supports (justify-content: safe center) {
+      justify-content: safe center;
+    }
   }
 
   &__logo {

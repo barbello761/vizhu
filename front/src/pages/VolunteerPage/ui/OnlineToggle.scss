@@ -1,0 +1,64 @@
+@use 'shared/styles/_mixins' as m;
+
+.online-toggle {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 256px;
+  max-width: 72vw;
+  aspect-ratio: 1;
+  overflow: hidden;
+  color: var(--text-disabled);
+  cursor: pointer;
+  background-color: var(--bg-surface);
+  border: none;
+  border-radius: var(--radius-max);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+
+  @include m.pressed {
+    box-shadow: inset 0 0 0 var(--border-weight) var(--accent-default);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 3px var(--bg-page),
+      0 0 0 6px var(--accent-default);
+  }
+
+  /* Глаз лежит поверх заливки; viewBox арта совпадает со стороной кнопки,
+     поэтому точки встают ровно туда, где они в макете. */
+  &__eye {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+  }
+
+  &__gradient {
+    /* Видео растянуто на весь круг, а не на экран — сильное размытие здесь
+       ни к чему, рисунок и так мелкий. */
+    --moving-gradient-blur: 2px;
+  }
+
+  /* ── На линии ──────────────────────────────────────────────────────────── */
+  &--online {
+    color: var(--fixed-main);
+
+    /* Подложка под видео: в макете круг залит кадром того же фирменного
+       градиента. Видно её, пока видео грузится, и при prefers-reduced-motion. */
+    background:
+      radial-gradient(120% 90% at 85% 22%, #1a5ad2 0%, rgb(26 90 210 / 0%) 62%),
+      radial-gradient(100% 100% at 18% 86%, #1750c6 0%, rgb(23 80 198 / 0%) 58%),
+      linear-gradient(150deg, #0d2aae 0%, #0f39b8 45%, #0a2ea8 100%);
+
+    @include m.pressed {
+      box-shadow: inset 0 0 0 var(--border-weight) var(--fixed-main);
+    }
+  }
+}
