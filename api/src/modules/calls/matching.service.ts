@@ -126,6 +126,10 @@ export class MatchingService {
     this.logger.log(`purged: ${userId}`);
   }
 
+  availableCount(): number {
+    return this.available.size;
+  }
+
   volunteerOnline(volunteerId: string) {
     // Вернулся на линию = прошлый звонок закончен, матч больше не передоставляем.
     this.pendingMatch.delete(volunteerId);

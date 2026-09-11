@@ -7,11 +7,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { BlindnessType } from './entities/blindness-type.entity';
+import { UserRole } from './user-role.enum';
 
 interface CreateProfileData {
   name: string;
-  age?: number;
-  blindnessTypeId?: number;
+  role: UserRole;
 }
 
 @Injectable()
@@ -33,8 +33,7 @@ export class UsersService {
     const user = this.userRepo.create({
       phoneAccountId,
       name: data.name,
-      age: data.age ?? null,
-      blindnessTypeId: data.blindnessTypeId ?? null,
+      role: data.role,
       isVerified: true,
     });
     return this.userRepo.save(user);
