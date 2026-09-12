@@ -5,6 +5,14 @@ import './CodeInput.scss';
 interface CodeInputProps {
   value: string;
   onChange: (value: string) => void;
+  /**
+   * Код набран полностью. Вызывается ровно в момент ввода последней цифры
+   * (набором или вставкой), а не из эффекта по значению, — иначе повторный
+   * рендер родителя отправлял бы код ещё раз.
+   */
+  onComplete?: (value: string) => void;
+  /** Enter в любой клетке — отправить код вручную, не дожидаясь автоотправки. */
+  onSubmit?: () => void;
   label: string;
   length?: number;
   error?: string;
@@ -16,6 +24,8 @@ interface CodeInputProps {
 export const CodeInput = ({
   value,
   onChange,
+  onComplete,
+  onSubmit,
   label,
   length = 4,
   error,
@@ -39,7 +49,13 @@ export const CodeInput = ({
     movingFocus.current = false;
   };
 
-  const commit = (next: string) => onChange(next.slice(0, length));
+  const commit = (next: string) => {
+    const trimmed = next.slice(0, length);
+    onChange(trimmed);
+    if (trimmed.length === length) {
+      onComplete?.(trimmed);
+    }
+  };
 
   const handleChange = (index: number, raw: string) => {
     const digit = raw.replace(/\D/g, '').slice(-1);
@@ -51,6 +67,14 @@ export const CodeInput = ({
   };
 
   const handleKeyDown = (index: number, event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      // Клетки кода — не одно поле формы, неявной отправки по Enter браузер
+      // здесь не делает. Отправляем сами: автоотправка по последней цифре
+      // может не сработать (код вставили не до конца, была ошибка).
+      event.preventDefault();
+      onSubmit?.();
+      return;
+    }
     if (event.key === 'Backspace') {
       event.preventDefault();
       if (value[index]) {

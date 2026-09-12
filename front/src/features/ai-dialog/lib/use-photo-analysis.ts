@@ -22,12 +22,18 @@ export const usePhotoAnalysis = (mode: DialogMode) => {
       announceRouteChange('Анализирую фото...');
       try {
         let text: string;
+        // historyId бэкенд заводит вместе с записью истории — дальше он уходит
+        // с каждым вопросом, и переписка дописывается в ту же запись.
+        let historyId: string | undefined;
         if (mode === 'ocr') {
-          const raw = (await ocrMutation.mutateAsync(file)).text.trim();
+          const r = await ocrMutation.mutateAsync(file);
+          historyId = r.historyId;
           text =
-            raw || 'Нейропомощнику не удалось распознать текст на фотографии, попробуйте ещё раз';
+            r.text.trim() ||
+            'Нейропомощнику не удалось распознать текст на фотографии, попробуйте ещё раз';
         } else if (mode === 'currency') {
           const r = await currencyMutation.mutateAsync(file);
+          historyId = r.historyId;
           if (!r.amount.trim()) {
             text = 'Нейропомощнику не удалось распознать номинал купюры, попробуйте ещё раз';
           } else {
@@ -35,9 +41,11 @@ export const usePhotoAnalysis = (mode: DialogMode) => {
             text = `${r.amount}. Уверенность: ${pct}%.`;
           }
         } else {
-          text = (await describeMutation.mutateAsync(file)).text;
+          const r = await describeMutation.mutateAsync(file);
+          historyId = r.historyId;
+          text = r.text;
         }
-        setResult(text, false);
+        setResult(text, false, historyId);
         announceRouteChange(`Ответ от нейропомощника: ${text}`);
       } catch {
         setResult(FAILURE_MESSAGE, true);

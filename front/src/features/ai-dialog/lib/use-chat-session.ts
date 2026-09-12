@@ -1,5 +1,7 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 
+import { historyKeys } from '@/entities/history';
 import { announceRouteChange } from '@/shared/lib/a11y';
 
 import { useChatMutation, useSttMutation } from '../api';
@@ -8,9 +10,15 @@ import type { ChatMessage } from '../model/types';
 interface UseChatSessionOptions {
   initialMessages: ChatMessage[];
   context?: string;
+  /**
+   * Запись истории, в которую бэкенд дописывает переписку. Без неё диалог
+   * живёт только в памяти экрана и пропадёт при выходе.
+   */
+  historyId?: string;
 }
 
-export const useChatSession = ({ initialMessages, context }: UseChatSessionOptions) => {
+export const useChatSession = ({ initialMessages, context, historyId }: UseChatSessionOptions) => {
+  const queryClient = useQueryClient();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [isSending, setIsSending] = useState(false);
 
@@ -29,11 +37,15 @@ export const useChatSession = ({ initialMessages, context }: UseChatSessionOptio
       ]);
       setIsSending(true);
       try {
-        const result = await chatMutation.mutateAsync({ text: trimmed, context });
+        const result = await chatMutation.mutateAsync({ text: trimmed, context, historyId });
         setMessages((prev) => [
           ...prev,
           { role: 'assistant', text: result.text, at: new Date().toISOString() },
         ]);
+        // Сервер дописал обе реплики в запись — кэш истории протух.
+        if (historyId) {
+          void queryClient.invalidateQueries({ queryKey: historyKeys.all });
+        }
         announceRouteChange(`Ответ: ${result.text}`);
       } catch {
         announceRouteChange('Ошибка отправки. Попробуйте ещё раз.');
@@ -42,7 +54,7 @@ export const useChatSession = ({ initialMessages, context }: UseChatSessionOptio
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [context, isSending],
+    [context, isSending, historyId],
   );
 
   const sendVoice = useCallback(

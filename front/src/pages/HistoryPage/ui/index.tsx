@@ -6,6 +6,7 @@ import {
   HistoryItem,
   HistoryItemSkeleton,
   HistoryPlaceholder,
+  historyEntryTime,
   useDeleteHistoryEntry,
   useHistory,
   useRenameHistoryEntry,
@@ -124,8 +125,8 @@ export const HistoryPage = () => {
           <HistoryItem
             key={entry.id}
             title={entry.title}
-            dateLabel={formatDateGroup(entry.createdAt)}
-            time={formatTime(entry.createdAt)}
+            dateLabel={formatDateGroup(historyEntryTime(entry))}
+            time={formatTime(historyEntryTime(entry))}
             menuLabel="Действия с чатом"
             onOpen={() => void navigate(`/dialog/${entry.id}`)}
             isRenaming={renamingId === entry.id}

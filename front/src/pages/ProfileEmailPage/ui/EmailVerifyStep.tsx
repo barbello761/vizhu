@@ -1,26 +1,23 @@
 import axios from 'axios';
-import { type FormEvent, useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 
-import { type AuthErrorResponse, authApi, useAuthStore } from '@/features/auth';
-import { useOnboardingStore } from '@/features/onboarding';
+import { type AuthErrorResponse, authApi } from '@/features/auth';
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { Button, CodeInput } from '@/shared/ui/v2';
 import { FormScreen } from '@/widgets/FormScreen';
 
-import './CodePage.scss';
+import './ProfileEmailPage.scss';
 
 const CODE_LENGTH = 4;
 const RESEND_SECONDS = 60;
 
 // Кнопка «Продолжить» живёт в нижней стопке, вне <form> — связываем их по id.
-const FORM_ID = 'code-form';
+const FORM_ID = 'profile-email-code-form';
 
 const verifyErrorMessage = (error: unknown): string => {
   if (!axios.isAxiosError<AuthErrorResponse>(error)) {
     return 'Не удалось проверить код. Попробуйте позже.';
   }
-
   switch (error.response?.data.error) {
     case 'invalid_code':
       return 'Неверный код. Проверьте цифры и попробуйте снова.';
@@ -33,17 +30,37 @@ const verifyErrorMessage = (error: unknown): string => {
   }
 };
 
-export const CodePage = () => {
-  const navigate = useNavigate();
-  const phone = useAuthStore((s) => s.phone);
-  const login = useAuthStore((s) => s.login);
-  const hasSeenOnboarding = useOnboardingStore((s) => s.hasSeen);
+interface EmailVerifyStepProps {
+  phone: string;
+  onVerified: () => void;
+  onBack: () => void;
+}
 
+/**
+ * Шаг 1 смены почты: подтверждаем, что за экраном тот же человек (макет
+ * 2844:22045). Код уходит на телефон — единственный подтверждённый канал,
+ * почты у аккаунта ещё нет.
+ */
+export const EmailVerifyStep = ({ phone, onVerified, onBack }: EmailVerifyStepProps) => {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
+
+  // StrictMode монтирует эффекты дважды — без флага код улетал бы два раза.
+  const hasRequested = useRef(false);
+
+  useEffect(() => {
+    if (hasRequested.current) {
+      return;
+    }
+    hasRequested.current = true;
+    announceRouteChange('Введите код. Мы отправили СМС с кодом на ваш телефон.');
+    void authApi.sendOtp(phone).catch(() => {
+      setError('Не удалось отправить код. Попробуйте позже.');
+    });
+  }, [phone]);
 
   useEffect(() => {
     if (secondsLeft <= 0) {
@@ -54,19 +71,11 @@ export const CodePage = () => {
   }, [secondsLeft]);
 
   // Обратный отсчёт не озвучиваем посекундно — это забило бы скринридер.
-  // Сообщаем один раз, когда повторный запрос снова доступен.
   useEffect(() => {
     if (secondsLeft === 0) {
       announceRouteChange('Теперь можно запросить код ещё раз');
     }
   }, [secondsLeft]);
-
-  const nextRouteAfterLogin = (isNewUser: boolean) => {
-    if (isNewUser) {
-      return '/registration/agreements';
-    }
-    return hasSeenOnboarding ? '/' : '/onboarding';
-  };
 
   const submit = useCallback(
     async (value: string) => {
@@ -76,12 +85,9 @@ export const CodePage = () => {
 
       setIsVerifying(true);
       setError(null);
-
       try {
-        const { data } = await authApi.verifyOtp(phone ?? '', value);
-        // Не первый вход — профиль на бэке уже есть, регистрацию проходить не нужно.
-        login(data.accessToken, !data.isNewUser);
-        void navigate(nextRouteAfterLogin(data.isNewUser), { replace: true });
+        await authApi.verifyOtp(phone, value);
+        onVerified();
       } catch (verifyError) {
         setError(verifyErrorMessage(verifyError));
         setCode('');
@@ -89,8 +95,7 @@ export const CodePage = () => {
         setIsVerifying(false);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [phone, isVerifying, login, navigate, hasSeenOnboarding],
+    [phone, isVerifying, onVerified],
   );
 
   const handleSubmit = (event: FormEvent) => {
@@ -103,10 +108,6 @@ export const CodePage = () => {
   };
 
   const handleResend = async () => {
-    if (!phone) {
-      return;
-    }
-
     setIsResending(true);
     try {
       await authApi.sendOtp(phone);
@@ -124,8 +125,9 @@ export const CodePage = () => {
   return (
     <FormScreen
       title="Введите код"
-      description="Отправили на ваш телефон СМС с кодом"
-      onBack={() => void navigate('/auth/phone')}
+      description="Мы должны убедиться, что это вы. Отправили на ваш телефон СМС с кодом"
+      onBack={onBack}
+      backLabel="Назад, к настройкам профиля"
       actions={
         <>
           <Button type="submit" form={FORM_ID} loading={isVerifying}>
@@ -144,7 +146,7 @@ export const CodePage = () => {
     >
       <form
         id={FORM_ID}
-        className="code-page__form"
+        className="profile-email__form"
         onSubmit={handleSubmit}
         noValidate
         aria-label="Форма ввода кода из СМС"
@@ -165,7 +167,7 @@ export const CodePage = () => {
       </form>
 
       {secondsLeft > 0 && (
-        <p className="code-page__hint">
+        <p className="profile-email__hint">
           Вы сможете запросить код ещё раз через {secondsLeft} секунд
         </p>
       )}

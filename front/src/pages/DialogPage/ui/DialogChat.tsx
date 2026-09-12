@@ -15,6 +15,8 @@ interface DialogChatProps {
   initialMessages: ChatMessage[];
   /** Текст, который уходит в бэкенд как контекст каждого вопроса. */
   context?: string;
+  /** Запись истории, в которую бэкенд дописывает переписку. */
+  historyId?: string;
   /** Открыть запись голоса сразу — переход с кнопки «Спросить голосом». */
   autoOpenVoice?: boolean;
   /** Куда ведёт кнопка возврата — попадает в её имя для скринридера. */
@@ -36,6 +38,7 @@ export const DialogChat = ({
   photoAt,
   initialMessages,
   context,
+  historyId,
   autoOpenVoice = false,
   exitLabel = 'Выйти на главную',
   attachItems,
@@ -48,6 +51,7 @@ export const DialogChat = ({
   const { messages, isSending, isTranscribing, sendText, sendVoice } = useChatSession({
     initialMessages,
     context,
+    historyId,
   });
 
   useEffect(() => {

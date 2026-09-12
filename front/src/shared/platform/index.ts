@@ -6,6 +6,7 @@ import { webPhotoCamera } from './web/photo-camera';
 import { webStateStorage, webSecureStorage } from './web/storage';
 
 export { isNativePlatform, getPlatformName } from './detect';
+export { initInsetsCache, INSETS_STORAGE_KEY } from './insets';
 export { syncStatusBar } from './status-bar';
 export type {
   CallAlertPort,
