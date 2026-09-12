@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router';
 import { z } from 'zod';
 
 import { authApi, formatPhone, normalizePhone, useAuthStore } from '@/features/auth';
-import { announceRouteChange } from '@/shared/lib/a11y';
 import { Button, CallIcon, Input } from '@/shared/ui/v2';
 import { FormScreen } from '@/widgets/FormScreen';
 
@@ -64,17 +63,9 @@ export const PhoneAuthPage = () => {
       description="Отправим вам СМС с кодом подтверждения"
       onBack={() => void navigate('/auth')}
       actions={
-        <>
-          <Button type="submit" form={FORM_ID} loading={isSubmitting}>
-            Продолжить
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => announceRouteChange('Вход через почту — функция в разработке')}
-          >
-            Войти через почту
-          </Button>
-        </>
+        <Button type="submit" form={FORM_ID} loading={isSubmitting}>
+          Продолжить
+        </Button>
       }
     >
       <form

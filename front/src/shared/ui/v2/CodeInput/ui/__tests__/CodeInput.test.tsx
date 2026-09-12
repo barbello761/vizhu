@@ -7,9 +7,13 @@ import { CodeInput } from '../CodeInput';
 
 const Harness = ({
   onChange = vi.fn(),
+  onComplete,
+  onSubmit,
   error,
 }: {
   onChange?: (v: string) => void;
+  onComplete?: (v: string) => void;
+  onSubmit?: () => void;
   error?: string;
 }) => {
   const [value, setValue] = useState('');
@@ -20,6 +24,8 @@ const Harness = ({
         setValue(next);
         onChange(next);
       }}
+      onComplete={onComplete}
+      onSubmit={onSubmit}
       label="Код из СМС, 4 цифры"
       error={error}
     />
@@ -128,5 +134,41 @@ describe('CodeInput', () => {
     expect(alert).toHaveTextContent('Неверный код');
     expect(cells()[0]).toHaveAttribute('aria-invalid', 'true');
     expect(cells()[0]).toHaveAttribute('aria-describedby', alert.id);
+  });
+
+  it('зовёт onComplete ровно один раз — на последней цифре', async () => {
+    const user = userEvent.setup();
+    const onComplete = vi.fn();
+    render(<Harness onComplete={onComplete} />);
+
+    await user.click(cells()[0]);
+    await user.keyboard('043');
+    expect(onComplete).not.toHaveBeenCalled();
+
+    await user.keyboard('4');
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(onComplete).toHaveBeenCalledWith('0434');
+  });
+
+  it('зовёт onComplete и при вставке кода целиком', async () => {
+    const user = userEvent.setup();
+    const onComplete = vi.fn();
+    render(<Harness onComplete={onComplete} />);
+
+    await user.click(cells()[0]);
+    await user.paste('4321');
+
+    expect(onComplete).toHaveBeenCalledWith('4321');
+  });
+
+  it('Enter в клетке зовёт onSubmit', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<Harness onSubmit={onSubmit} />);
+
+    await user.click(cells()[0]);
+    await user.keyboard('12{Enter}');
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 });

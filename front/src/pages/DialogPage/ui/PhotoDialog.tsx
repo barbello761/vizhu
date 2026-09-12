@@ -23,6 +23,7 @@ export const PhotoDialog = () => {
   const photoUrl = usePhotoDialogStore((state) => state.photoUrl);
   const photoAt = usePhotoDialogStore((state) => state.photoAt);
   const resultText = usePhotoDialogStore((state) => state.resultText);
+  const historyId = usePhotoDialogStore((state) => state.historyId);
   const setPhoto = usePhotoDialogStore((state) => state.setPhoto);
   const clearResult = usePhotoDialogStore((state) => state.clearResult);
   const reset = usePhotoDialogStore((state) => state.reset);
@@ -73,6 +74,7 @@ export const PhotoDialog = () => {
         photoAt={photoAt}
         initialMessages={initialMessages}
         context={resultText ?? undefined}
+        historyId={historyId ?? undefined}
         autoOpenVoice={autoOpenVoice}
         onExit={handleExit}
         attachItems={

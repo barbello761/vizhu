@@ -52,6 +52,7 @@ export const HistoryDialog = ({ id }: HistoryDialogProps) => {
       title={entry.title}
       initialMessages={messages}
       context={context}
+      historyId={entry.id}
       exitLabel="Назад, к истории"
       onExit={goBack}
     />

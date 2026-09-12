@@ -213,6 +213,20 @@ svg {
   outline: none;
 }
 
+/* Кольцо фокуса рисуют сами компоненты (box-shadow на :focus-visible). Пока
+   работают пальцем или мышью, оно не нужно: браузер зажигает :focus-visible и
+   по тапу в текстовое поле, и на любом программном .focus() — получалась
+   «синяя обводка от нажатия». Признак ставит shared/lib/a11y/focus-modality,
+   и он же снимается на первой же навигационной клавише, так что для
+   клавиатуры кольцо остаётся в полном объёме.
+
+   !important здесь по делу: правило должно перебить :focus-visible каждого
+   компонента, не переписывая их все. */
+html[data-pointer] :focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

@@ -58,4 +58,20 @@ describe('ActionScreen', () => {
     setup();
     expect(screen.getByRole('main')).toHaveAccessibleName(/Выйти\s+из аккаунта\?/);
   });
+
+  it('без onBack кнопки «назад» нет', () => {
+    setup();
+
+    expect(screen.queryByRole('button', { name: 'Назад' })).not.toBeInTheDocument();
+  });
+
+  it('с onBack рисует кнопку «назад» и зовёт обработчик', async () => {
+    const user = userEvent.setup();
+    const onBack = vi.fn();
+    setup({ onBack, backLabel: 'Назад, к вводу почты' });
+
+    await user.click(screen.getByRole('button', { name: 'Назад, к вводу почты' }));
+
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
 });

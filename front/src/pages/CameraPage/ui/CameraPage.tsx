@@ -59,17 +59,20 @@ export const CameraPage = () => {
     onPhoto: handlePhoto,
   });
 
+  // Со всех выходов сначала гасим превью (оно возвращает системные панели,
+  // а с ними размеры экрана) и только потом уходим — иначе следующий экран
+  // перекраивается уже после отрисовки. См. `leavePreview`.
   const handleGoHome = () => {
-    camera.stopStream();
     reset();
-    void navigate('/', { replace: true });
+    void camera.leavePreview().then(() => navigate('/', { replace: true }));
   };
 
-  const handleOpenChat = () => void navigate('/dialog');
+  const handleOpenChat = () => void camera.leavePreview().then(() => navigate('/dialog'));
 
   // Кнопка ИИ-ассистента с экрана камеры: ответ ассистента видно только в
   // диалоге, поэтому переключаемся туда и сразу открываем запись.
-  const handleAskAssistant = () => void navigate('/dialog', { state: { openVoice: true } });
+  const handleAskAssistant = () =>
+    void camera.leavePreview().then(() => navigate('/dialog', { state: { openVoice: true } }));
 
   return (
     <main

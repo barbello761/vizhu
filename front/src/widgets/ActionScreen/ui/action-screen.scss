@@ -16,6 +16,18 @@
     outline: none;
   }
 
+  /* Шапка с «назад» занимает то место, которое иначе резервирует padding-top. */
+  &--with-back {
+    padding-top: var(--space-close);
+  }
+
+  &__top {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    padding-bottom: var(--space-distant);
+  }
+
   &__body {
     @include m.scroll-body;
 
