@@ -1,5 +1,7 @@
 import { type ReactNode, useEffect, useId, useRef, useState } from 'react';
 
+import { announceRouteChange } from '@/shared/lib/a11y';
+
 import { EditableFieldForm } from './EditableFieldForm';
 import { PencilIcon } from '../../icons';
 
@@ -18,8 +20,25 @@ export interface EditableFieldProps {
   autoComplete?: string;
   /** Проверка ввода: текст ошибки или `null`, если всё в порядке. */
   validate?: (next: string) => string | null;
-  /** Сохранение значения. Может бросить — форма покажет ошибку и не закроется. */
-  onSave: (next: string) => Promise<void> | void;
+  /**
+   * Правка на месте: карандаш превращает строку в поле ввода.
+   * Взаимоисключимо с `onEdit`; если заданы оба, выигрывает `onEdit`.
+   */
+  onSave?: (next: string) => Promise<void> | void;
+  /**
+   * Правка на отдельном экране: карандаш просто зовёт обработчик (обычно
+   * переход на роут), строка остаётся строкой. Так свёрстаны «Настройки
+   * профиля» — смена имени и почты живёт на своих экранах.
+   */
+  onEdit?: () => void;
+  /**
+   * Флоу правки ещё не построен. Карандаш остаётся видимым и фокусируемым
+   * (`aria-disabled`, а не `disabled`) и по нажатию объясняет, почему не
+   * сработал, — «мёртвая» кнопка молча съедала бы нажатие.
+   */
+  editDisabled?: boolean;
+  /** Что сказать скринридеру при нажатии на неактивный карандаш. */
+  editDisabledHint?: string;
   /** Доступное имя карандаша. По умолчанию «Изменить: {label}». */
   editLabel?: string;
   /** Текст на месте пустого значения. */
@@ -27,9 +46,14 @@ export interface EditableFieldProps {
   className?: string;
 }
 
+const DEFAULT_DISABLED_HINT = 'Функция в разработке';
+
 /**
- * По карандашу поле превращается в инпут с сохранением/отменой прямо на месте.
- * Фокус возвращается на карандаш после выхода из правки.
+ * Строка «подпись + значение + карандаш» из макета.
+ *
+ * Карандаш либо раскрывает поле прямо на месте (`onSave`), либо передаёт
+ * управление наружу (`onEdit`) — тогда правка живёт на отдельном экране.
+ * После выхода из правки на месте фокус возвращается на карандаш.
  */
 export const EditableField = ({
   label,
@@ -41,6 +65,9 @@ export const EditableField = ({
   autoComplete,
   validate,
   onSave,
+  onEdit,
+  editDisabled = false,
+  editDisabledHint = DEFAULT_DISABLED_HINT,
   editLabel,
   emptyText = 'Не указано',
   className,
@@ -57,13 +84,21 @@ export const EditableField = ({
     }
   }, [editing]);
 
-  const startEditing = () => {
+  const handleEditClick = () => {
+    if (editDisabled) {
+      announceRouteChange(editDisabledHint);
+      return;
+    }
+    if (onEdit) {
+      onEdit();
+      return;
+    }
     shouldRestoreFocus.current = true;
     setEditing(true);
   };
 
   const handleSubmit = async (next: string) => {
-    await onSave(next);
+    await onSave?.(next);
     setEditing(false);
   };
 
@@ -100,7 +135,8 @@ export const EditableField = ({
             type="button"
             className="editable-field__edit"
             aria-label={editLabel ?? `Изменить: ${label}`}
-            onClick={startEditing}
+            aria-disabled={editDisabled || undefined}
+            onClick={handleEditClick}
           >
             <PencilIcon />
           </button>

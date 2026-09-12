@@ -107,6 +107,13 @@
       color: var(--text-disabled);
       cursor: progress;
     }
+
+    /* «В разработке»: карандаш остаётся в потоке фокуса и озвучивается
+       (в отличие от `disabled`), но видно, что нажимать нечего. */
+    &[aria-disabled='true'] {
+      color: var(--text-disabled);
+      cursor: not-allowed;
+    }
   }
 
   &__error {

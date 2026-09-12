@@ -5,8 +5,9 @@ import { RouterProvider } from 'react-router-dom';
 
 import { bootstrapAuth } from '@/features/auth';
 import { env } from '@/shared/config';
+import { initFocusModality } from '@/shared/lib/a11y';
 import { resolveActiveTheme } from '@/shared/lib/theme';
-import { isNativePlatform, syncStatusBar } from '@/shared/platform';
+import { initInsetsCache, isNativePlatform, syncStatusBar } from '@/shared/platform';
 
 import { initPlatform } from './platform-init';
 import { AppProviders } from './providers';
@@ -31,6 +32,13 @@ const removePreloader = () => {
 };
 
 const startApp = () => {
+  // Должно отработать до первого взаимодействия: слушатели решают, рисовать ли
+  // кольцо фокуса (см. shared/lib/a11y/focus-modality).
+  initFocusModality();
+  // Запоминает системные отступы, чтобы следующая загрузка применила их
+  // до первой отрисовки (см. shared/platform/insets).
+  initInsetsCache();
+
   // Роутер создаётся ЗДЕСЬ, а не на импорте модуля: createBrowserRouter
   // сразу гоняет гарды, а они должны видеть состояние ПОСЛЕ бутстрапа.
   createRoot(root).render(

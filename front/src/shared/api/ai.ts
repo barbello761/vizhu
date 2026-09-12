@@ -1,8 +1,15 @@
 import { api } from './axios';
 
-export type DescribeResult = { text: string; model: string };
-export type OcrResult = { text: string; model: string };
-export type CurrencyResult = { amount: string; confidence: number };
+/**
+ * `historyId` — запись истории, которую бэкенд завёл под этот разбор.
+ * Передаётся обратно в `chat`, чтобы продолжение диалога дописывалось в неё.
+ * Необязателен: у анонимного клиента истории нет.
+ */
+type WithHistory = { historyId?: string };
+
+export type DescribeResult = { text: string; model: string } & WithHistory;
+export type OcrResult = { text: string; model: string } & WithHistory;
+export type CurrencyResult = { amount: string; confidence: number } & WithHistory;
 export type ChatResult = { text: string; model: string };
 
 export const aiApi = {
@@ -24,8 +31,9 @@ export const aiApi = {
     return api.post<OcrResult>('/ai/ocr', fd).then((r) => r.data);
   },
 
-  chat: (text: string, context?: string) =>
-    api.post<ChatResult>('/ai/chat', { text, context }).then((r) => r.data),
+  // historyId: сервер сам допишет вопрос и ответ в этот диалог.
+  chat: (text: string, context?: string, historyId?: string) =>
+    api.post<ChatResult>('/ai/chat', { text, context, historyId }).then((r) => r.data),
 
   stt: (audioBlob: Blob, mimeType: string) => {
     const fd = new FormData();

@@ -23,6 +23,8 @@ import { LogoutPage } from '@/pages/LogoutPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 import { PhoneAuthPage } from '@/pages/PhoneAuthPage';
+import { ProfileEmailPage } from '@/pages/ProfileEmailPage';
+import { ProfileNamePage } from '@/pages/ProfileNamePage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { ProfileSettingsPage } from '@/pages/ProfileSettingsPage';
 import { REGISTRATION_FIELD_STEPS, RegistrationFieldPage } from '@/pages/RegistrationFieldPage';
@@ -198,6 +200,18 @@ export const createAppRouter = () =>
           handle: { title: 'Настройки профиля' },
         },
         {
+          path: 'profile/settings/name',
+          element: <ProfileNamePage />,
+          loader: requireAuth,
+          handle: { title: 'Смена имени' },
+        },
+        {
+          path: 'profile/settings/email',
+          element: <ProfileEmailPage />,
+          loader: requireAuth,
+          handle: { title: 'Смена электронной почты' },
+        },
+        {
           path: 'about',
           element: <AboutPage />,
           loader: requireAuth,
@@ -236,7 +250,7 @@ export const createAppRouter = () =>
           loader: requireAuth,
           handle: { title: 'Вы вышли со всех устройств' },
         },
-        // ─── Удаление аккаунта (подтверждение отключено, нет метода) ─────────
+        // ─── Удаление аккаунта ──────────────────────────────────────────────
         {
           path: 'delete-account',
           element: <DeleteAccountPage />,
@@ -244,10 +258,11 @@ export const createAppRouter = () =>
           handle: { title: 'Удаление аккаунта' },
         },
         {
+          // Аккаунта и сессии уже нет — гард здесь отправил бы на /auth
+          // раньше, чем пользователь услышал бы, что удаление прошло.
           path: 'delete-account/done',
           element: <DeleteAccountDonePage />,
-          loader: requireAuth,
-          handle: { title: 'Проверьте почту' },
+          handle: { title: 'Аккаунт удалён' },
         },
         { path: 'camera', element: <CameraPage />, loader: requireAuth },
         { path: 'dialog', element: <DialogPage />, loader: requireAuth },

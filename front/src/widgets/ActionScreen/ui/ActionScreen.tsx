@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useId } from 'react';
 
 import { announceRouteChange } from '@/shared/lib/a11y';
-import { Button } from '@/shared/ui/v2';
+import { Button, ChevronBackIcon } from '@/shared/ui/v2';
 
 import './action-screen.scss';
 
@@ -24,6 +24,12 @@ interface ActionScreenProps {
   onConfirm: () => void;
   cancelLabel?: string;
   onCancel: () => void;
+  /**
+   * Кнопка «назад» в шапке. Рендерится только если передан обработчик —
+   * у экранов-подтверждений её обычно нет, выход там через «Отмена».
+   */
+  onBack?: () => void;
+  backLabel?: string;
   /** Разъяснение для скринридера при открытии экрана. */
   announce?: string;
 }
@@ -43,6 +49,8 @@ export const ActionScreen = ({
   onConfirm,
   cancelLabel = 'Отмена',
   onCancel,
+  onBack,
+  backLabel = 'Назад',
   announce,
 }: ActionScreenProps) => {
   const titleId = useId();
@@ -53,8 +61,18 @@ export const ActionScreen = ({
     }
   }, [announce]);
 
+  const cls = ['action-screen', onBack && 'action-screen--with-back'].filter(Boolean).join(' ');
+
   return (
-    <main id="main-content" className="action-screen" tabIndex={-1} aria-labelledby={titleId}>
+    <main id="main-content" className={cls} tabIndex={-1} aria-labelledby={titleId}>
+      {onBack && (
+        <div className="action-screen__top">
+          <Button variant="icon" aria-label={backLabel} onClick={onBack}>
+            <ChevronBackIcon />
+          </Button>
+        </div>
+      )}
+
       <div className="action-screen__body">
         <h1 id={titleId} className="action-screen__title">
           {title}

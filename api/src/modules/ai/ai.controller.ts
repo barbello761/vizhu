@@ -46,8 +46,7 @@ export class AiController {
       mimetype,
       mode,
     )) as AiResponse;
-    await this.saveHistory(req, 'describe', 'Описание сцены', result);
-    return result;
+    return this.withHistory(req, 'describe', 'Описание сцены', result);
   }
 
   @Post('currency')
@@ -58,8 +57,7 @@ export class AiController {
       buffer,
       mimetype,
     )) as AiResponse;
-    await this.saveHistory(req, 'currency', 'Распознавание валюты', result);
-    return result;
+    return this.withHistory(req, 'currency', 'Распознавание валюты', result);
   }
 
   @Post('ocr')
@@ -70,16 +68,48 @@ export class AiController {
       buffer,
       mimetype,
     )) as AiResponse;
-    await this.saveHistory(req, 'ocr', 'Распознавание текста', result);
-    return result;
+    return this.withHistory(req, 'ocr', 'Распознавание текста', result);
   }
 
+  /**
+   * Запись делает сервер, а не клиент: реплика не потеряется, если приложение
+   * закроют сразу после ответа, и на неё не нужен второй запрос.
+   */
   @Post('chat')
+  @UseGuards(OptionalJwtAuthGuard)
   async chat(
+    @Req() req: object,
     @Body('text') text: string,
     @Body('context') context?: string,
+    @Body('historyId') historyId?: string,
   ): Promise<unknown> {
-    return this.aiService.customChat(text, context);
+    const result = (await this.aiService.customChat(
+      text,
+      context,
+    )) as AiResponse;
+
+    const phoneAccountId = this.userId(req);
+    if (historyId && phoneAccountId) {
+      const now = new Date().toISOString();
+      try {
+        await this.historyService.appendMessages(historyId, phoneAccountId, [
+          { role: 'user', text, timestamp: now },
+          {
+            role: 'assistant',
+            text: this.responseText(result),
+            timestamp: now,
+          },
+        ]);
+      } catch (err) {
+        // Ответ пользователю важнее записи в историю: показываем его в любом
+        // случае, а потерю реплики оставляем в логах.
+        this.logger.error(
+          `Failed to append history ${historyId}: ${String(err)}`,
+        );
+      }
+    }
+
+    return result;
   }
 
   @Post('classify')
@@ -96,31 +126,46 @@ export class AiController {
     return this.aiService.transcribeSpeech(buffer, mimetype, lang);
   }
 
-  private async saveHistory(
+  /**
+   * Заводит запись истории под разбор снимка и возвращает ответ ИИ вместе с её
+   * `historyId` — клиент передаёт его в /ai/chat, чтобы продолжение диалога
+   * дописывалось в ту же запись.
+   */
+  private async withHistory(
     req: object,
     type: RequestType,
     userText: string,
     result: AiResponse,
-  ): Promise<void> {
+  ): Promise<AiResponse> {
+    const phoneAccountId = this.userId(req);
+    const responseText = this.responseText(result);
+    const now = new Date().toISOString();
+
     try {
-      const user = (req as { user?: JwtPayload | null }).user;
-      const phoneAccountId = user?.sub ?? null;
-      const responseText =
-        typeof result.text === 'string' ? result.text : JSON.stringify(result);
-      const title = responseText.slice(0, 200);
-      const now = new Date().toISOString();
-      await this.historyService.create({
+      const entry = await this.historyService.create({
         phoneAccountId,
         type,
-        title,
+        title: responseText.slice(0, 200),
         messages: [
           { role: 'user', text: userText, timestamp: now },
           { role: 'assistant', text: responseText, timestamp: now },
         ],
       });
+      return { ...result, historyId: entry.id };
     } catch (err) {
       this.logger.error(`Failed to save history: ${String(err)}`);
+      return result;
     }
+  }
+
+  private userId(req: object): string | null {
+    return (req as { user?: JwtPayload | null }).user?.sub ?? null;
+  }
+
+  private responseText(result: AiResponse): string {
+    return typeof result.text === 'string'
+      ? result.text
+      : JSON.stringify(result);
   }
 
   private async extractFile(

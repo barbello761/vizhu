@@ -102,4 +102,48 @@ describe('EditableField', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/не удалось сохранить/i);
     expect(screen.getByRole('textbox', { name: 'Имя' })).toBeInTheDocument();
   });
+
+  describe('правка на отдельном экране', () => {
+    it('по карандашу зовёт onEdit и не раскрывает поле на месте', async () => {
+      const user = userEvent.setup();
+      const onEdit = vi.fn();
+      render(<EditableField label="Имя" value="Ваня" editLabel="Изменить имя" onEdit={onEdit} />);
+
+      await user.click(screen.getByRole('button', { name: 'Изменить имя' }));
+
+      expect(onEdit).toHaveBeenCalledTimes(1);
+      expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+      expect(screen.getByText('Ваня')).toBeInTheDocument();
+    });
+
+    it('при editDisabled карандаш помечен aria-disabled, но остаётся в фокусе', async () => {
+      const user = userEvent.setup();
+      const onEdit = vi.fn();
+      render(
+        <EditableField
+          label="Номер телефона"
+          value="8 (888) 888-88-88"
+          editLabel="Изменить номер телефона"
+          editDisabled
+          onEdit={onEdit}
+        />,
+      );
+
+      const pencil = screen.getByRole('button', { name: 'Изменить номер телефона' });
+      expect(pencil).toHaveAttribute('aria-disabled', 'true');
+      expect(pencil).not.toBeDisabled();
+
+      await user.click(pencil);
+      expect(onEdit).not.toHaveBeenCalled();
+
+      pencil.focus();
+      expect(pencil).toHaveFocus();
+    });
+
+    it('показывает заглушку вместо пустого значения', () => {
+      render(<EditableField label="Электронная почта" value="" onEdit={vi.fn()} />);
+
+      expect(screen.getByText('Не указано')).toBeInTheDocument();
+    });
+  });
 });

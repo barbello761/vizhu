@@ -21,12 +21,21 @@ export type Profile = {
   createdAt: string;
 };
 
-/** Поля, которые пользователь может поменять на экране «Настройки профиля». */
-export type ProfileUpdate = Partial<Pick<Profile, 'name' | 'phone' | 'email'>>;
+/**
+ * Поля, которые бэкенд разрешает менять через PATCH /profile.
+ *
+ * Только имя: телефон — идентификатор входа (меняется отдельным флоу с
+ * подтверждением), почта в БД пока не хранится вовсе. Оба поля появятся здесь
+ * вместе со своими ручками.
+ */
+export type ProfileUpdate = Pick<Profile, 'name'>;
 
 export const profileApi = {
   getProfile: () => api.get<Profile>('/profile'),
 
   // PATCH /profile — точечное обновление своих данных, отдаёт свежий профиль целиком.
   updateProfile: (patch: ProfileUpdate) => api.patch<Profile>('/profile', patch),
+
+  // DELETE /profile — безвозвратно удаляет аккаунт вместе с историей и сессиями.
+  deleteProfile: () => api.delete<void>('/profile'),
 };

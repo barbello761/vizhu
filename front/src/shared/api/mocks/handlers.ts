@@ -10,7 +10,7 @@ const ts = (daysAgo: number, h: number, m: number) => {
   return d.toISOString();
 };
 
-const MOCK_HISTORY: HistoryEntry[] = [
+const MOCK_SEED: Omit<HistoryEntry, 'lastMessageAt'>[] = [
   {
     id: 'mock-1',
     type: 'currency',
@@ -221,6 +221,36 @@ const MOCK_HISTORY: HistoryEntry[] = [
   },
 ];
 
+/**
+ * Время последней реплики — бэкенд считает его так же и по нему сортирует.
+ */
+const MOCK_HISTORY: HistoryEntry[] = MOCK_SEED.map((entry) => ({
+  ...entry,
+  lastMessageAt: entry.messages.at(-1)?.timestamp ?? entry.createdAt,
+}));
+
+/**
+ * Заводит запись истории под разбор снимка и отдаёт её id — так же, как это
+ * делает бэкенд, чтобы продолжение диалога дописывалось в ту же запись.
+ */
+let nextEntryId = 1;
+const startEntry = (type: HistoryEntry['type'], question: string, answer: string): string => {
+  const at = new Date().toISOString();
+  const entry: HistoryEntry = {
+    id: `mock-new-${nextEntryId++}`,
+    type,
+    title: answer.slice(0, 200),
+    createdAt: at,
+    lastMessageAt: at,
+    messages: [
+      { role: 'user', text: question, timestamp: at },
+      { role: 'assistant', text: answer, timestamp: at },
+    ],
+  };
+  MOCK_HISTORY.unshift(entry);
+  return entry.id;
+};
+
 /** Профиль текущего пользователя для мока. PATCH /profile его мутирует. */
 let mockProfile = {
   uuid: 'mock-user-uuid',
@@ -282,31 +312,56 @@ export const handlers = [
 
   http.post('*/ai/describe', async () => {
     await new Promise((r) => setTimeout(r, 1200));
+    const text =
+      'На фото видна комната с деревянными полками. На полках стоят книги и различные предметы декора.';
     return HttpResponse.json({
-      text: 'На фото видна комната с деревянными полками. На полках стоят книги и различные предметы декора.',
+      text,
       model: 'GigaChat',
+      historyId: startEntry('describe', 'Описание сцены', text),
     });
   }),
 
   http.post('*/ai/ocr', async () => {
     await new Promise((r) => setTimeout(r, 900));
+    const text = 'Образец текста, распознанный системой OCR. Строка вторая.';
     return HttpResponse.json({
-      text: 'Образец текста, распознанный системой OCR. Строка вторая.',
+      text,
       model: 'YandexVision',
+      historyId: startEntry('ocr', 'Распознавание текста', text),
     });
   }),
 
   http.post('*/ai/currency', async () => {
     await new Promise((r) => setTimeout(r, 700));
-    return HttpResponse.json({ amount: '1000 рублей', confidence: 0.97 });
+    const amount = '1000 рублей';
+    return HttpResponse.json({
+      amount,
+      confidence: 0.97,
+      historyId: startEntry('currency', 'Распознавание валюты', amount),
+    });
   }),
 
-  http.post('*/ai/chat', async () => {
+  // Как и настоящий бэкенд: с historyId дописывает обе реплики в запись.
+  http.post('*/ai/chat', async ({ request }) => {
     await new Promise((r) => setTimeout(r, 600));
-    return HttpResponse.json({
-      text: 'Это тестовый ответ нейропомощника на ваш вопрос.',
-      model: 'GigaChat',
-    });
+    const { text, historyId } = (await request.json()) as {
+      text: string;
+      historyId?: string;
+    };
+    const answer = 'Это тестовый ответ нейропомощника на ваш вопрос.';
+
+    const entry = historyId ? MOCK_HISTORY.find((e) => e.id === historyId) : undefined;
+    if (entry) {
+      const at = new Date().toISOString();
+      entry.messages.push(
+        { role: 'user', text, timestamp: at },
+        { role: 'assistant', text: answer, timestamp: at },
+      );
+      // Как на бэкенде: запись всплывает наверх списка.
+      entry.lastMessageAt = at;
+    }
+
+    return HttpResponse.json({ text: answer, model: 'GigaChat' });
   }),
 
   http.get('*/blindness-types', () =>
@@ -325,6 +380,12 @@ export const handlers = [
 
   http.get('*/profile', () => HttpResponse.json(mockProfile)),
 
+  // DELETE /profile — аккаунт удалён; дальше фронт гасит сессию сам.
+  http.delete('*/profile', async () => {
+    await new Promise((r) => setTimeout(r, 600));
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   // Снимок пула свободных волонтёров — запрашивается на экране поиска.
   http.get('*/calls/availability', () => HttpResponse.json({ available: 3 })),
 
@@ -336,7 +397,16 @@ export const handlers = [
     return HttpResponse.json(mockProfile);
   }),
 
-  http.get('*/history', () => HttpResponse.json(MOCK_HISTORY)),
+  // Свежие диалоги сверху — тот же порядок, что отдаёт бэкенд.
+  http.get('*/history', () =>
+    HttpResponse.json(
+      [...MOCK_HISTORY].sort(
+        (a, b) =>
+          new Date(b.lastMessageAt ?? b.createdAt).getTime() -
+          new Date(a.lastMessageAt ?? a.createdAt).getTime(),
+      ),
+    ),
+  ),
 
   http.get('*/history/:id', ({ params }) => {
     const entry = MOCK_HISTORY.find((e) => e.id === params.id);
@@ -346,5 +416,21 @@ export const handlers = [
     return HttpResponse.json(entry);
   }),
 
-  http.delete('*/history/:id', () => new HttpResponse(null, { status: 204 })),
+  http.patch('*/history/:id', async ({ params, request }) => {
+    const entry = MOCK_HISTORY.find((e) => e.id === params.id);
+    if (!entry) {
+      return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    }
+    const { title } = (await request.json()) as { title: string };
+    entry.title = title;
+    return HttpResponse.json(entry);
+  }),
+
+  http.delete('*/history/:id', ({ params }) => {
+    const index = MOCK_HISTORY.findIndex((e) => e.id === params.id);
+    if (index !== -1) {
+      MOCK_HISTORY.splice(index, 1);
+    }
+    return new HttpResponse(null, { status: 204 });
+  }),
 ];

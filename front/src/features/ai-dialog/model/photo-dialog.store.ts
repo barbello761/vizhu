@@ -12,6 +12,12 @@ interface PhotoDialogState {
   resultText: string | null;
   resultIsError: boolean;
   /**
+   * Запись истории, заведённая бэкендом под этот разбор. Каждый следующий
+   * вопрос уходит с ней, и сервер дописывает переписку в ту же запись —
+   * поэтому диалог виден в истории, а не теряется при выходе с экрана.
+   */
+  historyId: string | null;
+  /**
    * Идёт разбор снимка. Флаг общий, а не локальный для экрана: снимок можно
    * отправить на разбор из диалога (пункт «Добавить из галереи»), а показать
    * обдумывание должен уже экран камеры.
@@ -24,7 +30,7 @@ interface PhotoDialogActions {
   start: (mode: DialogMode) => void;
   setPhoto: (url: string, at: string) => void;
   setAnalyzing: (isAnalyzing: boolean) => void;
-  setResult: (text: string, isError: boolean) => void;
+  setResult: (text: string, isError: boolean, historyId?: string) => void;
   clearResult: () => void;
   reset: () => void;
 }
@@ -35,6 +41,7 @@ const INITIAL: PhotoDialogState = {
   photoAt: null,
   resultText: null,
   resultIsError: false,
+  historyId: null,
   isAnalyzing: false,
 };
 
@@ -58,6 +65,7 @@ export const usePhotoDialogStore = createStore<PhotoDialogState & PhotoDialogAct
         draft.mode = mode;
         draft.resultText = null;
         draft.resultIsError = false;
+        draft.historyId = null;
       }),
 
     setPhoto: (url, at) =>
@@ -74,16 +82,18 @@ export const usePhotoDialogStore = createStore<PhotoDialogState & PhotoDialogAct
         draft.isAnalyzing = isAnalyzing;
       }),
 
-    setResult: (text, isError) =>
+    setResult: (text, isError, historyId) =>
       set((draft) => {
         draft.resultText = text;
         draft.resultIsError = isError;
+        draft.historyId = historyId ?? null;
       }),
 
     clearResult: () =>
       set((draft) => {
         draft.resultText = null;
         draft.resultIsError = false;
+        draft.historyId = null;
       }),
 
     reset: () =>

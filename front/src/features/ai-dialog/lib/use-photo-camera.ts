@@ -184,6 +184,23 @@ export const usePhotoCamera = ({ isActive, readyMessage, onPhoto }: UsePhotoCame
     };
   }, [isActive, nativeCamera, readyMessage]);
 
+  /**
+   * Погасить превью и вернуть системные панели на место ПЕРЕД уходом с экрана.
+   *
+   * Очистка эффекта делает это же, но она срабатывает уже после перехода и
+   * асинхронно. А `stopPreview` снимает overlay у статус-бара — от этого
+   * меняются и `100dvh`, и `--inset-*`. Уходя раньше, следующий экран успевал
+   * отрисоваться со старыми размерами и через мгновение перекраивался: на
+   * главной это видно как прыжок обеих плиток. Поэтому сначала восстановление,
+   * потом навигация.
+   */
+  const leavePreview = useCallback(async () => {
+    stopStream();
+    if (nativeCamera) {
+      await platform.photoCamera.stopPreview().catch(() => {});
+    }
+  }, [nativeCamera, stopStream]);
+
   const captureFromStream = useCallback(async () => {
     const track = streamRef.current?.getVideoTracks()[0];
     const video = videoRef.current;
@@ -311,5 +328,6 @@ export const usePhotoCamera = ({ isActive, readyMessage, onPhoto }: UsePhotoCame
     openGallery,
     handleFileChange,
     stopStream,
+    leavePreview,
   };
 };

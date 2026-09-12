@@ -12,6 +12,30 @@
     <meta name="apple-mobile-web-app-title" content="ВИЖУ" />
     <title>ВИЖУ</title>
 
+    <script>
+      /* Системные отступы до первой отрисовки.
+
+         `--inset-*` ставит нативная часть (MainActivity) инлайном на <html>,
+         но уже после загрузки документа — перезагрузка страницы стирает их,
+         и до следующего сообщения от системы (~300мс) таб-бар теряет высоту
+         полосы жестов, а главный экран перекраивается на глазах.
+
+         Поэтому подставляем последние известные значения из localStorage:
+         нативные придут следом и почти всегда совпадут. Ключ и формат — общие
+         с src/shared/platform/insets.ts. Ошибки гасим: без кэша всё просто
+         работает как раньше. */
+      (function () {
+        try {
+          var saved = JSON.parse(localStorage.getItem('vizhu:insets') || 'null');
+          if (!saved) return;
+          var style = document.documentElement.style;
+          for (var name in saved) {
+            if (name.indexOf('--inset-') === 0) style.setProperty(name, saved[name]);
+          }
+        } catch (e) {}
+      })();
+    </script>
+
     <style>
       /* ─── Заставка ────────────────────────────────────────────────────────
          Экран «Прелоадер» из макета. Живёт до монтирования React — поэтому

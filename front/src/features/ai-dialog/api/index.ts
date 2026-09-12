@@ -13,8 +13,15 @@ export const useCurrencyMutation = () =>
 
 export const useChatMutation = () =>
   useMutation({
-    mutationFn: ({ text, context }: { text: string; context?: string }) =>
-      aiApi.chat(text, context),
+    mutationFn: ({
+      text,
+      context,
+      historyId,
+    }: {
+      text: string;
+      context?: string;
+      historyId?: string;
+    }) => aiApi.chat(text, context, historyId),
   });
 
 export const useSttMutation = () =>
