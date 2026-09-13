@@ -255,13 +255,29 @@ const startEntry = (type: HistoryEntry['type'], question: string, answer: string
 let mockProfile = {
   uuid: 'mock-user-uuid',
   name: 'Светлана Иванова',
-  age: 63,
   role: 'volunteer',
   phone: '79001234567',
   email: 'svetlana.ivanova@example.com',
-  blindnessType: { id: 1, name: 'Незрячий' },
+  emailVerified: true,
   isVerified: true,
   createdAt: new Date().toISOString(),
+};
+
+const MOCK_CONFIRM_DELAY_MS = 4000;
+const mockVerifications = new Map<
+  string,
+  { purpose: string; email: string; sentAt: number; consumed: boolean }
+>();
+
+const mockVerificationStatus = (id: string) => {
+  const ticket = mockVerifications.get(id);
+  if (!ticket) {
+    return null;
+  }
+  if (ticket.consumed) {
+    return 'consumed';
+  }
+  return Date.now() - ticket.sentAt >= MOCK_CONFIRM_DELAY_MS ? 'confirmed' : 'pending';
 };
 
 export const handlers = [
@@ -364,14 +380,54 @@ export const handlers = [
     return HttpResponse.json({ text: answer, model: 'GigaChat' });
   }),
 
-  http.get('*/blindness-types', () =>
-    HttpResponse.json([
-      { id: 1, name: 'Незрячий' },
-      { id: 2, name: 'Плохое зрение' },
-      { id: 3, name: 'Помогаю близкому' },
-      { id: 4, name: 'Другое' },
-    ]),
-  ),
+  // ─── Подтверждение действий по письму ──────────────────────────────────────
+  http.post('*/email/verifications', async ({ request }) => {
+    await new Promise((r) => setTimeout(r, 500));
+    const { purpose, email } = (await request.json()) as {
+      purpose: string;
+      email?: string;
+    };
+    const id = `mock-verification-${mockVerifications.size + 1}`;
+    const target = purpose === 'change_email' ? (email ?? '') : mockProfile.email;
+    mockVerifications.set(id, {
+      purpose,
+      email: target,
+      sentAt: Date.now(),
+      consumed: false,
+    });
+    return HttpResponse.json(
+      { id, email: target, expiresAt: new Date(Date.now() + 30 * 60_000).toISOString() },
+      { status: 201 },
+    );
+  }),
+
+  http.post('*/email/verifications/confirm', async ({ request }) => {
+    await new Promise((r) => setTimeout(r, 400));
+    const { token } = (await request.json()) as { token: string };
+    const ticket = mockVerifications.get(token);
+    if (!ticket) {
+      return HttpResponse.json({ message: 'Ссылка недействительна' }, { status: 400 });
+    }
+    // Открыли ссылку руками — считаем письмо прочитанным прямо сейчас.
+    ticket.sentAt = 0;
+    return HttpResponse.json({ purpose: ticket.purpose });
+  }),
+
+  http.get('*/email/verifications/:id', ({ params }) => {
+    const id = String(params.id);
+    const status = mockVerificationStatus(id);
+    const ticket = mockVerifications.get(id);
+    if (!status || !ticket) {
+      return HttpResponse.json({ message: 'Подтверждение не найдено' }, { status: 404 });
+    }
+    return HttpResponse.json({
+      id,
+      purpose: ticket.purpose,
+      email: ticket.email,
+      status,
+      expiresAt: new Date(ticket.sentAt + 30 * 60_000).toISOString(),
+    });
+  }),
 
   http.post('*/profile', async () => {
     await new Promise((r) => setTimeout(r, 700));
@@ -379,6 +435,51 @@ export const handlers = [
   }),
 
   http.get('*/profile', () => HttpResponse.json(mockProfile)),
+
+  // PATCH /profile/email — сохраняет адрес из подтверждённого тикета.
+  http.patch('*/profile/email', async ({ request }) => {
+    await new Promise((r) => setTimeout(r, 500));
+    const { verificationId } = (await request.json()) as { verificationId: string };
+    const ticket = mockVerifications.get(verificationId);
+    if (mockVerificationStatus(verificationId) !== 'confirmed' || !ticket) {
+      return HttpResponse.json(
+        { message: 'Мы ещё не увидели переход по ссылке. Откройте письмо и попробуйте снова.' },
+        { status: 400 },
+      );
+    }
+    ticket.consumed = true;
+    mockProfile = { ...mockProfile, email: ticket.email, emailVerified: true };
+    return HttpResponse.json(mockProfile);
+  }),
+
+  // POST /profile/phone/otp — звонок с кодом на новый номер.
+  http.post('*/profile/phone/otp', async () => {
+    await new Promise((r) => setTimeout(r, 600));
+    return HttpResponse.json({ message: 'Код отправлен' });
+  }),
+
+  // POST /profile/phone — код 0000 отвергается, как и у /auth/verify-otp.
+  http.post('*/profile/phone', async ({ request }) => {
+    await new Promise((r) => setTimeout(r, 600));
+    const { phone, code, verificationId } = (await request.json()) as {
+      phone: string;
+      code: string;
+      verificationId: string;
+    };
+    if (code === '0000') {
+      return HttpResponse.json({ message: 'Неверный код' }, { status: 400 });
+    }
+    const ticket = mockVerifications.get(verificationId);
+    if (mockVerificationStatus(verificationId) !== 'confirmed' || !ticket) {
+      return HttpResponse.json(
+        { message: 'Мы ещё не увидели переход по ссылке. Откройте письмо и попробуйте снова.' },
+        { status: 400 },
+      );
+    }
+    ticket.consumed = true;
+    mockProfile = { ...mockProfile, phone };
+    return HttpResponse.json(mockProfile);
+  }),
 
   // DELETE /profile — аккаунт удалён; дальше фронт гасит сессию сам.
   http.delete('*/profile', async () => {

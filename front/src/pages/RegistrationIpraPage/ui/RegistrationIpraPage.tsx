@@ -15,7 +15,7 @@ const SAVE_ERROR = 'Не удалось сохранить профиль. Пр�
 
 export const RegistrationIpraPage = () => {
   const navigate = useNavigate();
-  const { name, reset } = useRegistrationStore();
+  const { name, email, reset } = useRegistrationStore();
   // Роль выбирается на стартовом экране («Начать» / «Я волонтёр») и лежит
   // в персисте авторизации. Если её почему-то нет — регистрируем незрячего.
   const role = useAuthStore((s) => s.role) ?? 'blind';
@@ -27,7 +27,9 @@ export const RegistrationIpraPage = () => {
     setIsSaving(true);
     setError(null);
     try {
-      await registrationApi.createProfile({ name, role });
+      // email — необязательное поле контракта: пустая строка означала бы
+      // «адрес указан» и уронила бы валидацию на бэке.
+      await registrationApi.createProfile({ name, role, email: email || undefined });
     } catch (saveError) {
       // 409 — профиль уже создан (повторная отправка, прерванная регистрация).
       // Это не ошибка: регистрация завершена, идём дальше.

@@ -84,6 +84,11 @@ services:
       LIVEKIT_URL: wss://rtc.vizhu.su      
       LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}  
       LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET} 
+      POSTBOX_API_KEY: ${POSTBOX_API_KEY}
+      POSTBOX_API_SECRET: ${POSTBOX_API_SECRET}
+      POSTBOX_FROM: ${POSTBOX_FROM}
+      APP_URL: ${APP_URL}
+
     depends_on:
       postgres:
         condition: service_healthy

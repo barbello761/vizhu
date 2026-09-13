@@ -3,13 +3,12 @@ import {
   PrimaryGeneratedColumn,
   Column,
   OneToOne,
-  ManyToOne,
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { PhoneAccount } from './phone-account.entity';
-import { BlindnessType } from './blindness-type.entity';
+import { EmailAccount } from './email-account.entity';
 import { UserRole } from '../user-role.enum';
 
 @Entity('users')
@@ -31,18 +30,20 @@ export class User {
   @JoinColumn({ name: 'phone_account_id' })
   phoneAccount!: PhoneAccount;
 
+  @Column({
+    name: 'email_account_id',
+    unique: true,
+    nullable: true,
+    type: 'uuid',
+  })
+  emailAccountId!: string | null;
+
+  @OneToOne(() => EmailAccount, { nullable: true })
+  @JoinColumn({ name: 'email_account_id' })
+  emailAccount!: EmailAccount | null;
+
   @Column({ length: 255 })
   name!: string;
-
-  @Column({ nullable: true, type: 'integer' })
-  age!: number | null;
-
-  @Column({ name: 'blindness_type_id', nullable: true, type: 'integer' })
-  blindnessTypeId!: number | null;
-
-  @ManyToOne(() => BlindnessType, { nullable: true, eager: false })
-  @JoinColumn({ name: 'blindness_type_id' })
-  blindnessType!: BlindnessType | null;
 
   @Column({ name: 'is_verified', default: false })
   isVerified!: boolean;
