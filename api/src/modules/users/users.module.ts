@@ -1,16 +1,20 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersService } from './users.service';
-import { UsersController, BlindnessTypesController } from './users.controller';
+import { UsersController } from './users.controller';
 import { User } from './entities/user.entity';
-import { BlindnessType } from './entities/blindness-type.entity';
-import { BlindnessTypesSeeder } from './blindness-types.seeder';
+import { PhoneAccount } from './entities/phone-account.entity';
 import { AuthModule } from '../auth/auth.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, BlindnessType]), AuthModule],
-  controllers: [UsersController, BlindnessTypesController],
-  providers: [UsersService, BlindnessTypesSeeder],
+  imports: [
+    TypeOrmModule.forFeature([User, PhoneAccount]),
+    AuthModule,
+    MailModule,
+  ],
+  controllers: [UsersController],
+  providers: [UsersService],
   exports: [UsersService],
 })
 export class UsersModule {}

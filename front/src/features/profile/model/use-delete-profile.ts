@@ -8,7 +8,8 @@ export const useDeleteProfile = () => {
   const logout = useAuthStore((s) => s.logout);
 
   return useMutation({
-    mutationFn: () => profileApi.deleteProfile().then(() => undefined),
+    mutationFn: (verificationId?: string) =>
+      profileApi.deleteProfile(verificationId).then(() => undefined),
     onSuccess: () => logout(),
   });
 };

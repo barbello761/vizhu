@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { apiErrorMessage } from '@/shared/api';
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { ActionScreen } from '@/widgets/ActionScreen';
 
@@ -13,38 +14,42 @@ interface EmailSentStepProps {
   onBack: () => void;
 }
 
-/**
- * Шаг 3 смены почты: ждём перехода по ссылке из письма (макет 2844:22945).
- * Подтверждение — не «Отмена», поэтому вторая кнопка шаблона переиспользована
- * под повторную отправку письма.
- */
 export const EmailSentStep = ({ email, onConfirm, onResend, onBack }: EmailSentStepProps) => {
   const [isConfirming, setIsConfirming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const report = (message: string) => {
+    setError(message);
+    announceRouteChange(message);
+  };
 
   const handleConfirm = async () => {
     setIsConfirming(true);
+    setError(null);
     try {
       await onConfirm();
-    } catch {
-      announceRouteChange(CONFIRM_ERROR);
+    } catch (confirmError) {
+      report(apiErrorMessage(confirmError, CONFIRM_ERROR));
     } finally {
       setIsConfirming(false);
     }
   };
 
   const handleResend = async () => {
+    setError(null);
     try {
       await onResend();
       announceRouteChange(`Отправили письмо ещё раз на ${email}`);
-    } catch {
-      announceRouteChange(RESEND_ERROR);
+    } catch (resendError) {
+      report(apiErrorMessage(resendError, RESEND_ERROR));
     }
   };
 
   return (
     <ActionScreen
       title={'Проверьте\nпочту'}
-      description="Мы отправили письмо на вашу почту. Перейдите по ссылке в письме"
+      description={`Мы отправили письмо на ${email}. Перейдите по ссылке в письме`}
+      note={error ?? undefined}
       confirmLabel="Я перешёл по ссылке"
       confirmLoading={isConfirming}
       onConfirm={() => void handleConfirm()}

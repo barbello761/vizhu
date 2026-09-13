@@ -1,25 +1,52 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { formatPhone } from '@/features/auth';
+import { emailVerificationApi } from '@/features/email-verification';
 import { useProfile } from '@/features/profile';
+import { apiErrorMessage } from '@/shared/api';
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { useGoBack } from '@/shared/lib/navigation';
-import { Button, CallIcon, ChevronBackIcon, EditableField, MailIcon } from '@/shared/ui/v2';
+import { Button, CallIcon, ChevronBackIcon, EditableField, MailIcon, Notice } from '@/shared/ui/v2';
 
 import './ProfileSettingsPage.scss';
 
 const PHONE_EDIT_HINT =
-  'Смена номера телефона появится вместе с подтверждением по электронной почте';
+  'Сначала подтвердите электронную почту — на неё придёт письмо для смены номера';
+const RESEND_ERROR = 'Не удалось отправить письмо. Попробуйте позже.';
 
 export const ProfileSettingsPage = () => {
   const navigate = useNavigate();
   const goBack = useGoBack('/profile');
   const { data: profile } = useProfile();
 
+  const [isResending, setIsResending] = useState(false);
+  const [resendNote, setResendNote] = useState<string | null>(null);
+
   useEffect(() => {
     announceRouteChange('Настройки профиля. Имя, телефон и почта, выход из аккаунта.');
   }, []);
+
+  // Почта есть, но по ссылке из письма не перешли: она не годится как резервный
+  // вход и не подтверждает смену номера — значит, письмо нужно уметь повторить.
+  const needsEmailConfirmation = Boolean(profile?.email) && !profile?.emailVerified;
+
+  const handleResend = async () => {
+    setIsResending(true);
+    setResendNote(null);
+    try {
+      await emailVerificationApi.request('verify_email');
+      const note = `Отправили письмо на ${profile?.email ?? 'вашу почту'}`;
+      setResendNote(note);
+      announceRouteChange(note);
+    } catch (error) {
+      const note = apiErrorMessage(error, RESEND_ERROR);
+      setResendNote(note);
+      announceRouteChange(note);
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   return (
     <main
@@ -51,8 +78,13 @@ export const ProfileSettingsPage = () => {
           icon={<CallIcon />}
           value={profile?.phone ? formatPhone(profile.phone) : ''}
           editLabel="Изменить номер телефона"
-          editDisabled
+          // Смену номера подтверждает письмо: без подтверждённой почты второго
+          // фактора нет, и флоу не с чего начинать.
+          editDisabled={!profile?.emailVerified}
           editDisabledHint={PHONE_EDIT_HINT}
+          onEdit={
+            profile?.emailVerified ? () => void navigate('/profile/settings/phone') : undefined
+          }
         />
         <EditableField
           label="Электронная почта"
@@ -61,6 +93,21 @@ export const ProfileSettingsPage = () => {
           editLabel="Изменить электронную почту"
           onEdit={() => void navigate('/profile/settings/email')}
         />
+
+        {needsEmailConfirmation && (
+          <>
+            <Notice variant="plain">
+              Почта не подтверждена. Перейдите по ссылке из письма — без этого она не работает как
+              резервный вход и ею нельзя подтвердить смену номера.
+            </Notice>
+            <Button variant="secondary" loading={isResending} onClick={() => void handleResend()}>
+              Отправить письмо ещё раз
+            </Button>
+            {/* Без role="status": результат уже озвучен announceRouteChange,
+                живой регион продиктовал бы его вторым заходом. */}
+            {resendNote && <Notice variant="plain">{resendNote}</Notice>}
+          </>
+        )}
       </div>
 
       <div className="profile-settings__actions">
