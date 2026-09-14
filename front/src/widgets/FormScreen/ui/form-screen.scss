@@ -31,12 +31,15 @@
     width: 100%;
   }
 
+  /* pre-line — чтобы переносы из макета передавались как `\n` в title,
+     как это уже устроено у ActionScreen и ResultScreen. */
   &__title {
     margin: 0;
     font-size: var(--heading-1-font-size);
     font-weight: var(--heading-1-font-weight);
     line-height: var(--heading-1-line-height);
     color: var(--text-main);
+    white-space: pre-line;
   }
 
   &__description {

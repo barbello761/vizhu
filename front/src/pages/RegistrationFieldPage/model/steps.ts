@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import { z } from 'zod';
 
+import { SPAM_HINT } from '@/features/email-verification';
 import { emailSchema, nameSchema } from '@/features/registration';
 import { MailIcon } from '@/shared/ui/v2';
 
@@ -49,8 +50,9 @@ export const REGISTRATION_FIELD_STEPS = {
     setter: 'setEmail',
     schema: fieldForm(emailSchema),
     title: 'Введите электронную почту',
-    description:
-      'Это резервный способ входа в аккаунт — пригодится, если вы потеряете доступ к номеру телефона',
+    // Письмо уходит в конце регистрации, отдельного экрана «проверьте почту»
+    // в ней нет — предупредить про «Спам» можно только здесь.
+    description: `Это резервный способ входа в аккаунт — пригодится, если вы потеряете доступ к номеру телефона. Мы пришлём на неё письмо для подтверждения. ${SPAM_HINT}`,
     label: 'Электронная почта',
     placeholder: 'example@mail.com',
     formLabel: 'Форма ввода электронной почты',

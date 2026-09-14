@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { SPAM_HINT } from '@/features/email-verification';
 import { apiErrorMessage } from '@/shared/api';
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { ActionScreen } from '@/widgets/ActionScreen';
@@ -48,7 +49,7 @@ export const EmailSentStep = ({ email, onConfirm, onResend, onBack }: EmailSentS
   return (
     <ActionScreen
       title={'Проверьте\nпочту'}
-      description={`Мы отправили письмо на ${email}. Перейдите по ссылке в письме`}
+      description={`Мы отправили письмо на ${email}. Перейдите по ссылке в письме. ${SPAM_HINT}`}
       note={error ?? undefined}
       confirmLabel="Я перешёл по ссылке"
       confirmLoading={isConfirming}
@@ -57,7 +58,7 @@ export const EmailSentStep = ({ email, onConfirm, onResend, onBack }: EmailSentS
       onCancel={() => void handleResend()}
       onBack={onBack}
       backLabel="Назад, к вводу почты"
-      announce={`Проверьте почту. Мы отправили письмо на ${email}. Перейдите по ссылке в письме.`}
+      announce={`Проверьте почту. Мы отправили письмо на ${email}. Перейдите по ссылке в письме. ${SPAM_HINT}`}
     />
   );
 };

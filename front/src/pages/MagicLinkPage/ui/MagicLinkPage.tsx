@@ -1,7 +1,9 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 
 import { type EmailPurpose, emailVerificationApi } from '@/features/email-verification';
+import { profileQueryKey } from '@/features/profile';
 import { apiErrorMessage } from '@/shared/api';
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { Spinner } from '@/shared/ui/v2';
@@ -42,6 +44,7 @@ type State =
 
 export const MagicLinkPage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
 
@@ -63,11 +66,16 @@ export const MagicLinkPage = () => {
     announceRouteChange('Проверяем ссылку из письма');
     emailVerificationApi
       .confirm(token)
-      .then(({ data }) => setState({ kind: 'done', purpose: data.purpose }))
+      .then(({ data }) => {
+        setState({ kind: 'done', purpose: data.purpose });
+        // Ссылку могли открыть и в самом приложении — тогда кэш профиля тут же
+        // устарел: verify_email подтверждает адрес прямо на этом запросе.
+        void queryClient.invalidateQueries({ queryKey: profileQueryKey });
+      })
       .catch((error: unknown) => {
         setState({ kind: 'error', message: apiErrorMessage(error, GENERIC_ERROR) });
       });
-  }, [token]);
+  }, [token, queryClient]);
 
   // «Готово» ведёт на главную, а не закрывает вкладку: window.close() работает
   // только для окон, открытых скриптом, и на кнопке из письма промолчал бы.
