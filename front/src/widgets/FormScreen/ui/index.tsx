@@ -5,6 +5,7 @@ import { Button, ChevronBackIcon } from '@/shared/ui/v2';
 import './form-screen.scss';
 
 interface FormScreenProps {
+  /** Заголовок. Переносы строк из макета передаются как `\n`. */
   title: string;
   description?: ReactNode;
   /** Кнопка «назад» рендерится только если передан обработчик. */

@@ -62,6 +62,13 @@ export const Button = ({
       return children;
     }
 
+    // Слоты держат подпись оптически по центру, когда иконка только с одной
+    // стороны. Если иконок нет вовсе, центрировать нечего, а два пустых слота
+    // отнимали у текста 64px — из-за них «Выйти со всех устройств» не влезало.
+    if (!startIcon && !endIcon) {
+      return <span className="btn-v2__label">{children}</span>;
+    }
+
     return (
       <>
         <span className="btn-v2__slot" aria-hidden="true">

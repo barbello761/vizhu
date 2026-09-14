@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { formatPhone } from '@/features/auth';
-import { emailVerificationApi } from '@/features/email-verification';
+import { emailVerificationApi, SPAM_HINT } from '@/features/email-verification';
 import { useProfile } from '@/features/profile';
 import { apiErrorMessage } from '@/shared/api';
 import { announceRouteChange } from '@/shared/lib/a11y';
@@ -36,7 +36,7 @@ export const ProfileSettingsPage = () => {
     setResendNote(null);
     try {
       await emailVerificationApi.request('verify_email');
-      const note = `Отправили письмо на ${profile?.email ?? 'вашу почту'}`;
+      const note = `Отправили письмо на ${profile?.email ?? 'вашу почту'}. ${SPAM_HINT}`;
       setResendNote(note);
       announceRouteChange(note);
     } catch (error) {
@@ -95,18 +95,18 @@ export const ProfileSettingsPage = () => {
         />
 
         {needsEmailConfirmation && (
-          <>
+          <div className="profile-settings__email-hint">
             <Notice variant="plain">
               Почта не подтверждена. Перейдите по ссылке из письма — без этого она не работает как
-              резервный вход и ею нельзя подтвердить смену номера.
+              резервный вход и ею нельзя подтвердить смену номера. {SPAM_HINT}
             </Notice>
-            <Button variant="secondary" loading={isResending} onClick={() => void handleResend()}>
+            <Button variant="tertiary" loading={isResending} onClick={() => void handleResend()}>
               Отправить письмо ещё раз
             </Button>
             {/* Без role="status": результат уже озвучен announceRouteChange,
                 живой регион продиктовал бы его вторым заходом. */}
             {resendNote && <Notice variant="plain">{resendNote}</Notice>}
-          </>
+          </div>
         )}
       </div>
 

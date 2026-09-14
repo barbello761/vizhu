@@ -4,6 +4,7 @@ import {
   confirmVerified,
   type EmailPurpose,
   emailVerificationApi,
+  SPAM_HINT,
 } from '@/features/email-verification';
 import { apiErrorMessage } from '@/shared/api';
 import { announceRouteChange } from '@/shared/lib/a11y';
@@ -106,7 +107,7 @@ export const MailConfirmScreen = ({
   };
 
   const description = verification
-    ? `${lead} Мы отправили письмо на ${verification.email}. Перейдите по ссылке в письме`
+    ? `${lead} Мы отправили письмо на ${verification.email}. Перейдите по ссылке в письме. ${SPAM_HINT}`
     : `${lead} Отправляем письмо на вашу почту…`;
 
   return (
@@ -123,7 +124,7 @@ export const MailConfirmScreen = ({
       onCancel={() => void handleResend()}
       onBack={onBack}
       backLabel={backLabel}
-      announce={`Проверьте почту. ${lead} Перейдите по ссылке в письме, затем нажмите «${confirmLabel}».`}
+      announce={`Проверьте почту. ${lead} Перейдите по ссылке в письме, затем нажмите «${confirmLabel}». ${SPAM_HINT}`}
     />
   );
 };

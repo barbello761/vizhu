@@ -16,7 +16,7 @@ export const OnboardingPage = () => {
   };
 
   return (
-    <FormScreen title="Добро пожаловать!" actions={<Button onClick={finish}>Начать</Button>}>
+    <FormScreen title={'Добро\nпожаловать!'} actions={<Button onClick={finish}>Начать</Button>}>
       <p className="onboarding__text">
         В разделе «ИИ камера» нажмите на кнопку, чтобы открыть камеру, сделайте снимок — ИИ опишет,
         что вокруг. Слева от затвора есть голосовой ассистент: с его помощью можно задать конкретный
