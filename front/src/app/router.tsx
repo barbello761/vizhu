@@ -20,12 +20,14 @@ import { LogoutAllDonePage } from '@/pages/LogoutAllDonePage';
 import { LogoutAllPage } from '@/pages/LogoutAllPage';
 import { LogoutDonePage } from '@/pages/LogoutDonePage';
 import { LogoutPage } from '@/pages/LogoutPage';
+import { MagicLinkPage } from '@/pages/MagicLinkPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 import { PhoneAuthPage } from '@/pages/PhoneAuthPage';
 import { ProfileEmailPage } from '@/pages/ProfileEmailPage';
 import { ProfileNamePage } from '@/pages/ProfileNamePage';
 import { ProfilePage } from '@/pages/ProfilePage';
+import { ProfilePhonePage } from '@/pages/ProfilePhonePage';
 import { ProfileSettingsPage } from '@/pages/ProfileSettingsPage';
 import { REGISTRATION_FIELD_STEPS, RegistrationFieldPage } from '@/pages/RegistrationFieldPage';
 import { RegistrationIpraPage } from '@/pages/RegistrationIpraPage';
@@ -212,6 +214,12 @@ export const createAppRouter = () =>
           handle: { title: 'Смена электронной почты' },
         },
         {
+          path: 'profile/settings/phone',
+          element: <ProfilePhonePage />,
+          loader: requireAuth,
+          handle: { title: 'Смена номера телефона' },
+        },
+        {
           path: 'about',
           element: <AboutPage />,
           loader: requireAuth,
@@ -270,6 +278,14 @@ export const createAppRouter = () =>
         { path: 'dialog/:id', element: <DialogPage />, loader: requireAuth },
         { path: 'call/waiting', element: <CallWaitingPage />, loader: requireAuth },
         { path: 'call/room', element: <CallRoomPage />, loader: requireAuth },
+        // Переход по ссылке из письма. Открывается в браузере почтового
+        // клиента, где сессии приложения нет, — поэтому без гарда: пропуском
+        // служит токен из адреса.
+        {
+          path: 'magic-link',
+          element: <MagicLinkPage />,
+          handle: { title: 'Подтверждение по ссылке' },
+        },
         { path: '*', element: <NotFoundPage /> },
       ],
     },

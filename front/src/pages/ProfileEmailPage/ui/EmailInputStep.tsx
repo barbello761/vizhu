@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useState } from 'react';
 
 import { validateEmail } from '@/features/profile';
+import { apiErrorMessage } from '@/shared/api';
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { Button, Input, MailIcon } from '@/shared/ui/v2';
 import { FormScreen } from '@/widgets/FormScreen';
@@ -42,9 +43,12 @@ export const EmailInputStep = ({ initialValue, onSubmit, onBack }: EmailInputSte
     setIsSending(true);
     try {
       await onSubmit(next);
-    } catch {
-      setError(SEND_ERROR);
-      announceRouteChange(SEND_ERROR);
+    } catch (submitError) {
+      // Причина почти всегда конкретна («минуту назад уже отправляли», «адрес
+      // занят») — бэк формулирует её лучше, чем общая фраза.
+      const message = apiErrorMessage(submitError, SEND_ERROR);
+      setError(message);
+      announceRouteChange(message);
     } finally {
       setIsSending(false);
     }

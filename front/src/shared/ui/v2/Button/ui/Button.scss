@@ -100,12 +100,6 @@
     height: auto;
     min-height: var(--size-touch-target-s);
 
-    /* Текст-ссылка: длинную подпись переносим, а не режем многоточием. */
-    .btn-v2__label {
-      overflow: visible;
-      white-space: normal;
-    }
-
     @include m.pressed {
       --btn-fg: var(--accent-active);
     }
@@ -208,11 +202,13 @@
     height: var(--size-icon-slot);
   }
 
+  /* Длинную подпись переносим, а не режем многоточием: «Выйти со всех
+     устройс…» не читается ни глазами, ни при крупном системном шрифте.
+     Кнопка растёт в высоту — у неё min-height, а не height. */
   &__label {
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: break-word;
+    white-space: normal;
   }
 }
 

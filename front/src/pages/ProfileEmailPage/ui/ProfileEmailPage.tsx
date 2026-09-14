@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 
-import { confirmEmailChange, requestEmailChange, useProfile } from '@/features/profile';
+import { emailVerificationApi } from '@/features/email-verification';
+import { useChangeEmail, useProfile } from '@/features/profile';
 import { useGoBack } from '@/shared/lib/navigation';
 
 import { EmailDoneStep } from './EmailDoneStep';
@@ -13,23 +14,15 @@ type Step = 'verify' | 'input' | 'sent' | 'done';
 
 const SETTINGS_PATH = '/profile/settings';
 
-/**
- * Смена электронной почты — четыре экрана макета одним роутом.
- *
- * Шаги держатся в состоянии, а не в адресе, именно потому, что попасть на
- * любой из них можно только пройдя предыдущий: прямая ссылка на «Проверьте
- * почту» в обход подтверждения по коду не имеет смысла. Кнопка «назад» внутри
- * флоу шагает назад, а с первого шага выходит на настройки профиля.
- *
- * Сохранения почты здесь нет — см. features/profile/lib/email-change.ts.
- */
 export const ProfileEmailPage = () => {
   const navigate = useNavigate();
   const goBack = useGoBack(SETTINGS_PATH);
   const { data: profile, isPending } = useProfile();
+  const changeEmail = useChangeEmail();
 
   const [step, setStep] = useState<Step>('verify');
   const [email, setEmail] = useState('');
+  const [verificationId, setVerificationId] = useState<string | null>(null);
 
   if (isPending) {
     return null;
@@ -40,8 +33,13 @@ export const ProfileEmailPage = () => {
     return <Navigate to={SETTINGS_PATH} replace />;
   }
 
+  const sendLetter = async (address: string) => {
+    const { data } = await emailVerificationApi.request('change_email', address);
+    setVerificationId(data.id);
+  };
+
   const submitEmail = async (next: string) => {
-    await requestEmailChange(next);
+    await sendLetter(next);
     setEmail(next);
     setStep('sent');
   };
@@ -68,10 +66,16 @@ export const ProfileEmailPage = () => {
         <EmailSentStep
           email={email}
           onConfirm={async () => {
-            await confirmEmailChange();
+            if (!verificationId) {
+              throw new Error('Письмо ещё не отправлено. Вернитесь назад и попробуйте снова.');
+            }
+            await changeEmail.mutateAsync(verificationId);
             setStep('done');
           }}
-          onResend={() => requestEmailChange(email)}
+          // Повторная отправка выпускает НОВЫЙ тикет и гасит прежний, поэтому
+          // id обязан обновиться — иначе «Я перешёл по ссылке» проверял бы
+          // тикет, которого уже нет.
+          onResend={() => sendLetter(email)}
           onBack={() => setStep('input')}
         />
       );

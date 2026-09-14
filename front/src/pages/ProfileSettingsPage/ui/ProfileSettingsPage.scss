@@ -33,13 +33,22 @@
     gap: var(--space-adjacent);
   }
 
+  /* Подсказка про неподтверждённую почту относится к строке выше, поэтому
+     прижата к ней теснее, чем поля друг к другу. */
+  &__email-hint {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-related);
+    margin-top: calc(var(--space-related) - var(--space-adjacent));
+  }
+
   &__actions {
     display: flex;
     flex-direction: column;
     gap: var(--space-related);
-    padding-top: var(--space-distant);
 
-    /* Кнопки выхода прижаты к низу экрана, как в макете. */
+    /* Кнопки выхода прижаты к низу экрана, как в макете. Отступ сверху даёт
+       gap самой страницы — padding-top здесь его задваивал. */
     margin-top: auto;
   }
 }

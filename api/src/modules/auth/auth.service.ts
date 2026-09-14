@@ -81,7 +81,7 @@ export class AuthService {
     this.logger.log(`OTP отправлен на ${normalizedPhone}`);
   }
 
-  async verifyOtp(phone: string, code: string): Promise<VerifyOtpResult> {
+  async consumeOtp(phone: string, code: string): Promise<string> {
     const normalizedPhone = this.normalizePhone(phone);
 
     const otp = await this.otpRepo.findOne({
@@ -107,6 +107,11 @@ export class AuthService {
     if (otp.code !== code) throw new BadRequestException('Неверный код');
 
     await this.otpRepo.delete({ id: otp.id });
+    return normalizedPhone;
+  }
+
+  async verifyOtp(phone: string, code: string): Promise<VerifyOtpResult> {
+    const normalizedPhone = await this.consumeOtp(phone, code);
 
     let phoneAccount = await this.phoneAccountRepo.findOne({
       where: { phone: normalizedPhone },
@@ -190,7 +195,8 @@ export class AuthService {
     return createHash('sha256').update(token).digest('hex');
   }
 
-  private normalizePhone(phone: string): string {
+  /** Публичный: смена номера приводит ввод к тому же виду до проверки занятости. */
+  normalizePhone(phone: string): string {
     const digits = phone.replace(/\D/g, '');
     if (digits.startsWith('8')) return '7' + digits.slice(1);
     return digits;

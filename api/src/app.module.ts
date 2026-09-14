@@ -8,6 +8,8 @@ import { UsersModule } from './modules/users/users.module';
 import { HistoryModule } from './modules/history/history.module';
 import { HealthController } from './common/health.controller';
 import { CallsModule } from './modules/calls/calls.module';
+import { MailModule } from './modules/mail/mail.module';
+import { LegacySchemaCleanup } from './common/legacy-schema-cleanup';
 
 @Module({
   imports: [
@@ -27,7 +29,9 @@ import { CallsModule } from './modules/calls/calls.module';
     UsersModule,
     HistoryModule,
     CallsModule,
+    MailModule,
   ],
   controllers: [HealthController],
+  providers: [LegacySchemaCleanup],
 })
 export class AppModule {}
