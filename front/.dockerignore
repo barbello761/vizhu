@@ -13,3 +13,4 @@ android
 *.log
 .env*
 !.env.production
+!.env.demo

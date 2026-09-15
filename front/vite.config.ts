@@ -6,7 +6,8 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig(async ({ mode }) => {
   // Загружаем .env.{mode} чтобы переменные были доступны на этапе конфигурации
   const env = loadEnv(mode, process.cwd(), '');
-  const isProd = mode === 'production';
+  // Демо-стенд собирается как прод, отличаются только переменные .env.demo.
+  const isProd = mode === 'production' || mode === 'demo';
 
   // Куда vite-сервер проксирует /api и /socket.io при запуске БЕЗ докера
   const devProxyTarget = env.VITE_DEV_PROXY_TARGET || 'http://localhost:3000';

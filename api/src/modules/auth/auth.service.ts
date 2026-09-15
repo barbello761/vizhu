@@ -53,6 +53,17 @@ export class AuthService {
     return code;
   }
 
+  /**
+   * Демо-стенд: код, который принимается НАРЯДУ с настоящим из звонка.
+   * В отличие от OTP_BYPASS звонок не отменяется и режим работает в production-
+   * сборке — стенд крутит те же образы, что прод. На проде переменная не задаётся.
+   */
+  private get demoCode(): string | null {
+    const code = this.config.get<string>('DEMO_OTP_CODE')?.trim();
+    if (!code || !/^\d{4}$/.test(code)) return null;
+    return code;
+  }
+
   async sendOtp(phone: string): Promise<void> {
     const normalizedPhone = this.normalizePhone(phone);
     const bypass = this.bypassCode;
@@ -77,7 +88,16 @@ export class AuthService {
       return;
     }
 
-    await this.sms.sendOtp(normalizedPhone, code);
+    try {
+      await this.sms.sendOtp(normalizedPhone, code);
+    } catch (err) {
+      // На демо недозвон не должен запирать вход: у пользователя есть demoCode.
+      if (!this.demoCode) throw err;
+      this.logger.warn(
+        `Звонок на ${normalizedPhone} не удался, вход возможен по DEMO_OTP_CODE`,
+      );
+      return;
+    }
     this.logger.log(`OTP отправлен на ${normalizedPhone}`);
   }
 
@@ -104,7 +124,8 @@ export class AuthService {
       );
     }
 
-    if (otp.code !== code) throw new BadRequestException('Неверный код');
+    if (otp.code !== code && code !== this.demoCode)
+      throw new BadRequestException('Неверный код');
 
     await this.otpRepo.delete({ id: otp.id });
     return normalizedPhone;

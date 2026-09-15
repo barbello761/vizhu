@@ -10,6 +10,7 @@ import {
   VizhuMarkIcon,
 } from '@/shared/ui/v2';
 
+import { DemoNotice } from './DemoNotice';
 import './ProfilePage.scss';
 
 type ThemeChoice = 'light' | 'dark';
@@ -38,6 +39,8 @@ export const VolunteerSettings = () => {
   return (
     <div className="profile-menu">
       <h1 className="profile-menu__title">Настройки</h1>
+
+      <DemoNotice />
 
       <nav className="profile-menu__nav" aria-label="Разделы настроек">
         <ul className="profile-menu__list">
