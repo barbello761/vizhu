@@ -13,6 +13,7 @@ import {
   VizhuMarkIcon,
 } from '@/shared/ui/v2';
 
+import { DemoNotice } from './DemoNotice';
 import './ProfilePage.scss';
 
 type ThemeChoice = 'light' | 'dark';
@@ -40,6 +41,8 @@ export const SelfProfile = () => {
   return (
     <div className="profile-menu">
       <h1 className="visually-hidden">Профиль</h1>
+
+      <DemoNotice />
 
       <TextTile title="Бесплатный доступ">
         <p>Есть суточные ограничения</p>

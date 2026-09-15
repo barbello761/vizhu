@@ -7,6 +7,7 @@
     "dev": "vite --mode development",
     "build": "tsc -b && vite build --mode production",
     "build:dev": "tsc -b && vite build --mode development",
+    "build:demo": "tsc -b && vite build --mode demo",
     "build:native": "tsc -b && vite build --mode native --outDir dist-native --emptyOutDir",
     "android": "npm run build:native && npx cap sync && npx cap run android",
     "preview": "vite preview",

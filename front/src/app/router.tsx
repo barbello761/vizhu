@@ -10,6 +10,7 @@ import { CameraPage } from '@/pages/CameraPage';
 import { CodePage } from '@/pages/CodePage';
 import { DeleteAccountDonePage } from '@/pages/DeleteAccountDonePage';
 import { DeleteAccountPage } from '@/pages/DeleteAccountPage';
+import { DemoNoticePage } from '@/pages/DemoNoticePage';
 import { DialogPage } from '@/pages/DialogPage';
 import { HelpPage } from '@/pages/HelpPage';
 import { HistoryPage } from '@/pages/HistoryPage';
@@ -33,6 +34,7 @@ import { REGISTRATION_FIELD_STEPS, RegistrationFieldPage } from '@/pages/Registr
 import { RegistrationIpraPage } from '@/pages/RegistrationIpraPage';
 import { StartPage } from '@/pages/StartPage';
 import { VolunteerPage } from '@/pages/VolunteerPage';
+import { env } from '@/shared/config';
 import { PageLayout } from '@/widgets/PageLayout';
 import { RootLayout } from '@/widgets/RootLayout';
 
@@ -140,6 +142,16 @@ export const createAppRouter = () =>
           loader: redirectIfAuthed,
           children: [
             { index: true, element: <StartPage />, handle: { title: 'Вход' } },
+            // Только сборка демо-стенда: на проде роута нет, адрес уходит в 404.
+            ...(env.isDemo
+              ? [
+                  {
+                    path: 'demo',
+                    element: <DemoNoticePage />,
+                    handle: { title: 'Демо-версия' },
+                  },
+                ]
+              : []),
             {
               path: 'phone',
               element: <PhoneAuthPage />,

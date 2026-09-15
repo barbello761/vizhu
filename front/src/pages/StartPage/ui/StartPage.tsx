@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router';
 
 import type { UserRole } from '@/entities/user';
 import { useAuthStore } from '@/features/auth';
+import { env } from '@/shared/config';
 import { Button, Logo } from '@/shared/ui/v2';
 import { HeroScreen } from '@/widgets/HeroScreen';
 
@@ -13,7 +14,8 @@ export const StartPage = () => {
 
   const continueAs = (role: UserRole) => () => {
     setRole(role);
-    void navigate('/auth/phone');
+    // На демо-стенде перед входом — экран о временных данных и запасном коде.
+    void navigate(env.isDemo ? '/auth/demo' : '/auth/phone');
   };
 
   return (

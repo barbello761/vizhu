@@ -1,0 +1,14 @@
+.demo-notice {
+  &__tiles {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-related);
+    width: 100%;
+  }
+
+  &__code {
+    font-weight: var(--heading-2-font-weight);
+    color: var(--accent-default);
+    white-space: nowrap;
+  }
+}

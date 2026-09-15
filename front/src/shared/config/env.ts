@@ -29,6 +29,18 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((v) => v === 'true'),
+  // Сборка для демо-стенда (npm run build:demo): инфо-экран перед входом и
+  // плашка в профиле. На проде не задаётся.
+  VITE_DEMO_MODE: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true'),
+  // Код, который бэкенд демо-стенда принимает, если звонок не дошёл
+  // (DEMO_OTP_CODE в infra/demo/.env). Пусто — строку с кодом не показываем.
+  VITE_DEMO_OTP_CODE: z
+    .string()
+    .optional()
+    .transform((v) => (v && /^\d{4}$/.test(v) ? v : undefined)),
 });
 
 const parsed = envSchema.safeParse(import.meta.env);
@@ -52,4 +64,8 @@ export const env = {
   enableDevtools: parsed.data.VITE_ENABLE_DEVTOOLS ?? import.meta.env.DEV,
   /** MSW-моки вместо настоящего бэкенда. Только dev, только по явному флагу. */
   enableMocks: parsed.data.VITE_ENABLE_MOCKS,
+  /** Демо-стенд demo.vizhu.su: данные временные, вход с запасным кодом. */
+  isDemo: parsed.data.VITE_DEMO_MODE,
+  /** Запасной код входа демо-стенда, если звонок не дошёл. */
+  demoOtpCode: parsed.data.VITE_DEMO_OTP_CODE,
 } as const;

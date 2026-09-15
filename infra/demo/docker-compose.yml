@@ -1,0 +1,136 @@
+# Демо-стенд demo.vizhu.su — отдельный compose-проект `vizhu-demo`.
+#
+# С продом общего ровно две вещи:
+#   1. внешняя сеть shared-web — через неё прод-nginx (vizhu_nginx) проксирует
+#      домен в demo-front и demo-api (конфиг: infra/nginx/conf.d/demo.vizhu.su.conf);
+#   2. LiveKit rtc.vizhu.su — ходим в него по публичному адресу, как клиенты.
+# Всё остальное своё: БД, redis, ai, сеть vizhu_demo_net, тома vizhu_demo_*.
+#
+# Руками не запускать — через ./demo.sh (up / stop / logs / destroy), см. README.md.
+#
+# Имена сервисов с префиксом demo- не для красоты: compose регистрирует имя
+# сервиса DNS-алиасом во ВСЕХ его сетях. Сервис `front` или `api` в shared-web
+# перехватил бы часть запросов прод-nginx, у которого апстримы с теми же именами.
+
+name: vizhu-demo
+
+networks:
+  demo_net:
+    name: vizhu_demo_net
+    driver: bridge
+  shared-web:
+    external: true
+
+volumes:
+  postgres_data:
+    name: vizhu_demo_postgres_data
+  redis_data:
+    name: vizhu_demo_redis_data
+
+services:
+
+  demo-front:
+    # Образ собирается из исходников без тега: `down --rmi local` в destroy
+    # удаляет ровно такие образы и не трогает postgres/redis, общие с продом.
+    build:
+      context: ../../front
+      dockerfile: Dockerfile
+      target: production
+      args:
+        BUILD_SCRIPT: build:demo
+        VITE_DEMO_OTP_CODE: ${DEMO_OTP_CODE}
+    container_name: vizhu_demo_front
+    restart: unless-stopped
+    networks:
+      - shared-web
+
+  demo-api:
+    build:
+      context: ../../api
+      dockerfile: Dockerfile
+      target: production
+    container_name: vizhu_demo_api
+    restart: unless-stopped
+    networks:
+      - demo_net
+      - shared-web
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://vizhu:${POSTGRES_PASSWORD:?}@demo-postgres:5432/vizhu
+      REDIS_URL: redis://demo-redis:6379
+      AI_SERVICE_URL: http://demo-ai:8000
+      # Свой секрет: токены прода на демо недействительны, и наоборот.
+      JWT_SECRET: ${JWT_SECRET:?}
+      JWT_EXPIRES_IN: 7d
+      SMSC_API_KEY: ${SMSC_API_KEY}
+      # Звонок уходит как обычно, но этот код принимается всегда.
+      DEMO_OTP_CODE: ${DEMO_OTP_CODE:?}
+      LIVEKIT_HOST: ${LIVEKIT_HOST:-https://rtc.vizhu.su}
+      LIVEKIT_URL: wss://rtc.vizhu.su
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      MATCHING_BACKEND: ${MATCHING_BACKEND:-memory}
+      POSTBOX_API_KEY: ${POSTBOX_API_KEY}
+      POSTBOX_API_SECRET: ${POSTBOX_API_SECRET}
+      POSTBOX_FROM: ${POSTBOX_FROM}
+      # Ссылка из письма должна открывать демо, а не прод.
+      APP_URL: https://demo.vizhu.su
+    depends_on:
+      demo-postgres:
+        condition: service_healthy
+      demo-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  demo-ai:
+    build:
+      context: ../../ai
+      dockerfile: Dockerfile
+    container_name: vizhu_demo_ai
+    restart: unless-stopped
+    networks:
+      - demo_net
+    environment:
+      GIGACHAT_CREDENTIALS: ${GIGACHAT_CREDENTIALS}
+      YANDEX_FOLDER_ID: ${YANDEX_FOLDER_ID}
+      YANDEX_API_KEY: ${YANDEX_API_KEY}
+      REDIS_URL: redis://demo-redis:6379
+
+  demo-postgres:
+    image: postgres:16-alpine
+    container_name: vizhu_demo_postgres
+    restart: unless-stopped
+    networks:
+      - demo_net
+    environment:
+      POSTGRES_DB: vizhu
+      POSTGRES_USER: vizhu
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vizhu -d vizhu"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  demo-redis:
+    image: redis:7-alpine
+    container_name: vizhu_demo_redis
+    restart: unless-stopped
+    networks:
+      - demo_net
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
