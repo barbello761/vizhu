@@ -3,11 +3,25 @@ import { resolve } from 'node:path';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig(async ({ mode }) => {
+// Относительным путём, а не через алиас @: конфиг собирается до того, как
+// resolve.alias из него же начинает действовать.
+import { API_CACHE_NAME } from './src/shared/config/cache-names';
+
+export default defineConfig(async ({ command, mode }) => {
   // Загружаем .env.{mode} чтобы переменные были доступны на этапе конфигурации
   const env = loadEnv(mode, process.cwd(), '');
   // Демо-стенд собирается как прод, отличаются только переменные .env.demo.
   const isProd = mode === 'production' || mode === 'demo';
+
+  // Без VITE_API_URL vite молча подставит undefined, сборка пройдёт, и упадёт
+  // уже браузер пользователя на валидации в src/shared/config/env.ts. Роняем
+  // здесь, чтобы забытый .env.{mode} ловился в CI, а не на проде.
+  if (command === 'build' && !env.VITE_API_URL) {
+    throw new Error(
+      `VITE_API_URL не задан для сборки в режиме "${mode}". ` +
+        `Проверьте front/.env.${mode} (образец — front/.env.example).`,
+    );
+  }
 
   // Куда vite-сервер проксирует /api и /socket.io при запуске БЕЗ докера
   const devProxyTarget = env.VITE_DEV_PROXY_TARGET || 'http://localhost:3000';
@@ -53,12 +67,15 @@ export default defineConfig(async ({ mode }) => {
 
       runtimeCaching: [
         {
-          // API URL задаётся через VITE_API_URL в .env
-          // При переносе на поддомен — обновить этот паттерн вместе с VITE_API_URL
-          urlPattern: /^https:\/\/vizhu\.su\/api/,
+          // VITE_API_URL везде относительный (/api), а фронт и api за nginx
+          // живут на одном origin — и на app.vizhu.su, и на demo.vizhu.su, и в
+          // dev. Поэтому матчим по пути, а не по домену: паттерн с захардкоженным
+          // хостом не совпадал ни с одним запросом, и кэш API не работал вовсе.
+          urlPattern: ({ sameOrigin, url }) => sameOrigin && url.pathname.startsWith('/api/'),
           handler: 'NetworkFirst',
           options: {
-            cacheName: 'api-cache',
+            // То же имя чистит clearApiCache() при выходе из аккаунта.
+            cacheName: API_CACHE_NAME,
             expiration: {
               maxEntries: 50,
               maxAgeSeconds: 60 * 60 * 24 * 7,

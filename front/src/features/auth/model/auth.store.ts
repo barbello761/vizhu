@@ -1,4 +1,5 @@
 import type { UserRole } from '@/entities/user';
+import { clearApiCache } from '@/shared/api/api-cache';
 import { clearStoredRefreshToken } from '@/shared/api/refresh-token-store';
 import { setAccessToken } from '@/shared/api/token-store';
 import { STORAGE_KEYS } from '@/shared/config/storage-keys';
@@ -64,6 +65,9 @@ export const useAuthStore = createPersistedStore<AuthStore>(
         setAccessToken(accessToken);
         // Новый аккаунт — чистим кэш, чтобы не показать данные прошлого юзера.
         queryClient.clear();
+        // queryClient живёт в памяти вкладки, а кэш service worker'а — на диске
+        // и переживает перезагрузку, поэтому его сносим отдельно.
+        void clearApiCache();
       }),
     setRegistered: (registered) =>
       set((draft) => {
@@ -81,6 +85,9 @@ export const useAuthStore = createPersistedStore<AuthStore>(
         void clearStoredRefreshToken();
         // Сбрасываем весь кэш запросов (профиль и пр.) при выходе.
         queryClient.clear();
+        // И ответы API, осевшие в Cache Storage: они переживают выход и
+        // отдали бы профиль следующему вошедшему на этом устройстве.
+        void clearApiCache();
       }),
     setPhone: (phone) =>
       set((draft) => {

@@ -1,8 +1,12 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { clearApiCache } from '@/shared/api/api-cache';
 import { getAccessToken } from '@/shared/api/token-store';
 
 import { useAuthStore } from '../auth.store';
+
+// Cache Storage в jsdom нет, а проверить нужно сам факт вызова.
+vi.mock('@/shared/api/api-cache', () => ({ clearApiCache: vi.fn() }));
 
 const reset = () =>
   useAuthStore.setState({
@@ -14,7 +18,10 @@ const reset = () =>
   });
 
 describe('useAuthStore', () => {
-  beforeEach(reset);
+  beforeEach(() => {
+    reset();
+    vi.mocked(clearApiCache).mockClear();
+  });
 
   it('первый вход: сессия есть, регистрация ещё не пройдена', () => {
     useAuthStore.getState().login('token', false);
@@ -67,5 +74,22 @@ describe('useAuthStore', () => {
     expect(isRegistered).toBe(false);
     expect(role).toBeNull();
     expect(getAccessToken()).toBeNull();
+  });
+
+  it('logout выбрасывает ответы API из Cache Storage', () => {
+    useAuthStore.getState().login('token', true);
+    vi.mocked(clearApiCache).mockClear();
+
+    useAuthStore.getState().logout();
+
+    // Кэш service worker'а переживает выход и отдал бы профиль следующему
+    // вошедшему на этом устройстве.
+    expect(clearApiCache).toHaveBeenCalledTimes(1);
+  });
+
+  it('вход в другой аккаунт не оставляет кэш прошлого', () => {
+    useAuthStore.getState().login('token', true);
+
+    expect(clearApiCache).toHaveBeenCalledTimes(1);
   });
 });
