@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import { type ChatMessage, useChatSession } from '@/features/ai-dialog';
 import { announceRouteChange } from '@/shared/lib/a11y';
-import { AiMessage, Button, ChatInput, ChevronBackIcon, UserMessage } from '@/shared/ui/v2';
+import { AiMessage, Button, ChatInput, ChevronBackIcon, UserMessage } from '@/shared/ui/';
 import { VoiceRecordOverlay } from '@/widgets/VoiceRecordOverlay';
 
 import './DialogPage.scss';

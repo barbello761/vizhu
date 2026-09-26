@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router';
 import { useAuthStore } from '@/features/auth';
 import { registrationApi, useRegistrationStore } from '@/features/registration';
 import { announceRouteChange } from '@/shared/lib/a11y';
-import { Button } from '@/shared/ui/v2';
+import { Button } from '@/shared/ui/';
 import { FormScreen } from '@/widgets/FormScreen';
 
 import './RegistrationIpraPage.scss';

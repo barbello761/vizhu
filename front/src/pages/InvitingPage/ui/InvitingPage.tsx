@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { useGoBack } from '@/shared/lib/navigation';
-import { Button, ChevronBackIcon, CopyIcon, MockQr, Notice } from '@/shared/ui/v2';
+import { Button, ChevronBackIcon, CopyIcon, MockQr, Notice } from '@/shared/ui/';
 
 import { INVITE_URL, INVITE_URL_LABEL } from '../model/invite';
 

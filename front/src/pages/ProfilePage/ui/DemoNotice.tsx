@@ -1,5 +1,5 @@
 import { env } from '@/shared/config';
-import { Notice } from '@/shared/ui/v2';
+import { Notice } from '@/shared/ui/';
 
 /** Приписка в профиле, только в сборке демо-стенда. */
 export const DemoNotice = () =>

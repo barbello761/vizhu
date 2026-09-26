@@ -3,7 +3,7 @@ import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 
 import { type AuthErrorResponse, authApi } from '@/features/auth';
 import { announceRouteChange } from '@/shared/lib/a11y';
-import { Button, CodeInput } from '@/shared/ui/v2';
+import { Button, CodeInput } from '@/shared/ui/';
 import { FormScreen } from '@/widgets/FormScreen';
 
 import './ProfileEmailPage.scss';

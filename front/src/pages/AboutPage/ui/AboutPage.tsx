@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { useGoBack } from '@/shared/lib/navigation';
-import { ActionLink, Button, ChevronBackIcon, Logo } from '@/shared/ui/v2';
+import { ActionLink, Button, ChevronBackIcon, Logo } from '@/shared/ui/';
 
 import { APP_RELEASE, APP_VERSION, SUPPORT_TELEGRAM_URL } from '../model/about';
 

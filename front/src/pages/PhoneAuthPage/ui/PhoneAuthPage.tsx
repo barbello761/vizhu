@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router';
 import { z } from 'zod';
 
 import { authApi, formatPhone, normalizePhone, useAuthStore } from '@/features/auth';
-import { Button, CallIcon, Input } from '@/shared/ui/v2';
+import { Button, CallIcon, Input } from '@/shared/ui/';
 import { FormScreen } from '@/widgets/FormScreen';
 
 import './PhoneAuthPage.scss';

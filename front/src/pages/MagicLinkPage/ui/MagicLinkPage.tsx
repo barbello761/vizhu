@@ -6,7 +6,7 @@ import { type EmailPurpose, emailVerificationApi } from '@/features/email-verifi
 import { profileQueryKey } from '@/features/profile';
 import { apiErrorMessage } from '@/shared/api';
 import { announceRouteChange } from '@/shared/lib/a11y';
-import { Spinner } from '@/shared/ui/v2';
+import { Spinner } from '@/shared/ui/';
 import { ResultScreen } from '@/widgets/ResultScreen';
 
 import './MagicLinkPage.scss';

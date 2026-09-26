@@ -13,13 +13,7 @@ import {
 } from '@/entities/history';
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { formatDateGroup, formatTime } from '@/shared/lib/date';
-import {
-  ActionMenuItem,
-  PencilIcon,
-  SearchField,
-  SegmentedControl,
-  TrashIcon,
-} from '@/shared/ui/v2';
+import { ActionMenuItem, PencilIcon, SearchField, SegmentedControl, TrashIcon } from '@/shared/ui/';
 
 import {
   CALLS_STUB_MESSAGE,

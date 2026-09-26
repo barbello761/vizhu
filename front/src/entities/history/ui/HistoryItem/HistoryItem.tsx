@@ -1,7 +1,7 @@
 import { type ReactNode, useCallback, useId, useRef, useState } from 'react';
 
 import { useDismiss } from '@/shared/lib/use-dismiss';
-import { ActionMenu, EllipsisVerticalIcon } from '@/shared/ui/v2';
+import { ActionMenu, EllipsisVerticalIcon } from '@/shared/ui/';
 
 import { HistoryItemRename } from './HistoryItemRename';
 

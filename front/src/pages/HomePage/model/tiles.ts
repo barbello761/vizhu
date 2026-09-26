@@ -1,6 +1,6 @@
 import { type ComponentType } from 'react';
 
-import { EyeIcon, TextIcon } from '@/shared/ui/v2';
+import { EyeIcon, TextIcon } from '@/shared/ui/';
 
 export interface HomeTile {
   id: string;

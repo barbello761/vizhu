@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 import { useUpdateProfile, validateName } from '@/features/profile';
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { useGoBack } from '@/shared/lib/navigation';
-import { Button, Input } from '@/shared/ui/v2';
+import { Button, Input } from '@/shared/ui/';
 import { FormScreen } from '@/widgets/FormScreen';
 
 import './ProfileNamePage.scss';

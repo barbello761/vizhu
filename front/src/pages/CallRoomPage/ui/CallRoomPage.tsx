@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 
 import { useCallStore } from '@/features/calls';
 import { useProfile } from '@/features/profile';
-import { Spinner } from '@/shared/ui/v2';
+import { Spinner } from '@/shared/ui/';
 
 import { CallRoomStage } from './CallRoomStage';
 

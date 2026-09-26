@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router';
 
 import { env } from '@/shared/config';
-import { Button, TextTile } from '@/shared/ui/v2';
+import { Button, TextTile } from '@/shared/ui/';
 import { FormScreen } from '@/widgets/FormScreen';
 
 import './DemoNoticePage.scss';

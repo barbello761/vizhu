@@ -1,6 +1,6 @@
 import { type ReactNode, useId } from 'react';
 
-import { Button, ChevronBackIcon } from '@/shared/ui/v2';
+import { Button, ChevronBackIcon } from '@/shared/ui/';
 
 import './form-screen.scss';
 

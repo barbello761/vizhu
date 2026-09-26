@@ -1,4 +1,4 @@
-import { Tile } from '@/shared/ui/v2';
+import { Tile } from '@/shared/ui/';
 
 import { HOME_TILES } from '../model/tiles';
 

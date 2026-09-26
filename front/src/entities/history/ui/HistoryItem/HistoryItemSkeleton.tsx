@@ -1,4 +1,4 @@
-import { EllipsisVerticalIcon } from '@/shared/ui/v2';
+import { EllipsisVerticalIcon } from '@/shared/ui/';
 
 import './HistoryItem.scss';
 

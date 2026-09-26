@@ -3,7 +3,7 @@ import { type FormEvent, useEffect, useState } from 'react';
 import { validateEmail } from '@/features/profile';
 import { apiErrorMessage } from '@/shared/api';
 import { announceRouteChange } from '@/shared/lib/a11y';
-import { Button, Input, MailIcon } from '@/shared/ui/v2';
+import { Button, Input, MailIcon } from '@/shared/ui/';
 import { FormScreen } from '@/widgets/FormScreen';
 
 import './ProfileEmailPage.scss';

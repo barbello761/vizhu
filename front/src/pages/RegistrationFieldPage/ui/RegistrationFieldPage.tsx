@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
 import { useRegistrationStore } from '@/features/registration';
-import { Button, Input } from '@/shared/ui/v2';
+import { Button, Input } from '@/shared/ui/';
 import { FormScreen } from '@/widgets/FormScreen';
 
 import type { RegistrationFieldForm, RegistrationFieldStep } from '../model/steps';
