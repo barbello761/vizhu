@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { SPAM_HINT } from '@/features/email-verification';
 import { emailSchema, nameSchema } from '@/features/registration';
-import { MailIcon } from '@/shared/ui/v2';
+import { MailIcon } from '@/shared/ui/';
 
 export type RegistrationFieldName = 'name' | 'email';
 

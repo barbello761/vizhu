@@ -1,6 +1,6 @@
 import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from 'react';
 
-import { CheckmarkIcon, CloseIcon } from '@/shared/ui/v2';
+import { CheckmarkIcon, CloseIcon } from '@/shared/ui/';
 
 import './HistoryItem.scss';
 

@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useId } from 'react';
 
 import { announceRouteChange } from '@/shared/lib/a11y';
-import { Button } from '@/shared/ui/v2';
+import { Button } from '@/shared/ui/';
 
 import './result-screen.scss';
 

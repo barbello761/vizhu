@@ -1,140 +1,222 @@
 @use 'shared/styles/_mixins' as m;
 
-.btn {
+.btn-v2 {
+  --btn-bg: transparent;
+  --btn-fg: var(--text-main);
+  --btn-border: transparent;
+
   display: inline-flex;
-  gap: 10px;
+  gap: var(--space-bonded);
   align-items: center;
   justify-content: center;
-  width: 100%;
-  min-height: 75px;
-  padding: 12px 20px;
-  color: var(--color-bg);
+  min-height: var(--size-touch-target-m);
+  padding: var(--space-related);
+  overflow: hidden;
+  font-family: var(--font-sans);
+  font-size: var(--body-font-size);
+  font-weight: var(--body-weight-accent);
+  line-height: var(--body-line-height);
+  color: var(--btn-fg);
+  text-align: center;
   cursor: pointer;
-  user-select: none;
-  background: var(--color-primary);
-  border: 2px solid transparent;
-  border-radius: var(--radius-lg);
+  background-color: var(--btn-bg);
+  border: var(--border-weight) solid var(--btn-border);
+  border-radius: var(--radius-l);
   transition:
-    background 0.18s ease,
-    border-color 0.18s ease,
-    box-shadow 0.18s ease,
-    filter 0.15s ease;
-
-  * {
-    cursor: inherit;
-  }
-
-  &:hover:not(:disabled) {
-    background: var(--color-primary-hover);
-  }
-
-  &:active:not(:disabled) {
-    filter: brightness(0.92);
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
-  }
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 
   &:focus-visible {
     outline: none;
     box-shadow:
-      0 0 0 3px var(--color-bg),
-      0 0 0 6px var(--color-primary);
+      0 0 0 3px var(--bg-page),
+      0 0 0 6px var(--accent-default);
   }
 
-  &--outline:focus-visible {
-    box-shadow:
-      0 0 0 3px var(--color-bg),
-      0 0 0 6px var(--color-primary);
+  &:disabled {
+    cursor: not-allowed;
   }
 
-  &--danger:focus-visible {
-    box-shadow:
-      0 0 0 3px var(--color-bg),
-      0 0 0 6px var(--color-danger);
+  /* «В разработке»: остаётся в потоке фокуса и озвучивается скринридером
+     (в отличие от `disabled`), обработчик клика гасится на стороне вызова. */
+  &[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 
-  &--spread {
-    justify-content: space-between;
-
-    .btn__content {
-      align-items: flex-start;
-      text-align: left;
-    }
+  &.btn-v2--loading {
+    cursor: progress;
   }
 
+  /* ── Первичная ─────────────────────────────────────────────────────────── */
   &--primary {
-    min-height: 64px;
+    --btn-bg: var(--accent-default);
+    --btn-fg: var(--text-on-accent);
 
-    .btn__label {
-      @include m.text-32;
+    width: 100%;
+
+    @include m.pressed {
+      --btn-bg: var(--accent-active);
+    }
+
+    &:disabled {
+      --btn-bg: var(--accent-disabled);
+      --btn-fg: var(--text-disabled);
+    }
+
+    &.btn-v2--loading {
+      --btn-bg: var(--accent-loading);
+      --btn-fg: var(--text-on-accent);
     }
   }
 
-  &--outline {
-    color: var(--color-primary);
-    background: transparent;
-    border-color: var(--color-primary);
+  /* ── Вторичная ─────────────────────────────────────────────────────────── */
+  &--secondary {
+    --btn-bg: var(--bg-surface);
+    --btn-fg: var(--accent-default);
 
-    &:hover:not(:disabled) {
-      background: var(--color-primary-ghost);
+    width: 100%;
+
+    @include m.pressed {
+      --btn-border: var(--accent-default);
     }
 
-    &:active:not(:disabled) {
-      background: var(--color-primary-weak);
+    &:disabled {
+      --btn-fg: var(--text-disabled);
+    }
+
+    &.btn-v2--loading {
+      --btn-fg: var(--accent-loading);
+      --btn-border: var(--accent-active);
     }
   }
 
+  /* ── Третичная ─────────────────────────────────────────────────────────── */
+  &--tertiary {
+    --btn-fg: var(--accent-default);
+
+    width: 100%;
+    height: auto;
+    min-height: var(--size-touch-target-s);
+
+    @include m.pressed {
+      --btn-fg: var(--accent-active);
+    }
+
+    &:disabled {
+      --btn-fg: var(--text-disabled);
+    }
+
+    &.btn-v2--loading {
+      --btn-fg: var(--accent-loading);
+    }
+  }
+
+  /* ── Опасность ─────────────────────────────────────────────────────────── */
   &--danger {
-    background: var(--color-danger);
-    border-color: transparent;
+    --btn-bg: var(--danger-default);
+    --btn-fg: var(--text-on-accent);
 
-    &:hover:not(:disabled) {
-      background: color-mix(in oklab, var(--color-danger) 85%, black);
+    width: 100%;
+
+    @include m.pressed {
+      --btn-bg: var(--danger-active);
     }
 
-    &.btn--outline {
-      color: var(--color-danger);
-      background: transparent;
-      border-color: var(--color-danger);
+    &:focus-visible {
+      box-shadow:
+        0 0 0 3px var(--bg-page),
+        0 0 0 6px var(--danger-default);
+    }
 
-      &:hover:not(:disabled) {
-        background: color-mix(in oklab, var(--color-danger) 10%, transparent);
+    &:disabled {
+      --btn-bg: var(--accent-disabled);
+      --btn-fg: var(--text-disabled);
+    }
+
+    &.btn-v2--loading {
+      --btn-bg: var(--danger-loading);
+      --btn-fg: var(--text-on-accent);
+    }
+  }
+
+  /* ── Только иконка ─────────────────────────────────────────────────────── */
+  &--icon {
+    --btn-bg: var(--bg-surface);
+    --btn-fg: var(--accent-default);
+
+    gap: var(--space-related);
+    min-width: var(--size-touch-target-m);
+
+    @include m.pressed {
+      --btn-border: var(--accent-default);
+    }
+
+    &:disabled {
+      --btn-fg: var(--text-disabled);
+      --btn-border: var(--text-disabled);
+    }
+
+    &.btn-v2--loading {
+      --btn-fg: var(--accent-loading);
+      --btn-border: var(--accent-loading);
+    }
+  }
+
+  /* ── На акцентном фоне ─────────────────────────────────────────────────── */
+  &--on-accent {
+    --btn-bg: var(--fixed-main);
+    --btn-fg: var(--accent-default);
+
+    @include m.pressed {
+      --btn-bg: var(--fixed-active);
+      --btn-border: var(--fixed-active);
+    }
+
+    &:focus-visible {
+      box-shadow:
+        0 0 0 3px var(--accent-default),
+        0 0 0 6px var(--fixed-main);
+    }
+
+    /* Второстепенное действие на акцентном фоне (напр. «Отклонить» на экране
+       входящего звонка): без заливки, белый текст. */
+    &.btn-v2--tertiary {
+      --btn-bg: transparent;
+      --btn-fg: var(--fixed-main);
+
+      @include m.pressed {
+        --btn-bg: color-mix(in oklab, var(--fixed-main) 16%, transparent);
+        --btn-border: transparent;
       }
     }
   }
 
-  &__content {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    align-items: center;
-  }
-
-  &__title {
-    @include m.text-12;
-
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    opacity: 0.75;
-  }
-
-  &__label {
-    @include m.text-24;
-  }
-
-  &__subtitle {
-    @include m.text-16;
-
-    opacity: 0.75;
-  }
-
-  &__icon {
+  &__slot {
     display: inline-flex;
     flex-shrink: 0;
     align-items: center;
+    justify-content: center;
+    width: var(--size-icon-slot);
+    height: var(--size-icon-slot);
+  }
+
+  /* Длинную подпись переносим, а не режем многоточием: «Выйти со всех
+     устройс…» не читается ни глазами, ни при крупном системном шрифте.
+     Кнопка растёт в высоту — у неё min-height, а не height. */
+  &__label {
+    min-width: 0;
+    overflow-wrap: break-word;
+    white-space: normal;
+  }
+}
+
+/* Ссылка, оформленная как кнопка (ActionLink) — тот же `.btn-v2`, но <a>. */
+a.btn-v2 {
+  text-decoration: none;
+
+  &:visited {
+    color: var(--btn-fg);
   }
 }

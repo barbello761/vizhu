@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ActionMenuItem, PencilIcon } from '@/shared/ui/v2';
+import { ActionMenuItem, PencilIcon } from '@/shared/ui/';
 
 import { HistoryItem } from '../HistoryItem';
 

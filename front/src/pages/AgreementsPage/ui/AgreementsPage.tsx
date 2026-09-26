@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { useHasHistory } from '@/shared/lib/navigation';
-import { Button, Checkbox } from '@/shared/ui/v2';
+import { Button, Checkbox } from '@/shared/ui/';
 import { FormScreen } from '@/widgets/FormScreen';
 
 import './AgreementsPage.scss';
