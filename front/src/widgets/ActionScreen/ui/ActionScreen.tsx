@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useId } from 'react';
 
 import { announceRouteChange } from '@/shared/lib/a11y';
-import { Button, ChevronBackIcon } from '@/shared/ui/v2';
+import { Button, ChevronBackIcon } from '@/shared/ui/';
 
 import './action-screen.scss';
 

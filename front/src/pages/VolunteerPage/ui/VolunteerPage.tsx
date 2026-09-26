@@ -7,7 +7,7 @@ import { primeAudio, useCallStore } from '@/features/calls';
 import { useProfile } from '@/features/profile';
 import { announceRouteChange } from '@/shared/lib/a11y/announcer';
 import { platform } from '@/shared/platform';
-import { Notice } from '@/shared/ui/v2';
+import { Notice } from '@/shared/ui/';
 
 import { OnlineToggle } from './OnlineToggle';
 

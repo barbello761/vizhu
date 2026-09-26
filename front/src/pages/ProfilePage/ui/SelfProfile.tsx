@@ -11,7 +11,7 @@ import {
   type SegmentedControlOption,
   TextTile,
   VizhuMarkIcon,
-} from '@/shared/ui/v2';
+} from '@/shared/ui/';
 
 import { DemoNotice } from './DemoNotice';
 import './ProfilePage.scss';

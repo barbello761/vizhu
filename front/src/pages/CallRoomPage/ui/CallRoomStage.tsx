@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import { useCallStore, useLiveKitRoom } from '@/features/calls';
 import type { EndReason, MatchInfo } from '@/features/calls';
+import { useCallStore, useLiveKitRoom } from '@/features/calls';
 import type { UserRole } from '@/features/profile';
 import { announceRouteChange } from '@/shared/lib/a11y/announcer';
 import { BLANK_POSTER } from '@/shared/lib/media';
@@ -15,7 +15,7 @@ import {
   MicOffIcon,
   VideocamIcon,
   VideocamOffIcon,
-} from '@/shared/ui/v2';
+} from '@/shared/ui/';
 
 import './CallRoomPage.scss';
 

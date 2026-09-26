@@ -1,10 +1,8 @@
-import { Loader2, Mic, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { announceRouteChange } from '@/shared/lib/a11y/announcer';
 import { useVoiceRecord } from '@/shared/lib/use-voice-record';
-import { RoundButton } from '@/shared/ui/RoundButton';
 
 import { Waveform } from './Waveform';
 
@@ -74,7 +72,7 @@ export const VoiceRecordOverlay = ({ onClose, onSend, isSending }: Props) => {
     });
   }, [status, audioBlob]);
 
-  const handleStop = () => {
+  const _handleStop = () => {
     shouldAutoSendRef.current = true;
     stop();
   };
@@ -84,7 +82,7 @@ export const VoiceRecordOverlay = ({ onClose, onSend, isSending }: Props) => {
     onClose();
   };
 
-  const isActive = status === 'requesting' || status === 'recording';
+  const _isActive = status === 'requesting' || status === 'recording';
   const isBusy = isSending || isAutoSending;
 
   const statusText = error ? ERROR_MESSAGES[error] : isBusy ? 'Отправка...' : 'Говорите...';
@@ -101,31 +99,30 @@ export const VoiceRecordOverlay = ({ onClose, onSend, isSending }: Props) => {
         <Waveform analyserNode={analyserNode} />
 
         <div className="voice-overlay__controls" role="group" aria-label="Управление записью">
-          {isActive && (
-            <RoundButton
-              className="voice-overlay__btn-mic"
-              icon={<Mic size={28} aria-hidden="true" />}
-              aria-label="Остановить запись и отправить"
-              onClick={handleStop}
-            />
-          )}
+          {/* {isActive && (
+            // <Button
+            //   className="voice-overlay__btn-mic"
+            //   aria-label="Остановить запись и отправить"
+            //   onClick={handleStop}
+            // />
+          )} */}
 
-          {isBusy && (
-            <RoundButton
-              className="voice-overlay__btn-sending"
-              icon={<Loader2 size={28} className="voice-overlay__spinner" aria-hidden="true" />}
-              aria-label="Отправка..."
-              disabled
-            />
-          )}
+          {/* {isBusy && (
+            // <RoundButton
+            //   className="voice-overlay__btn-sending"
+            //   icon={<Loader2 size={28} className="voice-overlay__spinner" aria-hidden="true" />}
+            //   aria-label="Отправка..."
+            //   disabled
+            // />
+          )} */}
 
-          <RoundButton
+          {/* <RoundButton
             className="voice-overlay__btn-cancel"
             icon={<X size={20} aria-hidden="true" />}
             aria-label="Отменить запись"
             disabled={isBusy}
             onClick={handleCancel}
-          />
+          /> */}
         </div>
       </div>
     </div>,

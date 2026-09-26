@@ -7,7 +7,7 @@ import { useProfile } from '@/features/profile';
 import { apiErrorMessage } from '@/shared/api';
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { useGoBack } from '@/shared/lib/navigation';
-import { Button, CallIcon, ChevronBackIcon, EditableField, MailIcon, Notice } from '@/shared/ui/v2';
+import { Button, CallIcon, ChevronBackIcon, EditableField, MailIcon, Notice } from '@/shared/ui/';
 
 import './ProfileSettingsPage.scss';
 

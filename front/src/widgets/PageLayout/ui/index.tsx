@@ -1,12 +1,6 @@
-import { Sun } from 'lucide-react';
 import { Outlet, useMatches } from 'react-router';
 
-import { useTheme } from '@/shared/lib/theme';
-import { RoundButton } from '@/shared/ui/RoundButton';
-
-import { LogoHeader } from './LogoHeader';
 import { Navigation } from './Navigation';
-import { TitleHeader } from './TitleHeader';
 
 import './page-layout.scss';
 
@@ -34,21 +28,6 @@ export const PageLayout = () => {
   const matches = useMatches();
   const handle = matches.at(-1)?.handle as RouteHandle | undefined;
 
-  const { toggle } = useTheme();
-
-  const renderHeader = () => {
-    if (handle?.headerVariant === 'none') {
-      return null;
-    }
-
-    return (
-      <header className="page-layout__header" role="banner">
-        {handle?.headerVariant === 'back' ? <TitleHeader title={handle.title} /> : <LogoHeader />}
-        <RoundButton icon={<Sun size={24} />} aria-label="Переключить тему" onClick={toggle} />
-      </header>
-    );
-  };
-
   const mainCls = [
     'page-layout__main',
     handle?.headerVariant === 'none' && 'page-layout__main--flush',
@@ -58,8 +37,6 @@ export const PageLayout = () => {
 
   return (
     <div className="page-layout">
-      {renderHeader()}
-
       <main id="main-content" className={mainCls} tabIndex={-1}>
         <Outlet />
       </main>

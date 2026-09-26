@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 import { startRinging, stopRinging, useCallStore } from '@/features/calls';
 import { announceRouteChange } from '@/shared/lib/a11y/announcer';
-import { Button, MovingGradient } from '@/shared/ui/v2';
+import { Button, MovingGradient } from '@/shared/ui/';
 
 import './IncomingCallOverlay.scss';
 
