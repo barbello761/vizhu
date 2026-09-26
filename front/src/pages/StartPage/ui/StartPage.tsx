@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import type { UserRole } from '@/entities/user';
 import { useAuthStore } from '@/features/auth';
 import { env } from '@/shared/config';
-import { Button, Logo } from '@/shared/ui/v2';
+import { Button, Logo } from '@/shared/ui/';
 import { HeroScreen } from '@/widgets/HeroScreen';
 
 import './StartPage.scss';

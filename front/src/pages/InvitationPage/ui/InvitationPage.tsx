@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router';
 
-import { Button, Logo } from '@/shared/ui/v2';
+import { Button, Logo } from '@/shared/ui/';
 import { HeroScreen } from '@/widgets/HeroScreen';
 
 import './InvitationPage.scss';

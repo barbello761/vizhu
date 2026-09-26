@@ -5,7 +5,7 @@ import { useShallow } from 'zustand/shallow';
 import { useCallStore, useVolunteerAvailability } from '@/features/calls';
 import { useProfile } from '@/features/profile';
 import { announceRouteChange } from '@/shared/lib/a11y/announcer';
-import { Button, MovingGradient } from '@/shared/ui/v2';
+import { Button, MovingGradient } from '@/shared/ui/';
 
 import './CallWaitingPage.scss';
 

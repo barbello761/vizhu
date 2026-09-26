@@ -1,88 +1,90 @@
-@use 'shared/styles/_mixins' as m;
-
-// Высота слота для label — text-14 (0.875rem × lh 1.4 = 1.225rem)
-$label-slot-height: 1.225rem;
-
-// Высота слота для сообщения — text-12 (0.75rem × lh 1.3 = 0.975rem)
-$message-slot-height: 0.975rem;
-
-.input-field {
+.input {
   display: flex;
   flex-direction: column;
-
-  &__label-slot {
-    display: flex;
-    align-items: flex-end;
-    height: $label-slot-height;
-    margin-bottom: var(--space-2);
-  }
+  gap: var(--space-related);
+  width: 100%;
 
   &__label {
-    @include m.text-14;
+    font-size: var(--label-font-size);
+    font-weight: var(--label-font-weight);
+    line-height: var(--label-line-height);
+    color: var(--text-main);
+  }
 
-    font-weight: 600;
-    color: var(--color-text-muted);
-    letter-spacing: 0.06em;
+  &__field {
+    display: flex;
+    gap: var(--space-bonded);
+    align-items: center;
+    min-height: var(--size-touch-target-m);
+    padding: var(--space-related) var(--space-close);
+    background-color: var(--bg-surface);
+    border: var(--border-weight) solid transparent;
+    border-radius: var(--radius-l);
+    transition:
+      border-color 0.15s ease,
+      background-color 0.15s ease;
+
+    &:focus-within {
+      border-color: var(--accent-default);
+    }
+  }
+
+  &__slot {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-slot);
+    height: var(--size-icon-slot);
+    color: var(--text-secondary);
   }
 
   &__control {
-    @include m.text-24;
-
-    width: 100%;
-    padding: var(--space-4) var(--space-5);
-    color: var(--color-text);
-    appearance: none;
-    background: var(--color-bg);
-    border: 2.5px solid var(--color-border);
-    border-radius: var(--radius-md);
-    transition:
-      border-color 0.18s ease,
-      box-shadow 0.18s ease;
-
-    &::placeholder {
-      font-weight: 400;
-      color: var(--color-text-muted);
-      opacity: 0.6;
-    }
+    flex: 1 0 0;
+    min-width: 0;
+    padding: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-default);
+    line-height: var(--body-line-height);
+    color: var(--text-main);
+    background: none;
+    border: 0;
 
     &:focus {
       outline: none;
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px var(--color-focus);
     }
 
-    &--error {
-      border-color: var(--color-danger);
-
-      &:focus {
-        border-color: var(--color-danger);
-        box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-danger) 30%, transparent);
-      }
-    }
-
-    &:disabled {
-      cursor: not-allowed;
-      background: var(--color-surface);
-      opacity: 0.5;
+    &::placeholder {
+      color: var(--placeholder-default);
+      opacity: 1;
     }
   }
 
-  &__message-slot {
-    display: flex;
-    align-items: flex-start;
-    height: $message-slot-height;
-    margin-top: var(--space-2);
+  &__error {
+    margin: 0;
+    font-size: var(--label-font-size);
+    font-weight: var(--label-font-weight);
+    line-height: var(--label-line-height);
+    color: var(--danger-default);
   }
 
-  &__message {
-    @include m.text-12;
+  &--error &__field,
+  &--error &__field:focus-within {
+    border-color: var(--danger-default);
+  }
 
-    &--error {
-      color: var(--color-danger);
-    }
+  &--disabled &__field {
+    background-color: var(--bg-disabled);
+  }
 
-    &--hint {
-      color: var(--color-text-muted);
+  &--disabled &__control {
+    color: var(--text-secondary);
+
+    &::placeholder {
+      color: var(--placeholder-disabled);
     }
   }
 }

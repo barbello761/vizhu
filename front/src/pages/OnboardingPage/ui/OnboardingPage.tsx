@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router';
 
 import { useOnboardingStore } from '@/features/onboarding';
-import { Button } from '@/shared/ui/v2';
+import { Button } from '@/shared/ui/';
 import { FormScreen } from '@/widgets/FormScreen';
 
 import './OnboardingPage.scss';

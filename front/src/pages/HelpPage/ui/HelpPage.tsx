@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 
 import { useProfile } from '@/features/profile';
 import { announceRouteChange } from '@/shared/lib/a11y/announcer';
-import { ActionLink, HeadsetIcon, Tile } from '@/shared/ui/v2';
+import { ActionLink, HeadsetIcon, Tile } from '@/shared/ui/';
 
 import './HelpPage.scss';
 

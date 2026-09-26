@@ -1,9 +1,9 @@
 import { type ComponentType } from 'react';
-import { NavLink } from 'react-router';
 import type { NavLinkRenderProps } from 'react-router';
+import { NavLink } from 'react-router';
 
 import { useIsVolunteer } from '@/features/profile';
-import { CameraIcon, ChatbubblesIcon, HelpIcon, PersonCircleIcon } from '@/shared/ui/v2';
+import { CameraIcon, ChatbubblesIcon, HelpIcon, PersonCircleIcon } from '@/shared/ui/';
 
 interface NavItem {
   to: string;

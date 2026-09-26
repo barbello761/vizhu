@@ -7,7 +7,7 @@ import {
   usePhotoCamera,
   usePhotoDialogStore,
 } from '@/features/ai-dialog';
-import { ActionMenuItem, CameraIcon, ImageIcon } from '@/shared/ui/v2';
+import { ActionMenuItem, CameraIcon, ImageIcon } from '@/shared/ui/';
 
 import { DialogChat } from './DialogChat';
 

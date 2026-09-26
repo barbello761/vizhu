@@ -1,4 +1,4 @@
-import { VizhuStarIcon, WifiOffIcon } from '@/shared/ui/v2';
+import { VizhuStarIcon, WifiOffIcon } from '@/shared/ui/';
 
 import './HistoryPlaceholder.scss';
 
