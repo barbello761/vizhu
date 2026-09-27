@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { useGoBack } from '@/shared/lib/navigation';
-import { ActionLink, Button, ChevronBackIcon, Logo } from '@/shared/ui/';
+import { ActionLink, Button, Logo } from '@/shared/ui/';
+import { BackButton } from '@/shared/ui/BackButton';
 
 import { APP_RELEASE, APP_VERSION, SUPPORT_TELEGRAM_URL } from '../model/about';
 
@@ -20,9 +21,7 @@ export const AboutPage = () => {
   return (
     <main id="main-content" className="about" tabIndex={-1} aria-labelledby="about-title">
       <div className="about__top">
-        <Button variant="icon" aria-label="Назад" onClick={goBack}>
-          <ChevronBackIcon />
-        </Button>
+        <BackButton onClick={goBack} />
       </div>
 
       <div className="about__content">

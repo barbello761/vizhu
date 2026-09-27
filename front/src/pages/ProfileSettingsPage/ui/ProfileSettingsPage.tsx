@@ -7,8 +7,8 @@ import { useProfile } from '@/features/profile';
 import { apiErrorMessage } from '@/shared/api';
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { useGoBack } from '@/shared/lib/navigation';
-import { Button, CallIcon, ChevronBackIcon, EditableField, MailIcon, Notice } from '@/shared/ui/';
-
+import { Button, CallIcon, EditableField, MailIcon, Notice } from '@/shared/ui/';
+import { BackButton } from '@/shared/ui/BackButton';
 import './ProfileSettingsPage.scss';
 
 const PHONE_EDIT_HINT =
@@ -56,9 +56,7 @@ export const ProfileSettingsPage = () => {
       aria-labelledby="profile-settings-title"
     >
       <div className="profile-settings__header">
-        <Button variant="icon" aria-label="Назад" onClick={goBack}>
-          <ChevronBackIcon />
-        </Button>
+        <BackButton onClick={goBack} />
         <h1 id="profile-settings-title" className="profile-settings__title">
           Профиль
         </h1>

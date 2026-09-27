@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
+import { useAuthStore } from '@/features/auth';
+import { useRegistrationStore } from '@/features/registration';
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { useHasHistory } from '@/shared/lib/navigation';
 import { Button, Checkbox } from '@/shared/ui/';
@@ -20,6 +22,8 @@ export const AgreementsPage = () => {
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const resetRegistration = useRegistrationStore((s) => s.reset);
+  const logout = useAuthStore((s) => s.logout);
 
   const handleContinue = () => {
     if (!acceptedPrivacy || !acceptedTerms) {
@@ -29,11 +33,15 @@ export const AgreementsPage = () => {
     }
     void navigate('/registration/name');
   };
-
+  const handleGoBack = () => {
+    resetRegistration();
+    logout();
+    void navigate('/auth/phone');
+  };
   return (
     <FormScreen
       title="Нужно ваше согласие"
-      onBack={canGoBack ? () => void navigate(-1) : undefined}
+      onBack={canGoBack ? handleGoBack : undefined}
       insetTop={!canGoBack}
       actions={
         <div className="agreements__consent">

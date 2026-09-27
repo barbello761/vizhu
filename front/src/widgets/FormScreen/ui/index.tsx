@@ -1,7 +1,6 @@
 import { type ReactNode, useId } from 'react';
 
-import { Button, ChevronBackIcon } from '@/shared/ui/';
-
+import { BackButton } from '@/shared/ui/BackButton';
 import './form-screen.scss';
 
 interface FormScreenProps {
@@ -10,7 +9,6 @@ interface FormScreenProps {
   description?: ReactNode;
   /** Кнопка «назад» рендерится только если передан обработчик. */
   onBack?: () => void;
-  backLabel?: string;
   /** Сдвигает контент вниз на место кнопки «назад» — для экранов, с которых нельзя вернуться. */
   insetTop?: boolean;
   /** Поля формы — идут в одной колонке с заголовком, как в макете. */
@@ -23,7 +21,6 @@ export const FormScreen = ({
   title,
   description,
   onBack,
-  backLabel = 'Назад',
   insetTop = false,
   children,
   actions,
@@ -34,11 +31,7 @@ export const FormScreen = ({
   return (
     <main id="main-content" className={cls} tabIndex={-1} aria-labelledby={titleId}>
       <div className="form-screen__top">
-        {onBack && (
-          <Button variant="icon" aria-label={backLabel} onClick={onBack}>
-            <ChevronBackIcon />
-          </Button>
-        )}
+        {onBack && <BackButton onClick={onBack} />}
 
         <div className="form-screen__head">
           <h1 className="form-screen__title" id={titleId}>

@@ -2,7 +2,8 @@ import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import { type ChatMessage, useChatSession } from '@/features/ai-dialog';
 import { announceRouteChange } from '@/shared/lib/a11y';
-import { AiMessage, Button, ChatInput, ChevronBackIcon, UserMessage } from '@/shared/ui/';
+import { AiMessage, ChatInput, UserMessage } from '@/shared/ui/';
+import { BackButton } from '@/shared/ui/BackButton';
 import { VoiceRecordOverlay } from '@/widgets/VoiceRecordOverlay';
 
 import './DialogPage.scss';
@@ -88,9 +89,7 @@ export const DialogChat = ({
   return (
     <main id="main-content" className="dialog-page" tabIndex={-1} aria-label={title}>
       <header className="dialog-page__header">
-        <Button variant="icon" aria-label={exitLabel} onClick={onExit}>
-          <ChevronBackIcon />
-        </Button>
+        <BackButton onClick={onExit} arialabel={exitLabel} />
         <h1 className="dialog-page__title">{title}</h1>
         <span className="dialog-page__header-spacer" aria-hidden="true" />
       </header>

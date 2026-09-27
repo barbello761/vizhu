@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { useGoBack } from '@/shared/lib/navigation';
-import { Button, ChevronBackIcon, CopyIcon, MockQr, Notice } from '@/shared/ui/';
+import { Button, CopyIcon, MockQr, Notice } from '@/shared/ui/';
+import { BackButton } from '@/shared/ui/BackButton';
 
 import { INVITE_URL, INVITE_URL_LABEL } from '../model/invite';
 
@@ -55,9 +56,7 @@ export const InvitingPage = () => {
   return (
     <main id="main-content" className="inviting" tabIndex={-1} aria-labelledby="inviting-title">
       <div className="inviting__top">
-        <Button variant="icon" aria-label="Назад" onClick={goBack}>
-          <ChevronBackIcon />
-        </Button>
+        <BackButton onClick={goBack} />
       </div>
 
       <div className="inviting__content">

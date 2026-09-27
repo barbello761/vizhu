@@ -1,8 +1,8 @@
 import { type ReactNode, useEffect, useId } from 'react';
 
 import { announceRouteChange } from '@/shared/lib/a11y';
-import { Button, ChevronBackIcon } from '@/shared/ui/';
-
+import { Button } from '@/shared/ui/';
+import { BackButton } from '@/shared/ui/BackButton';
 import './action-screen.scss';
 
 interface ActionScreenProps {
@@ -29,7 +29,6 @@ interface ActionScreenProps {
    * у экранов-подтверждений её обычно нет, выход там через «Отмена».
    */
   onBack?: () => void;
-  backLabel?: string;
   /** Разъяснение для скринридера при открытии экрана. */
   announce?: string;
 }
@@ -50,7 +49,6 @@ export const ActionScreen = ({
   cancelLabel = 'Отмена',
   onCancel,
   onBack,
-  backLabel = 'Назад',
   announce,
 }: ActionScreenProps) => {
   const titleId = useId();
@@ -67,9 +65,7 @@ export const ActionScreen = ({
     <main id="main-content" className={cls} tabIndex={-1} aria-labelledby={titleId}>
       {onBack && (
         <div className="action-screen__top">
-          <Button variant="icon" aria-label={backLabel} onClick={onBack}>
-            <ChevronBackIcon />
-          </Button>
+          <BackButton onClick={onBack} />
         </div>
       )}
 
