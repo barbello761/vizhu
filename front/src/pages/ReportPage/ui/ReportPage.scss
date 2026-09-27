@@ -1,0 +1,12 @@
+.report{
+    &__form{
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        gap: var(--pad-4);
+        &__checkbox{
+            align-items: center;
+            gap: var(--pad-3);
+        }
+    }
+}

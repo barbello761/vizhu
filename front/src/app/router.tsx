@@ -32,6 +32,8 @@ import { ProfilePhonePage } from '@/pages/ProfilePhonePage';
 import { ProfileSettingsPage } from '@/pages/ProfileSettingsPage';
 import { REGISTRATION_FIELD_STEPS, RegistrationFieldPage } from '@/pages/RegistrationFieldPage';
 import { RegistrationIpraPage } from '@/pages/RegistrationIpraPage';
+import { ReportDonePage } from '@/pages/ReportDonePage';
+import { ReportPage } from '@/pages/ReportPage';
 import { StartPage } from '@/pages/StartPage';
 import { VolunteerPage } from '@/pages/VolunteerPage';
 import { env } from '@/shared/config';
@@ -290,6 +292,8 @@ export const createAppRouter = () =>
         { path: 'dialog/:id', element: <DialogPage />, loader: requireAuth },
         { path: 'call/waiting', element: <CallWaitingPage />, loader: requireAuth },
         { path: 'call/room', element: <CallRoomPage />, loader: requireAuth },
+        { path: 'call/report', element: <ReportPage />, loader: requireAuth },
+        { path: 'report-successful', element: <ReportDonePage />, loader: requireAuth },
         // Переход по ссылке из письма. Открывается в браузере почтового
         // клиента, где сессии приложения нет, — поэтому без гарда: пропуском
         // служит токен из адреса.
