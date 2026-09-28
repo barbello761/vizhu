@@ -1,17 +1,11 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
-import { CallsService } from './calls.service';
-import { MatchingService } from './matching.service';
-import { CreateTokenDto } from './dto/create-token.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt.guard'; // ← поправь путь под свой
-import { JwtPayload } from '../../common/guards/jwt.guard'; // ← путь к твоему интерфейсу
+import { JwtAuthGuard, JwtPayload } from '../../common/guards/jwt.guard'; // ← поправь путь под свой
 import { UsersService } from '../users/users.service';
+import { CallsService } from './calls.service';
+import { CreateTokenDto } from './dto/create-token.dto';
+import { MatchingService } from './matching.service';
 
 @ApiTags('calls')
 @Controller('calls')
@@ -37,13 +31,13 @@ export class CallsController {
     });
   }
 
-  @Get('availability')
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: 'Сколько волонтёров сейчас свободны и готовы принять звонок',
-  })
-  @ApiResponse({ status: 200, description: '{ available: number }' })
-  getAvailability(): { available: number } {
-    return { available: this.matching.availableCount() };
-  }
+  // @Get('availability')
+  // @ApiBearerAuth()
+  // @ApiOperation({
+  //   summary: 'Сколько волонтёров сейчас свободны и готовы принять звонок',
+  // })
+  // @ApiResponse({ status: 200, description: '{ available: number }' })
+  // getAvailability(): { available: number } {
+  //   return { available: this.matching.availableCount() };
+  // }
 }
