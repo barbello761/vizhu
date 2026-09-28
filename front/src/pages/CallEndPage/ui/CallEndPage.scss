@@ -1,0 +1,24 @@
+h1, p{
+    width: 100%;
+    text-align: center;
+    font-size: var(--pad-5);
+    margin: 24px 0 0 0;
+}
+.rating{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--pad-6);
+    .form-screen__head{
+        gap: 8px;
+    }
+    &__form{
+        display: flex;
+        flex-direction: column;
+        gap: var(--pad-3);
+        p{
+            
+        }
+        width: 100%;
+    }
+}

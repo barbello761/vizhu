@@ -4,6 +4,7 @@ import { useAuthStore } from '@/features/auth';
 import { useOnboardingStore } from '@/features/onboarding';
 import { AboutPage } from '@/pages/AboutPage';
 import { AgreementsPage } from '@/pages/AgreementsPage';
+import { CallEndPage } from '@/pages/CallEndPage';
 import { CallRoomPage } from '@/pages/CallRoomPage';
 import { CallWaitingPage } from '@/pages/CallWaitingPage';
 import { CameraPage } from '@/pages/CameraPage';
@@ -292,6 +293,7 @@ export const createAppRouter = () =>
         { path: 'dialog/:id', element: <DialogPage />, loader: requireAuth },
         { path: 'call/waiting', element: <CallWaitingPage />, loader: requireAuth },
         { path: 'call/room', element: <CallRoomPage />, loader: requireAuth },
+        { path: 'call/rating', element: <CallEndPage />, loader: requireAuth },
         { path: 'call/report', element: <ReportPage />, loader: requireAuth },
         { path: 'report-successful', element: <ReportDonePage />, loader: requireAuth },
         // Переход по ссылке из письма. Открывается в браузере почтового
