@@ -2,6 +2,7 @@ import type { UserRole } from '@/features/profile';
 
 /** Данные для входа в LiveKit-комнату (приходят в call:matched или /calls/token). */
 export type MatchInfo = {
+  callId: string;
   url: string;
   room: string;
   token: string;

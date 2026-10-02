@@ -29,6 +29,7 @@ interface ActionScreenProps {
    * у экранов-подтверждений её обычно нет, выход там через «Отмена».
    */
   onBack?: () => void;
+  backLabel?: string;
   /** Разъяснение для скринридера при открытии экрана. */
   announce?: string;
 }
@@ -49,6 +50,7 @@ export const ActionScreen = ({
   cancelLabel = 'Отмена',
   onCancel,
   onBack,
+  backLabel,
   announce,
 }: ActionScreenProps) => {
   const titleId = useId();
@@ -65,7 +67,7 @@ export const ActionScreen = ({
     <main id="main-content" className={cls} tabIndex={-1} aria-labelledby={titleId}>
       {onBack && (
         <div className="action-screen__top">
-          <BackButton onClick={onBack} />
+          <BackButton onClick={onBack} arialabel={backLabel} />
         </div>
       )}
 

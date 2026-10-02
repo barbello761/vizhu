@@ -293,8 +293,8 @@ export const createAppRouter = () =>
         { path: 'dialog/:id', element: <DialogPage />, loader: requireAuth },
         { path: 'call/waiting', element: <CallWaitingPage />, loader: requireAuth },
         { path: 'call/room', element: <CallRoomPage />, loader: requireAuth },
-        { path: 'call/rating', element: <CallEndPage />, loader: requireAuth },
-        { path: 'call/report', element: <ReportPage />, loader: requireAuth },
+        { path: 'call/:id/rating', element: <CallEndPage />, loader: requireAuth },
+        { path: 'call/:id/report', element: <ReportPage />, loader: requireAuth },
         { path: 'report-successful', element: <ReportDonePage />, loader: requireAuth },
         // Переход по ссылке из письма. Открывается в браузере почтового
         // клиента, где сессии приложения нет, — поэтому без гарда: пропуском

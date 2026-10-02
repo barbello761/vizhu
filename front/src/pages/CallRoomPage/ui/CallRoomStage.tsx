@@ -6,6 +6,7 @@ import { useCallStore, useLiveKitRoom } from '@/features/calls';
 import type { UserRole } from '@/features/profile';
 import { announceRouteChange } from '@/shared/lib/a11y/announcer';
 import { BLANK_POSTER } from '@/shared/lib/media';
+import { formatTime } from '@/shared/lib/time';
 import {
   Alert,
   AlertCircleIcon,
@@ -32,8 +33,6 @@ const CONNECTION_LABEL: Record<string, string> = {
   failed: 'Не удалось подключиться',
 };
 
-const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-
 export const CallRoomStage = ({ match, role }: CallRoomStageProps) => {
   const navigate = useNavigate();
   const endCall = useCallStore((s) => s.endCall);
@@ -43,18 +42,36 @@ export const CallRoomStage = ({ match, role }: CallRoomStageProps) => {
 
   const isBlind = role === 'blind';
 
+  // Стор сбрасываем только когда экран звонка уже ушёл. endCall/returnToLine
+  // обнуляют match, и если сделать это до навигации, CallRoomPage увидит
+  // пустой match раньше, чем переход (он идёт через startTransition), и сам
+  // уведёт на /help. Проверка finishedRef — чтобы размонтирование в StrictMode
+  // и смена зависимостей посреди звонка его не обрывали.
+  useEffect(
+    () => () => {
+      if (!finishedRef.current) {
+        return;
+      }
+      // Незрячий — полностью выходим. Волонтёр остаётся на линии (снова в пул).
+      if (isBlind) {
+        endCall();
+      } else {
+        returnToLine();
+      }
+    },
+    [isBlind, endCall, returnToLine],
+  );
+
   const finish = (reason: EndReason) => {
     if (finishedRef.current) {
       return;
     }
     finishedRef.current = true;
-    // Незрячий — полностью выходим. Волонтёр остаётся на линии (снова в пул).
-    if (isBlind) {
-      endCall();
-    } else {
-      returnToLine();
-    }
-    const go = () => void navigate(isBlind ? '/help' : '/volunteer', { replace: true });
+    const go = () =>
+      void navigate(`/call/${match.callId}/rating`, {
+        replace: true,
+        state: { seconds },
+      });
     if (reason === 'self') {
       announceRouteChange('Звонок завершён.');
       go();

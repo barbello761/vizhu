@@ -22,6 +22,17 @@ async function bootstrap() {
 
   await app.register(fastifyCookie);
 
+  // Вебхуки LiveKit приходят как application/webhook+json, и их подпись
+  // считается от исходного тела — отдаём его контроллеру строкой, не разбирая.
+  app
+    .getHttpAdapter()
+    .getInstance()
+    .addContentTypeParser(
+      'application/webhook+json',
+      { parseAs: 'string' },
+      (_req, body, done) => done(null, body),
+    );
+
   // CORS: web-прод ходит с того же origin (nginx) и в списке не нуждается.
   // capacitor://localhost (iOS) и https://localhost (Android) — origin'ы
   // WebView нативного приложения; они используют Bearer + refresh в теле,

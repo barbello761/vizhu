@@ -1,24 +1,49 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
-import { Button, Checkbox, Input } from '@/shared/ui';
+import { type Report, ReportSchema, useReportCall } from '@/features/call-feedback';
+import { useProfile } from '@/features/profile';
+import { apiErrorMessage } from '@/shared/api';
+import { Alert, Button, Checkbox, Input, Spinner, VizhuIcon } from '@/shared/ui';
 import { FormScreen } from '@/widgets/FormScreen';
-
-import { ReportSchema, type Report } from '../model/';
 
 import './ReportPage.scss';
 
 export const ReportPage = () => {
+  const { id } = useParams<{ id: string }>();
+  const { data: profile, isLoading } = useProfile();
+  if (!id) {
+    return <Navigate to="/help" replace />;
+  }
+  if (isLoading || !profile) {
+    return (
+      <main id="main-content" className="report report--loading" tabIndex={-1}>
+        <Spinner />
+        <p role="status" aria-live="polite">
+          Загружаем форму жалобы…
+        </p>
+      </main>
+    );
+  }
+  return <ReportScreen callId={id} role={profile.role} />;
+};
+
+export const ReportScreen = ({ callId, role }: { callId: string; role: string }) => {
   const [otherChecked, setOtherChecked] = useState(false);
   const FORM_ID = 'report-form';
 
   const navigate = useNavigate();
 
+  const reportCall = useReportCall(callId);
+
+  const isBlind = role === 'blind';
+
   const onSubmit = (data: Report) => {
-    console.log(data);
-    void navigate('/report-successful');
+    reportCall.mutate(data, {
+      onSuccess: () => navigate('/report-successful', { replace: true }),
+    });
   };
 
   const {
@@ -33,13 +58,11 @@ export const ReportPage = () => {
 
   return (
     <FormScreen
-      title={'Пожаловаться на волонтёра'}
-      description={
-        'Жалоба анонимна для волонтёра. Мы рассмотрим её и, если нарушений будет несколько, ограничим доступ волонтёру к звонкам.'
-      }
+      title={`Пожаловаться на ${isBlind ? 'волонтёра' : 'незрячего'}`}
+      description={`Жалоба анонимна для ${isBlind ? 'волонтёра' : 'незрячего'}. Мы рассмотрим её и, если нарушений будет несколько, ${isBlind ? 'ограничим доступ волонтёру к звонкам' : 'примем в отношении незрячего соответствующие меры'}.`}
       onBack={() => void navigate(-1)}
       actions={
-        <Button type="submit" form={FORM_ID}>
+        <Button type="submit" form={FORM_ID} disabled={reportCall.isPending}>
           Отправить
         </Button>
       }
@@ -49,20 +72,22 @@ export const ReportPage = () => {
         className="report__form"
         onSubmit={handleSubmit(onSubmit)}
         noValidate
-        aria-label={'Форма отправки жалобы на волонтера'}
+        aria-label={`Форма отправки жалобы на ${isBlind ? 'волонтёра' : 'незрячего'}`}
       >
-        <Checkbox className="report__form__checkbox" {...register('notHelpful')}>
-          Не помог с задачей
-        </Checkbox>
-        <Checkbox
-          className="report__form__checkbox"
-          {...register('rude', { deps: ['notHelpful'] })}
-        >
+        {isBlind && (
+          <Checkbox
+            className="report__form__checkbox"
+            {...register('notHelpful', { deps: ['rude'] })}
+          >
+            Не помог с задачей
+          </Checkbox>
+        )}
+        <Checkbox className="report__form__checkbox" {...register('rude')}>
           Был груб и неуважителен
         </Checkbox>
         <Checkbox
           className="report__form__checkbox"
-          {...register('privacyIntruder', { deps: ['notHelpful'] })}
+          {...register('privacyIntruder', { deps: ['rude'] })}
         >
           Нарушил мою приватность
         </Checkbox>
@@ -79,16 +104,21 @@ export const ReportPage = () => {
         {otherChecked && (
           <Input
             className="report__form__input"
-            {...register('other', { deps: ['notHelpful'] })}
+            {...register('other', { deps: ['rude'] })}
             type={'text'}
             placeholder={'Комментарий'}
             error={errors.other?.message}
           />
         )}
-        {errors.notHelpful?.message && (
+        {errors.rude?.message && (
           <p className="input__error" role="alert">
-            {errors.notHelpful.message}
+            {errors.rude.message}
           </p>
+        )}
+        {reportCall.isError && (
+          <Alert icon={<VizhuIcon />}>
+            {apiErrorMessage(reportCall.error, 'Ошибка отправки жалобы!')}
+          </Alert>
         )}
       </form>
     </FormScreen>

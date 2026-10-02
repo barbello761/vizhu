@@ -9,6 +9,8 @@ interface FormScreenProps {
   description?: ReactNode;
   /** Кнопка «назад» рендерится только если передан обработчик. */
   onBack?: () => void;
+  /*aria для кнопки "назад"*/
+  backLabel?: string;
   /** Сдвигает контент вниз на место кнопки «назад» — для экранов, с которых нельзя вернуться. */
   insetTop?: boolean;
   /** Поля формы — идут в одной колонке с заголовком, как в макете. */
@@ -21,6 +23,7 @@ export const FormScreen = ({
   title,
   description,
   onBack,
+  backLabel,
   insetTop = false,
   children,
   actions,
@@ -31,7 +34,7 @@ export const FormScreen = ({
   return (
     <main id="main-content" className={cls} tabIndex={-1} aria-labelledby={titleId}>
       <div className="form-screen__top">
-        {onBack && <BackButton onClick={onBack} />}
+        {onBack && <BackButton onClick={onBack} arialabel={backLabel} />}
 
         <div className="form-screen__head">
           <h1 className="form-screen__title" id={titleId}>

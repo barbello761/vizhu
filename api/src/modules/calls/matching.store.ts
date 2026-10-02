@@ -10,6 +10,8 @@ export interface ActiveRing extends PendingRequest {
 }
 
 export interface MatchInfo {
+  /** id звонка в таблице calls — по нему фронт оценивает звонок и жалуется. */
+  callId: string;
   url: string;
   room: string;
   token: string;

@@ -1,4 +1,4 @@
-import { formatTime } from '@/shared/lib/date';
+import { formatTimeIso } from '@/shared/lib/date';
 
 import { CopyIcon, ThumbsDownIcon, ThumbsUpIcon, VizhuIcon } from '../../icons';
 
@@ -90,7 +90,7 @@ export const AiMessage = ({
 
         {time && (
           <time className="ai-message__time" dateTime={time}>
-            {formatTime(time)}
+            {formatTimeIso(time)}
           </time>
         )}
       </div>

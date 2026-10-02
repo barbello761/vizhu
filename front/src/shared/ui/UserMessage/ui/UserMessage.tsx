@@ -1,4 +1,4 @@
-import { formatTime } from '@/shared/lib/date';
+import { formatTimeIso } from '@/shared/lib/date';
 
 import './UserMessage.scss';
 
@@ -26,7 +26,7 @@ export const UserMessage = ({ text, imageUrl, imageAlt = '', time }: UserMessage
     )}
 
     <time className="user-message__time" dateTime={time}>
-      {formatTime(time)}
+      {formatTimeIso(time)}
     </time>
   </div>
 );

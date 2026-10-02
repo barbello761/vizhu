@@ -12,7 +12,7 @@ import {
   useRenameHistoryEntry,
 } from '@/entities/history';
 import { announceRouteChange } from '@/shared/lib/a11y';
-import { formatDateGroup, formatTime } from '@/shared/lib/date';
+import { formatDateGroup, formatTimeIso } from '@/shared/lib/date';
 import { ActionMenuItem, PencilIcon, SearchField, SegmentedControl, TrashIcon } from '@/shared/ui/';
 
 import {
@@ -120,7 +120,7 @@ export const HistoryPage = () => {
             key={entry.id}
             title={entry.title}
             dateLabel={formatDateGroup(historyEntryTime(entry))}
-            time={formatTime(historyEntryTime(entry))}
+            time={formatTimeIso(historyEntryTime(entry))}
             menuLabel="Действия с чатом"
             onOpen={() => void navigate(`/dialog/${entry.id}`)}
             isRenaming={renamingId === entry.id}

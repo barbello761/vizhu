@@ -180,7 +180,7 @@ describeRedis('RedisMatchingStore', () => {
   it('expires match data with Redis TTL', async () => {
     await store!.putMatch(
       'blind-1',
-      { url: 'wss://rtc', room: 'room', token: 'secret' },
+      { callId: 'call-1', url: 'wss://rtc', room: 'room', token: 'secret' },
       1,
     );
     await expect(store!.getMatch('blind-1')).resolves.toBeDefined();

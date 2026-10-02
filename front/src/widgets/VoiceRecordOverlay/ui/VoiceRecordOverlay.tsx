@@ -21,7 +21,7 @@ const ERROR_MESSAGES = {
 } as const;
 
 export const VoiceRecordOverlay = ({ onClose, onSend, isSending }: Props) => {
-  const { status, audioBlob, analyserNode, error, start, stop, cancel } = useVoiceRecord();
+  const { status, audioBlob, analyserNode, error, start, cancel } = useVoiceRecord();
   const panelRef = useRef<HTMLDivElement>(null);
   const prevFocusRef = useRef<HTMLElement | null>(null);
   const shouldAutoSendRef = useRef(false);
@@ -72,17 +72,17 @@ export const VoiceRecordOverlay = ({ onClose, onSend, isSending }: Props) => {
     });
   }, [status, audioBlob]);
 
-  const _handleStop = () => {
-    shouldAutoSendRef.current = true;
-    stop();
-  };
+  // const _handleStop = () => {
+  //   shouldAutoSendRef.current = true;
+  //   stop();
+  // };
 
   const handleCancel = () => {
     cancel();
     onClose();
   };
 
-  const _isActive = status === 'requesting' || status === 'recording';
+  //const _isActive = status === 'requesting' || status === 'recording';
   const isBusy = isSending || isAutoSending;
 
   const statusText = error ? ERROR_MESSAGES[error] : isBusy ? 'Отправка...' : 'Говорите...';

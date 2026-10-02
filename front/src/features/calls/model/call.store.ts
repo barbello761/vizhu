@@ -1,4 +1,3 @@
-import type { UserRole } from '@/features/profile';
 import { createStore } from '@/shared/lib/zustand';
 
 import { getSocket } from './socket';
@@ -11,8 +10,6 @@ interface CallState {
   incoming: IncomingCall | null;
   /** Внутреннее: слушатели сокета уже навешаны. */
   bound: boolean;
-  /** Только для dev-превью: форс-роль экрана звонка, минуя профиль. */
-  previewRole: UserRole | null;
 }
 
 interface CallActions {
@@ -203,7 +200,6 @@ export const useCallStore = createStore<CallStore>('Calls', (set, get) => ({
       d.phase = 'idle';
       d.match = null;
       d.incoming = null;
-      d.previewRole = null;
     });
     socket.disconnect();
   },
@@ -215,7 +211,6 @@ export const useCallStore = createStore<CallStore>('Calls', (set, get) => ({
       d.intent = 'volunteer';
       d.match = null;
       d.incoming = null;
-      d.previewRole = null;
     });
     // Сокет НЕ рвём — просто снова заявляем присутствие, чтобы принимать звонки.
     if (socket.connected) {
@@ -231,27 +226,6 @@ export const useCallStore = createStore<CallStore>('Calls', (set, get) => ({
       d.intent = null;
       d.match = null;
       d.incoming = null;
-      d.previewRole = null;
     });
   },
 }));
-
-// ─── Dev-превью без бэка ───────────────────────────────────────────────────────
-// В деве кладём стор и хелперы на window, чтобы посмотреть экраны звонка/входящего
-// из консоли (см. README-подсказку). В прод-сборку этот блок не попадает.
-if (import.meta.env.DEV && typeof window !== 'undefined') {
-  const w = window as unknown as Record<string, unknown>;
-  w.__callStore = useCallStore;
-  w.__previewIncoming = () =>
-    useCallStore.setState({
-      intent: 'volunteer',
-      phase: 'incoming',
-      incoming: { requestId: 'dev-request', blindUserId: 'dev-blind' },
-    });
-  w.__previewCall = (role: UserRole = 'volunteer') =>
-    useCallStore.setState({
-      phase: 'matched',
-      previewRole: role,
-      match: { url: 'wss://dev.invalid', room: 'dev-room', token: 'dev-token' },
-    });
-}

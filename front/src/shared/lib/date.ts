@@ -1,4 +1,4 @@
-export const formatTime = (iso: string): string =>
+export const formatTimeIso = (iso: string): string =>
   new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 
 /**

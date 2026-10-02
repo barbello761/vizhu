@@ -4,3 +4,7 @@ rtc:
   tcp_port: 7881
   udp_port: 7882
   use_external_ip: false
+webhook:
+  api_key: API4WrFH8eYNNU9
+  urls:
+    - http://api:3000/calls/livekit/webhook

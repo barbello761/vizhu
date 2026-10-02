@@ -160,6 +160,11 @@ export default [
       'test-results',
       'node_modules',
       'public/mockServiceWorker.js',
+      'android',
+      'ios',
+      'dev-dist',
+      'dist-native',
+      'assets'
     ],
   },
 ];

@@ -4,7 +4,9 @@ import {
   AccessToken,
   RoomServiceClient,
   TrackSource,
+  WebhookReceiver,
   type VideoGrant,
+  type WebhookEvent,
 } from 'livekit-server-sdk';
 
 import { UserRole } from '../users/user-role.enum';
@@ -13,6 +15,7 @@ import { UserRole } from '../users/user-role.enum';
 export class CallsService {
   private readonly logger = new Logger(CallsService.name);
   private readonly roomService: RoomServiceClient;
+  private readonly webhookReceiver: WebhookReceiver;
   private readonly apiKey: string;
   private readonly apiSecret: string;
   private readonly wsUrl: string;
@@ -23,6 +26,19 @@ export class CallsService {
     this.wsUrl = this.config.getOrThrow<string>('LIVEKIT_URL'); // wss://rtc.vizhu.su — для фронта
     const host = this.config.getOrThrow<string>('LIVEKIT_HOST'); // http://livekit:7880 — внутренний
     this.roomService = new RoomServiceClient(host, this.apiKey, this.apiSecret);
+    this.webhookReceiver = new WebhookReceiver(this.apiKey, this.apiSecret);
+  }
+
+  /** Проверяет подпись вебхука LiveKit и разбирает событие. Бросает, если подпись чужая. */
+  receiveWebhook(body: string, authHeader?: string): Promise<WebhookEvent> {
+    return this.webhookReceiver.receive(body, authHeader);
+  }
+
+  /** Какие из перечисленных комнат LiveKit ещё существуют. */
+  async existingRooms(names: string[]): Promise<Set<string>> {
+    if (names.length === 0) return new Set();
+    const rooms = await this.roomService.listRooms(names);
+    return new Set(rooms.map((room) => room.name));
   }
 
   /** Выпускает access-токен под конкретного юзера и роль. */

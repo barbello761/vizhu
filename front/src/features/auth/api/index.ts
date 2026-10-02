@@ -6,19 +6,7 @@ import {
 } from '@/shared/api/refresh-token-store';
 import { isNativePlatform } from '@/shared/platform';
 
-export type VerifyOtpResponse = {
-  accessToken: string;
-  isNewUser: boolean;
-  /** Только для нативного клиента (X-Client: native) — web получает httpOnly-куку. */
-  refreshToken?: string;
-};
-
-export type AuthErrorCode = 'invalid_code' | 'code_expired' | 'too_many_requests';
-
-export type AuthErrorResponse = {
-  error: AuthErrorCode;
-  message: string;
-};
+import type { VerifyOtpResponse } from './types';
 
 export const authApi = {
   sendOtp: (phone: string) => api.post<{ message: string }>('/auth/send-otp', { phone }),

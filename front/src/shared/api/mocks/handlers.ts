@@ -260,6 +260,8 @@ let mockProfile = {
   email: 'svetlana.ivanova@example.com',
   emailVerified: true,
   isVerified: true,
+  status: 'active',
+  rating: { bad: 1, neutral: 4, good: 17 },
   createdAt: new Date().toISOString(),
 };
 

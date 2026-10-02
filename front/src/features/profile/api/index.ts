@@ -12,6 +12,10 @@ export type Profile = {
   email: string | null;
   emailVerified: boolean;
   isVerified: boolean;
+  /** under_review — снят на проверку модератором по жалобам, blocked — заблокирован. */
+  status: 'active' | 'under_review' | 'blocked';
+  /** Сколько оценок каждого вида поставили собеседники после звонков. */
+  rating: { bad: number; neutral: number; good: number };
   createdAt: string;
 };
 

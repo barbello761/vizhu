@@ -1,4 +1,4 @@
-import type { SegmentedControlOption } from '@/shared/ui/v2';
+import type { SegmentedControlOption } from '@/shared/ui/';
 
 export type HistorySection = 'chats' | 'calls';
 

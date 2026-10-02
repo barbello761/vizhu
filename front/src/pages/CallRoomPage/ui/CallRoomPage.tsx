@@ -12,7 +12,6 @@ import './CallRoomPage.scss';
 export const CallRoomPage = () => {
   const navigate = useNavigate();
   const match = useCallStore((s) => s.match);
-  const previewRole = useCallStore((s) => s.previewRole);
   const { data: profile, isLoading } = useProfile();
 
   // Нет активного матча (прямой переход/перезагрузка) — на экран помощи.
@@ -33,8 +32,5 @@ export const CallRoomPage = () => {
     );
   }
 
-  // В dev-превью роль можно форсировать (__previewCall('blind')), минуя профиль.
-  const role = import.meta.env.DEV && previewRole ? previewRole : profile.role;
-
-  return <CallRoomStage match={match} role={role} />;
+  return <CallRoomStage match={match} role={profile.role} />;
 };

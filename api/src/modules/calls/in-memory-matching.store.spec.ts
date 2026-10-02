@@ -47,10 +47,11 @@ describe('InMemoryMatchingStore', () => {
     jest.useFakeTimers();
     await store.putMatch(
       'blind-1',
-      { url: 'wss://rtc', room: 'room', token: 'secret' },
+      { callId: 'call-1', url: 'wss://rtc', room: 'room', token: 'secret' },
       60,
     );
     await expect(store.getMatch('blind-1')).resolves.toEqual({
+      callId: 'call-1',
       url: 'wss://rtc',
       room: 'room',
       token: 'secret',

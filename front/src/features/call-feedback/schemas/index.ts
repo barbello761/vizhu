@@ -1,11 +1,11 @@
 import z from 'zod';
 
-export interface Report {
-  notHelpful: boolean;
-  rude: boolean;
-  privacyIntruder: boolean;
-  other?: string;
-}
+import { RatingChoice } from '../api/types';
+
+export const RatingSchema = z.object({
+  rating: z.enum(RatingChoice).optional(),
+});
+
 export const ReportSchema = z
   .object({
     notHelpful: z.boolean(),
@@ -15,5 +15,5 @@ export const ReportSchema = z
   })
   .refine((data) => data.notHelpful || data.rude || data.privacyIntruder || data.other?.trim(), {
     message: 'Выберите хотя бы одну причину!',
-    path: ['notHelpful'],
+    path: ['rude'],
   });

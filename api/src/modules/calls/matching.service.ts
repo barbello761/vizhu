@@ -8,6 +8,8 @@ import {
 import { randomUUID } from 'crypto';
 import type { Server } from 'socket.io';
 import { UserRole } from '../users/user-role.enum';
+import { CallRecordsService } from './call-records.service';
+import { roomForCall } from './call-room';
 import { CallsService } from './calls.service';
 import {
   MATCHING_STORE,
@@ -31,6 +33,7 @@ export class MatchingService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly calls: CallsService,
     @Inject(MATCHING_STORE) private readonly store: MatchingStore,
+    private readonly records: CallRecordsService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -111,6 +114,7 @@ export class MatchingService implements OnModuleInit, OnModuleDestroy {
       return;
 
     const request: PendingRequest = { requestId: randomUUID(), blindUserId };
+    await this.track('open', this.records.open(request.requestId, blindUserId));
     const volunteerId = await this.store.takeAvailableVolunteer();
     if (!volunteerId) {
       await this.store.enqueuePending(request);
@@ -138,8 +142,18 @@ export class MatchingService implements OnModuleInit, OnModuleDestroy {
         identity: taken.blindUserId,
         role: UserRole.BLIND,
       });
-      await this.deliverMatch(volunteerId, volunteerToken);
-      await this.deliverMatch(taken.blindUserId, blindToken);
+      await this.track(
+        'accepted',
+        this.records.accepted(taken.requestId, volunteerId),
+      );
+      await this.deliverMatch(volunteerId, {
+        callId: taken.requestId,
+        ...volunteerToken,
+      });
+      await this.deliverMatch(taken.blindUserId, {
+        callId: taken.requestId,
+        ...blindToken,
+      });
       this.logger.log(
         `matched ${taken.blindUserId} <-> ${volunteerId} in ${taken.room}`,
       );
@@ -175,10 +189,14 @@ export class MatchingService implements OnModuleInit, OnModuleDestroy {
     const ring: ActiveRing = {
       ...request,
       volunteerId,
-      room: `call_${request.requestId}`,
+      room: roomForCall(request.requestId),
       deadlineAt: Date.now() + this.RING_TIMEOUT_MS,
     };
     await this.store.putRing(ring);
+    await this.track(
+      'ringStarted',
+      this.records.ringStarted(request.requestId),
+    );
     await this.emitToUser(volunteerId, 'call:incoming', {
       requestId: request.requestId,
       blindUserId: request.blindUserId,
@@ -230,6 +248,7 @@ export class MatchingService implements OnModuleInit, OnModuleDestroy {
     await this.store.removeAvailableVolunteer(userId);
     await this.store.deleteMatch(userId);
     await this.store.removePendingByBlindUser(userId);
+    await this.track('cancel', this.records.cancelSearchesOf(userId));
 
     const blindRing = await this.store.findRingByBlindUser(userId);
     if (blindRing) {
@@ -246,6 +265,20 @@ export class MatchingService implements OnModuleInit, OnModuleDestroy {
     }
     await this.drainQueue();
     this.logger.log(`purged: ${userId}`);
+  }
+
+  /**
+   * Запись истории звонков не должна ломать сам матчинг: если база
+   * недоступна, пара всё равно сводится, а сбой только логируется.
+   */
+  private async track(what: string, write: Promise<void>): Promise<void> {
+    try {
+      await write;
+    } catch (error) {
+      this.logger.error(
+        `call record ${what} failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
   }
 
   private toPending(ring: ActiveRing): PendingRequest {

@@ -119,6 +119,14 @@ const toProfileResponse = (profile: User) => ({
   // аккаунта ею подтвердить нельзя, и клиент должен это показывать.
   emailVerified: Boolean(profile.emailAccount?.verifiedAt),
   isVerified: profile.isVerified,
+  status: profile.status,
+  // Оценки от собеседников — свои видеть можно. Жалобы сюда не попадают:
+  // их на пользователе нет вовсе, только в call_feedback.
+  rating: {
+    bad: profile.ratingBad,
+    neutral: profile.ratingNeutral,
+    good: profile.ratingGood,
+  },
   createdAt: profile.createdAt,
 });
 
