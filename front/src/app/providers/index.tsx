@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import { Toaster } from 'sonner';
 
-import { A11yProvider } from './A11yProvider';
-import { QueryProvider } from './QueryProvider';
-import { ThemeProvider } from './ThemeProvider';
+import { A11yProvider } from './a11y-provider';
+import { QueryProvider } from './query-provider';
+import { ThemeProvider } from './theme-provider';
 
 interface AppProvidersProps {
   children: ReactNode;

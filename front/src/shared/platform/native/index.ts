@@ -1,4 +1,4 @@
-import { registerPlatform } from '../index';
+import { registerPlatform } from '..';
 import { createNativeCallAlert } from './call-alert';
 import { nativeHaptics } from './haptics';
 import { nativePermissions } from './permissions';

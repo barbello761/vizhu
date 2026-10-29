@@ -94,9 +94,9 @@ git rm -r infra/demo infra/nginx/conf.d/demo.vizhu.su.conf
 - `front/.env.demo`, скрипт `build:demo` в `package.json`, `ARG` в `front/Dockerfile`,
   `!.env.demo` в `front/.dockerignore`, режим `demo` в `vite.config.ts`;
 - `front/src/shared/config/env.ts`: `isDemo` и `demoOtpCode` (и типы в `vite-env.d.ts`);
-- `front/src/pages/DemoNoticePage`, роут `auth/demo` в `app/router.tsx`, ветка
+- `front/src/pages/demo-notice-page`, роут `auth/demo` в `app/router.tsx`, ветка
   в `StartPage`;
-- `front/src/pages/ProfilePage/ui/DemoNotice.tsx` и его вызовы.
+- `front/src/pages/profile-page/ui/demo-notice.tsx` и его вызовы.
 
 ## Если что-то не так
 

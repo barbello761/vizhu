@@ -17,7 +17,7 @@ import type { CapturedPhoto, PhotoCameraPort } from '../types';
  * без разрешения на всю медиатеку).
  */
 
-/** Класс прозрачности — согласован с app/index.css и DialogPage.scss. */
+/** Класс прозрачности — согласован с app/index.css и dialog-page.scss. */
 export const CAMERA_PREVIEW_ACTIVE_CLASS = 'camera-preview-active';
 
 /**
