@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 
 import { formatPhone } from '@/features/auth';
 import { emailVerificationApi, SPAM_HINT } from '@/features/email-verification';
-import { useProfile } from '@/features/profile';
+import { useEmailVerificationWatch, useProfile } from '@/features/profile';
 import { apiErrorMessage } from '@/shared/api';
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { useGoBack } from '@/shared/lib/navigation';
@@ -19,6 +19,9 @@ export const ProfileSettingsPage = () => {
   const navigate = useNavigate();
   const goBack = useGoBack('/profile');
   const { data: profile } = useProfile();
+  // Пока на экране «Почта не подтверждена» — ждём перехода по ссылке и снимаем
+  // пометку сами, без перезагрузки.
+  useEmailVerificationWatch();
 
   const [isResending, setIsResending] = useState(false);
   const [resendNote, setResendNote] = useState<string | null>(null);
@@ -111,9 +114,6 @@ export const ProfileSettingsPage = () => {
       </div>
 
       <div className="profile-settings__actions">
-        <Button variant="secondary" onClick={() => void navigate('/logout-all')}>
-          Выйти со всех устройств
-        </Button>
         <Button variant="secondary" onClick={() => void navigate('/logout')}>
           Выйти из аккаунта
         </Button>

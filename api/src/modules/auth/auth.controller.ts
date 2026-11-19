@@ -18,21 +18,16 @@ import {
   ApiCookieAuth,
 } from '@nestjs/swagger';
 import { AuthService, REFRESH_COOKIE } from './auth.service';
+import {
+  type ClientRequest,
+  clientContextOf,
+  isNativeClient,
+} from './sessions/client-context';
 
 // Локальные интерфейсы — избегаем конфликта nodenext с FastifyRequest/Reply
-interface CookieRequest {
+interface CookieRequest extends ClientRequest {
   cookies?: Record<string, string | undefined>;
-  headers?: Record<string, string | string[] | undefined>;
 }
-
-/**
- * Нативный клиент (Capacitor) шлёт X-Client: native.
- * Для него refresh-токен ходит в теле запроса/ответа, а не в куке:
- * куки между capacitor://localhost и API-доменом ненадёжны, токен хранится
- * в Keychain / EncryptedSharedPreferences на устройстве.
- */
-const isNativeClient = (req: CookieRequest): boolean =>
-  req.headers?.['x-client'] === 'native';
 
 interface CookieReply {
   setCookie(
@@ -121,7 +116,7 @@ export class AuthController {
       throw new BadRequestException('Код должен быть 4 цифры');
     }
 
-    const result = await this.auth.verifyOtp(phone, code);
+    const result = await this.auth.verifyOtp(phone, code, clientContextOf(req));
     if (isNativeClient(req)) {
       // Натив хранит refresh-токен сам (Keychain/EncryptedSharedPreferences)
       return {
@@ -157,7 +152,7 @@ export class AuthController {
     const token = native ? bodyToken : req.cookies?.[REFRESH_COOKIE];
     if (!token) throw new UnauthorizedException('Refresh token не найден');
 
-    const result = await this.auth.refresh(token);
+    const result = await this.auth.refresh(token, clientContextOf(req));
     if (native) {
       // ротация: клиент обязан сохранить новый refreshToken
       return {
@@ -171,7 +166,9 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Выход — инвалидирует refresh token' })
+  @ApiOperation({
+    summary: 'Выход на этом устройстве — завершает сеанс вместе с его токенами',
+  })
   @ApiCookieAuth(REFRESH_COOKIE)
   @ApiResponse({ status: 200, description: 'Выход выполнен' })
   async logout(

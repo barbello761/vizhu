@@ -4,7 +4,13 @@ import type { UserRole } from '@/features/profile';
 import { createStore } from '@/shared/lib/zustand';
 
 import { loadSocket } from './socket';
-import type { CallIntent, CallPhase, IncomingCall, MatchInfo } from './types';
+import type { CallCancelled, CallIntent, CallPhase, IncomingCall, MatchInfo } from './types';
+
+/** Пауза перед ручным переподключением, когда socket.io сам сдался. */
+const MANUAL_RECONNECT_MS = 3_000;
+
+/** Фазы незрячего, в которых он ждёт волонтёра и принимает call:matched. */
+const BLIND_SEEKING: readonly CallPhase[] = ['requesting', 'waiting', 'searching'];
 
 interface CallState {
   phase: CallPhase;
@@ -15,6 +21,11 @@ interface CallState {
   bound: boolean;
   /** Только для dev-превью: форс-роль экрана звонка, минуя профиль. */
   previewRole: UserRole | null;
+  /**
+   * Метка времени, когда сервер снял волонтёра с линии за пропущенный звонок.
+   * По её смене оркестратор озвучивает и показывает уведомление.
+   */
+  missedAt: number | null;
 }
 
 interface CallActions {
@@ -70,6 +81,7 @@ export const useCallStore = createStore<CallStore>('Calls', (set, get) => {
     incoming: null,
     bound: false,
     previewRole: null,
+    missedAt: null,
 
     init: () => {
       if (get().bound) {
@@ -104,9 +116,37 @@ export const useCallStore = createStore<CallStore>('Calls', (set, get) => {
           }
         });
 
+        // Сервер отверг handshake (протухший/отозванный токен) или сам
+        // отключил сокет. В обоих случаях socket.io больше не переподключается
+        // сам — раньше это и был «тихий сход с линии». Пока намерение есть,
+        // пробуем снова: auth-колбэк перед handshake обновит токен.
+        let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+        const scheduleReconnect = () => {
+          if (reconnectTimer || socket.active || !get().intent) {
+            return;
+          }
+          reconnectTimer = setTimeout(() => {
+            reconnectTimer = null;
+            if (get().intent && !socket.connected) {
+              socket.connect();
+            }
+          }, MANUAL_RECONNECT_MS);
+        };
+
+        socket.on('connect_error', (error: Error) => {
+          console.warn('[calls] не удалось подключиться к матчингу:', error.message);
+          scheduleReconnect();
+        });
+
+        socket.on('disconnect', (reason: string) => {
+          if (reason === 'io server disconnect') {
+            scheduleReconnect();
+          }
+        });
+
         socket.on('call:waiting', () => {
           set((d) => {
-            if (d.intent === 'blind') {
+            if (d.intent === 'blind' && BLIND_SEEKING.includes(d.phase)) {
               d.phase = 'waiting';
             }
           });
@@ -114,17 +154,26 @@ export const useCallStore = createStore<CallStore>('Calls', (set, get) => {
 
         socket.on('call:searching', () => {
           set((d) => {
-            if (d.intent === 'blind') {
+            if (d.intent === 'blind' && BLIND_SEEKING.includes(d.phase)) {
               d.phase = 'searching';
             }
           });
         });
 
         socket.on('call:incoming', (payload: IncomingCall) => {
+          const { intent, phase } = get();
+          if (intent !== 'volunteer') {
+            return;
+          }
+          // Входящий принимаем только в режиме ожидания. Посреди разговора или
+          // поверх другого входящего он раньше перетирал состояние: звонок
+          // терял фазу, а первый вызов продолжал висеть на сервере до таймаута.
+          // Сразу отказываемся — сервер отдаст вызов другому волонтёру.
+          if (phase !== 'volunteer-online') {
+            socket.emit('call:decline', { requestId: payload.requestId });
+            return;
+          }
           set((d) => {
-            if (d.intent !== 'volunteer') {
-              return;
-            }
             d.incoming = payload;
             d.phase = 'incoming';
           });
@@ -136,16 +185,45 @@ export const useCallStore = createStore<CallStore>('Calls', (set, get) => {
             if (d.match?.room === payload.room) {
               return;
             }
+            // Матч ждём только из поиска (незрячий) или после «Принять»
+            // (волонтёр). Запоздалый матч после отмены или второй матч во
+            // время звонка уводил бы в чужую комнату — собеседники разъезжались.
+            const expected =
+              d.intent === 'blind' ? BLIND_SEEKING.includes(d.phase) : d.phase === 'incoming';
+            if (!expected) {
+              console.warn('[calls] неожиданный call:matched в фазе', d.phase);
+              return;
+            }
             d.match = payload;
             d.incoming = null;
             d.phase = 'matched';
           });
         });
 
-        socket.on('call:cancelled', () => {
+        socket.on('call:cancelled', (payload?: Partial<CallCancelled>) => {
+          const { intent, incoming } = get();
+          // Отмена относится к конкретному вызову: запоздавшая отмена прошлого
+          // не должна сбрасывать текущий входящий.
+          if (intent !== 'volunteer' || !incoming) {
+            return;
+          }
+          if (payload?.requestId && payload.requestId !== incoming.requestId) {
+            return;
+          }
+          if (payload?.reason === 'missed') {
+            // Сервер уже убрал волонтёра из пула — честно показываем «не на линии».
+            set((d) => {
+              d.intent = null;
+              d.phase = 'idle';
+              d.incoming = null;
+              d.missedAt = Date.now();
+            });
+            socket.disconnect();
+            return;
+          }
           set((d) => {
             d.incoming = null;
-            d.phase = d.intent === 'volunteer' ? 'volunteer-online' : 'idle';
+            d.phase = 'volunteer-online';
           });
         });
       });
@@ -204,9 +282,14 @@ export const useCallStore = createStore<CallStore>('Calls', (set, get) => {
         d.phase = 'idle';
         d.match = null;
       });
-      // Явного call:cancel на бэке нет — отменяем разрывом сокета,
-      // сервер почистит очередь после grace-окна (см. контракт §6).
-      withSocket((socket) => socket.disconnect());
+      // Явная отмена: иначе запрос ещё 12с grace-окна жил на сервере, и
+      // волонтёрам звонил вызов, которого уже нет.
+      withSocket((socket) => {
+        if (socket.connected) {
+          socket.emit('call:cancel');
+        }
+        socket.disconnect();
+      });
     },
 
     accept: (requestId) => {

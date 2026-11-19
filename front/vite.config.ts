@@ -103,7 +103,12 @@ export default defineConfig(async ({ command, mode }) => {
           // живут на одном origin — и на app.vizhu.su, и на demo.vizhu.su, и в
           // dev. Поэтому матчим по пути, а не по домену: паттерн с захардкоженным
           // хостом не совпадал ни с одним запросом, и кэш API не работал вовсе.
-          urlPattern: ({ sameOrigin, url }) => sameOrigin && url.pathname.startsWith('/api/'),
+          // Кроме пульса сервера: NetworkFirst при обрыве ответил бы за сервер
+          // закэшированным «ok», и экран «нет соединения» не появился бы никогда.
+          urlPattern: ({ sameOrigin, url }) =>
+            sameOrigin &&
+            url.pathname.startsWith('/api/') &&
+            !url.pathname.startsWith('/api/health'),
           handler: 'NetworkFirst',
           options: {
             // То же имя чистит clearApiCache() при выходе из аккаунта.

@@ -74,4 +74,12 @@ describe('ActionScreen', () => {
 
     expect(onBack).toHaveBeenCalledTimes(1);
   });
+
+  it('as="div" — без второго main, id заголовка и описания задаются снаружи', () => {
+    setup({ as: 'div', titleId: 'confirm-title', descriptionId: 'confirm-text' });
+
+    expect(screen.queryByRole('main')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveAttribute('id', 'confirm-title');
+    expect(screen.getByText('Вы сможете войти снова.')).toHaveAttribute('id', 'confirm-text');
+  });
 });

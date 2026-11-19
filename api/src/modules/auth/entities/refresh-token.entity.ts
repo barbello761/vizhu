@@ -5,8 +5,10 @@ import {
   ManyToOne,
   JoinColumn,
   CreateDateColumn,
+  Index,
 } from 'typeorm';
 import { PhoneAccount } from '../../users/entities/phone-account.entity';
+import { Session } from '../sessions/session.entity';
 
 @Entity('refresh_tokens')
 export class RefreshToken {
@@ -20,6 +22,19 @@ export class RefreshToken {
   @JoinColumn({ name: 'phone_account_id' })
   phoneAccount!: PhoneAccount;
 
+  /**
+   * Сеанс, которому принадлежит токен. Отзыв сеанса удаляет его токены
+   * каскадом. NULL — только у токенов, выданных до появления сеансов:
+   * такой токен на первом же refresh получает сеанс (см. AuthService.refresh).
+   */
+  @Index('idx_refresh_tokens_session')
+  @Column({ name: 'session_id', type: 'uuid', nullable: true })
+  sessionId!: string | null;
+
+  @ManyToOne(() => Session, { onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'session_id' })
+  session!: Session | null;
+
   // SHA-256 от токена — в куке хранится сырой токен, в БД — хэш
   @Column({ name: 'token_hash', unique: true, length: 64 })
   tokenHash!: string;
@@ -27,6 +42,6 @@ export class RefreshToken {
   @Column({ name: 'expires_at', type: 'timestamptz' })
   expiresAt!: Date;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 }

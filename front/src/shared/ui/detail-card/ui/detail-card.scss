@@ -1,0 +1,69 @@
+.detail-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-bonded);
+  padding: var(--space-related) var(--space-close);
+  font-family: var(--font-sans);
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-l);
+
+  &__main {
+    display: flex;
+    gap: var(--space-bonded);
+    align-items: flex-start;
+  }
+
+  &__icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-touch-target-s);
+    height: var(--size-touch-target-s);
+    color: var(--text-secondary);
+
+    svg {
+      width: var(--size-icon-slot);
+      height: var(--size-icon-slot);
+    }
+  }
+
+  &__text {
+    display: flex;
+    flex: 1 0 0;
+    flex-direction: column;
+    gap: var(--space-compressed);
+    justify-content: center;
+    min-width: 0;
+
+    /* Иконка 48px задаёт высоту первой строки — центрируем текст под неё,
+       пока строк мало, и даём ему расти вниз при крупном шрифте. */
+    min-height: var(--size-touch-target-s);
+  }
+
+  /* Название устройства бывает длинным («Samsung Internet, SM-S918B») —
+     переносим, а не режем многоточием: обрезанное имя не прочитать. */
+  &__title {
+    margin: 0;
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-accent);
+    line-height: var(--body-line-height);
+    color: var(--text-main);
+    overflow-wrap: anywhere;
+  }
+
+  &__detail {
+    margin: 0;
+    font-size: var(--label-font-size);
+    font-weight: var(--label-font-weight);
+    line-height: var(--label-line-height);
+    color: var(--text-secondary);
+  }
+
+  /* Кнопка действия — во всю ширину карточки под текстом: крупная цель
+     для пальца и место для подписи при увеличенном шрифте. */
+  &__action {
+    display: flex;
+    flex-direction: column;
+  }
+}

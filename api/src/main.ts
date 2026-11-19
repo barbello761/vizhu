@@ -3,10 +3,11 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { SwaggerModule } from '@nestjs/swagger';
 import multipart from '@fastify/multipart';
 import fastifyCookie from '@fastify/cookie';
 import { AppModule } from './app.module';
+import { createOpenApiDocument } from './openapi/document';
 
 async function bootstrap() {
   const BODY_LIMIT = 20 * 1024 * 1024; // 20 МБ
@@ -32,15 +33,7 @@ async function bootstrap() {
   }
   app.enableCors({ origin: corsOrigins, credentials: true });
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('ВИЖУ API')
-    .setDescription('API для сервиса помощи незрячим пользователям')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .addCookieAuth('refresh_token')
-    .build();
-
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  const document = createOpenApiDocument(app);
   SwaggerModule.setup('docs', app, document);
 
   // Fallback: plain JSON без зависимости от статики

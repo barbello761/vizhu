@@ -4,7 +4,13 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
 
-import { authApi, formatPhone, normalizePhone, useAuthStore } from '@/features/auth';
+import {
+  authApi,
+  formatPhone,
+  normalizePhone,
+  OTP_SEND_FAILED,
+  useAuthStore,
+} from '@/features/auth';
 import { Button, CallIcon, Input } from '@/shared/ui';
 import { FormScreen } from '@/widgets/form-screen';
 
@@ -50,9 +56,7 @@ export const PhoneAuthPage = () => {
     } catch (error) {
       const tooManyRequests = axios.isAxiosError(error) && error.response?.status === 429;
       setError('phone', {
-        message: tooManyRequests
-          ? 'Слишком много запросов. Подождите немного.'
-          : 'Не удалось отправить СМС. Попробуйте позже.',
+        message: tooManyRequests ? 'Слишком много запросов. Подождите немного.' : OTP_SEND_FAILED,
       });
     }
   };
@@ -60,7 +64,7 @@ export const PhoneAuthPage = () => {
   return (
     <FormScreen
       title="Введите номер телефона"
-      description="Отправим вам СМС с кодом подтверждения"
+      description="Позвоним на этот номер и продиктуем код подтверждения"
       onBack={() => void navigate('/auth')}
       actions={
         <Button type="submit" form={FORM_ID} loading={isSubmitting}>

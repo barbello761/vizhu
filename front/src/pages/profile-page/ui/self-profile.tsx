@@ -7,6 +7,7 @@ import {
   FlashIcon,
   MenuItem,
   PersonCircleIcon,
+  PhonePortraitIcon,
   SegmentedControl,
   type SegmentedControlOption,
   TextTile,
@@ -30,7 +31,7 @@ export const SelfProfile = () => {
   const { resolvedTheme, setMode } = useTheme();
 
   useEffect(() => {
-    announceRouteChange('Профиль. Меню разделов, информация о доступе и выбор темы.');
+    announceRouteChange('Профиль. Меню разделов, информация о доступе, устройства и выбор темы.');
   }, []);
 
   const handleThemeChange = (choice: ThemeChoice) => {
@@ -72,6 +73,9 @@ export const SelfProfile = () => {
               inactive
               onActivate={() => announceRouteChange(IN_DEVELOPMENT)}
             />
+          </li>
+          <li>
+            <MenuItem icon={<PhonePortraitIcon />} label="Устройства" to="/profile/devices" />
           </li>
         </ul>
       </nav>

@@ -10,7 +10,11 @@ export { CamButton } from './cam-button';
 export { ChatInput } from './chat-input';
 export { Checkbox } from './checkbox';
 export { CodeInput } from './code-input';
+export { DetailCard } from './detail-card';
+export type { DetailCardProps } from './detail-card';
 export { EditableField } from './editable-field';
+export { ErrorScreen } from './error-screen';
+export type { ErrorScreenProps } from './error-screen';
 export type { EditableFieldProps } from './editable-field';
 export { Input } from './input';
 export { Logo } from './logo';
@@ -31,6 +35,7 @@ export { UserMessage } from './user-message';
 export {
   AddIcon,
   AlertCircleIcon,
+  AlertTriangleIcon,
   CallEndIcon,
   CallIcon,
   CameraIcon,
@@ -39,6 +44,7 @@ export {
   ChevronBackIcon,
   CloseIcon,
   CopyIcon,
+  DesktopIcon,
   DocumentTextIcon,
   EllipsisVerticalIcon,
   EyeIcon,
@@ -51,6 +57,7 @@ export {
   MicOffIcon,
   PencilIcon,
   PersonCircleIcon,
+  PhonePortraitIcon,
   SearchIcon,
   SendIcon,
   TextIcon,

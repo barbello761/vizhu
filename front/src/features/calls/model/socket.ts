@@ -1,6 +1,6 @@
 import type { Socket } from 'socket.io-client';
 
-import { getAccessToken } from '@/shared/api/token-store';
+import { getFreshAccessToken } from '@/shared/api';
 import { env } from '@/shared/config';
 
 /**
@@ -11,8 +11,11 @@ import { env } from '@/shared/config';
  *   помощь, а не на старте приложения.
  * - `autoConnect: false` — подключаемся вручную, когда появляется намерение
  *   (встать на линию / позвать помощь).
- * - `auth` как функция — socket.io дёргает её на каждый (пере)коннект, поэтому
- *   всегда уходит свежий auth-JWT (важно после refresh токена).
+ * - `auth` как функция — socket.io дёргает её на каждый (пере)коннект. Access-
+ *   токен живёт 15 минут, а приложение часами висит в фоне «на линии»: при
+ *   реконнекте с протухшим токеном middleware сервера отвечал Unauthorized,
+ *   и socket.io больше не переподключался — волонтёр видел «Вы на линии»,
+ *   будучи офлайн. Поэтому перед handshake токен при необходимости обновляем.
  * - reconnection включён по умолчанию — восстановление статуса делаем сами
  *   на событии `connect` (см. call.store).
  */
@@ -24,7 +27,9 @@ export const loadSocket = (): Promise<Socket> => {
       io(env.socketUrl, {
         autoConnect: false,
         transports: ['websocket'],
-        auth: (cb) => cb({ token: getAccessToken() ?? '' }),
+        auth: (cb) => {
+          void getFreshAccessToken().then((token) => cb({ token: token ?? '' }));
+        },
       }),
     );
     // Чанк не загрузился (web без сети) — даём следующему действию попробовать снова.

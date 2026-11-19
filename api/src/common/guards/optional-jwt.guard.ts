@@ -1,30 +1,28 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import type { JwtPayload } from './jwt.guard';
+import { SessionsService } from '../../modules/auth/sessions/sessions.service';
+import { type JwtPayload, verifyAccessToken } from './jwt.guard';
 
 type RequestWithUser = {
   headers: Record<string, string | undefined>;
   user?: JwtPayload | null;
 };
 
+/** Как JwtAuthGuard, но без токена (или с отозванным) пускает анонимом. */
 @Injectable()
 export class OptionalJwtAuthGuard implements CanActivate {
-  constructor(private readonly jwt: JwtService) {}
+  constructor(
+    private readonly jwt: JwtService,
+    private readonly sessions: SessionsService,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<RequestWithUser>();
     const auth = req.headers['authorization'];
 
-    if (!auth?.startsWith('Bearer ')) {
-      req.user = null;
-      return true;
-    }
-
-    try {
-      req.user = this.jwt.verify<JwtPayload>(auth.slice(7));
-    } catch {
-      req.user = null;
-    }
+    req.user = auth?.startsWith('Bearer ')
+      ? await verifyAccessToken(this.jwt, this.sessions, auth.slice(7))
+      : null;
     return true;
   }
 }

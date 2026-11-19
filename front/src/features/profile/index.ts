@@ -1,6 +1,7 @@
 export { profileApi } from './api';
 export type { Profile, UserRole, ProfileUpdate, ChangePhonePayload } from './api';
 export { useProfile, useIsVolunteer, profileQueryKey } from './model/use-profile';
+export { useEmailVerificationWatch } from './model/use-email-verification-watch';
 export { useUpdateProfile } from './model/use-update-profile';
 export { useChangeEmail } from './model/use-change-email';
 export { useChangePhone } from './model/use-change-phone';

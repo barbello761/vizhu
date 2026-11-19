@@ -15,7 +15,7 @@ export class PhoneAccount {
   @Column({ unique: true, length: 20 })
   phone!: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 
   @BeforeInsert()

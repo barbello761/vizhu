@@ -102,6 +102,10 @@ export class RedisMatchingStore implements MatchingStore {
   async takeAvailableVolunteer(): Promise<string | undefined> {
     return (await this.client.spop(keys.available)) ?? undefined;
   }
+  /** SCARD — O(1): размер множества хранится в самом Redis. */
+  async countAvailableVolunteers(): Promise<number> {
+    return this.client.scard(keys.available);
+  }
 
   async hasPendingByBlindUser(userId: string): Promise<boolean> {
     return (await this.client.hexists(keys.pendingByBlind, userId)) === 1;

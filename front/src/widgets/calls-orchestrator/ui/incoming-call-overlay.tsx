@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { startRinging, stopRinging, useCallStore } from '@/features/calls';
 import { announceRouteChange } from '@/shared/lib/a11y/announcer';
@@ -24,6 +24,16 @@ type IncomingCallOverlayProps = {
 export const IncomingCallOverlay = ({ requestId }: IncomingCallOverlayProps) => {
   const accept = useCallStore((s) => s.accept);
   const decline = useCallStore((s) => s.decline);
+  // После «Принять» ждём call:matched: рингтон глушим сразу, а кнопки
+  // блокируем — повторное нажатие или «Отклонить» вдогонку только путали сервер.
+  const [accepting, setAccepting] = useState(false);
+
+  const handleAccept = () => {
+    setAccepting(true);
+    stopRinging();
+    announceRouteChange('Соединяем со звонком…');
+    accept(requestId);
+  };
 
   useEffect(() => {
     announceRouteChange('Входящий вызов от незрячего. Принять или отклонить.');
@@ -47,12 +57,18 @@ export const IncomingCallOverlay = ({ requestId }: IncomingCallOverlayProps) => 
       </div>
 
       <div className="incoming__actions" role="group" aria-label="Действия со звонком">
-        <Button onAccent onClick={() => accept(requestId)} aria-label="Принять звонок">
+        <Button
+          onAccent
+          loading={accepting}
+          onClick={handleAccept}
+          aria-label={accepting ? 'Соединяем со звонком' : 'Принять звонок'}
+        >
           Принять
         </Button>
         <Button
           variant="tertiary"
           onAccent
+          disabled={accepting}
           onClick={() => decline(requestId)}
           aria-label="Отклонить звонок"
         >

@@ -32,11 +32,20 @@ interface ActionScreenProps {
   backLabel?: string;
   /** Разъяснение для скринридера при открытии экрана. */
   announce?: string;
+  /**
+   * `main` — самостоятельный экран под роутом: свой `<main id="main-content">`.
+   * `div` — содержимое окна (`Modal`) поверх экрана, где `<main>` уже есть:
+   * второй с тем же id сломал бы skip-link. Имя окну даёт заголовок — его id
+   * и id описания тогда передаются снаружи (`titleId`, `descriptionId`).
+   */
+  as?: 'main' | 'div';
+  titleId?: string;
+  descriptionId?: string;
 }
 
 /**
  * Рендерит свой `<main id="main-content">` — подключается роутом напрямую под
- * `RootLayout`, без `PageLayout`.
+ * `RootLayout`, без `PageLayout`. Внутри `Modal` — `as="div"`.
  */
 export const ActionScreen = ({
   title,
@@ -52,8 +61,12 @@ export const ActionScreen = ({
   onBack,
   backLabel = 'Назад',
   announce,
+  as = 'main',
+  titleId: titleIdProp,
+  descriptionId,
 }: ActionScreenProps) => {
-  const titleId = useId();
+  const ownTitleId = useId();
+  const titleId = titleIdProp ?? ownTitleId;
 
   useEffect(() => {
     if (announce) {
@@ -63,8 +76,8 @@ export const ActionScreen = ({
 
   const cls = ['action-screen', onBack && 'action-screen--with-back'].filter(Boolean).join(' ');
 
-  return (
-    <main id="main-content" className={cls} tabIndex={-1} aria-labelledby={titleId}>
+  const content = (
+    <>
       {onBack && (
         <div className="action-screen__top">
           <Button variant="icon" aria-label={backLabel} onClick={onBack}>
@@ -77,7 +90,9 @@ export const ActionScreen = ({
         <h1 id={titleId} className="action-screen__title">
           {title}
         </h1>
-        <p className="action-screen__text">{description}</p>
+        <p id={descriptionId} className="action-screen__text">
+          {description}
+        </p>
         {note && <p className="action-screen__text">{note}</p>}
       </div>
 
@@ -94,6 +109,16 @@ export const ActionScreen = ({
           {cancelLabel}
         </Button>
       </div>
+    </>
+  );
+
+  if (as === 'div') {
+    return <div className={cls}>{content}</div>;
+  }
+
+  return (
+    <main id="main-content" className={cls} tabIndex={-1} aria-labelledby={titleId}>
+      {content}
     </main>
   );
 };

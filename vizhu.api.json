@@ -15,6 +15,20 @@
         ]
       }
     },
+    "/health/ping": {
+      "get": {
+        "operationId": "HealthController_ping",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Health"
+        ]
+      }
+    },
     "/ai/describe": {
       "post": {
         "operationId": "AiController_describe",
@@ -114,7 +128,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "\u0421\u043f\u0438\u0441\u043e\u043a \u0437\u0430\u043f\u0438\u0441\u0435\u0439 (\u0434\u043e 50, \u043f\u043e \u0443\u0431\u044b\u0432\u0430\u043d\u0438\u044e \u0434\u0430\u0442\u044b)"
+            "description": "Список записей (до 50, по убыванию даты)"
           }
         },
         "security": [
@@ -122,7 +136,7 @@
             "bearer": []
           }
         ],
-        "summary": "\u0418\u0441\u0442\u043e\u0440\u0438\u044f \u0437\u0430\u043f\u0440\u043e\u0441\u043e\u0432 \u0442\u0435\u043a\u0443\u0449\u0435\u0433\u043e \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f",
+        "summary": "История запросов текущего пользователя",
         "tags": [
           "history"
         ]
@@ -146,7 +160,7 @@
             "description": "HistoryEntry"
           },
           "404": {
-            "description": "\u0417\u0430\u043f\u0438\u0441\u044c \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u0430"
+            "description": "Запись не найдена"
           }
         },
         "security": [
@@ -154,7 +168,7 @@
             "bearer": []
           }
         ],
-        "summary": "\u041e\u0434\u043d\u0430 \u0437\u0430\u043f\u0438\u0441\u044c \u0441 \u043f\u043e\u043b\u043d\u044b\u043c \u0434\u0438\u0430\u043b\u043e\u0433\u043e\u043c",
+        "summary": "Одна запись с полным диалогом",
         "tags": [
           "history"
         ]
@@ -183,13 +197,13 @@
         },
         "responses": {
           "200": {
-            "description": "HistoryEntry \u0441 \u043d\u043e\u0432\u044b\u043c \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435\u043c"
+            "description": "HistoryEntry с новым названием"
           },
           "400": {
-            "description": "\u041d\u0435\u0432\u0430\u043b\u0438\u0434\u043d\u043e\u0435 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435"
+            "description": "Невалидное название"
           },
           "404": {
-            "description": "\u0417\u0430\u043f\u0438\u0441\u044c \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u0430"
+            "description": "Запись не найдена"
           }
         },
         "security": [
@@ -197,7 +211,7 @@
             "bearer": []
           }
         ],
-        "summary": "\u041f\u0435\u0440\u0435\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u0442\u044c \u0437\u0430\u043f\u0438\u0441\u044c",
+        "summary": "Переименовать запись",
         "tags": [
           "history"
         ]
@@ -216,10 +230,10 @@
         ],
         "responses": {
           "204": {
-            "description": "\u0423\u0434\u0430\u043b\u0435\u043d\u043e"
+            "description": "Удалено"
           },
           "404": {
-            "description": "\u0417\u0430\u043f\u0438\u0441\u044c \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u0430"
+            "description": "Запись не найдена"
           }
         },
         "security": [
@@ -227,7 +241,7 @@
             "bearer": []
           }
         ],
-        "summary": "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0437\u0430\u043f\u0438\u0441\u044c",
+        "summary": "Удалить запись",
         "tags": [
           "history"
         ]
@@ -249,13 +263,13 @@
         },
         "responses": {
           "200": {
-            "description": "\u0417\u0432\u043e\u043d\u043e\u043a \u0438\u043d\u0438\u0446\u0438\u0438\u0440\u043e\u0432\u0430\u043d"
+            "description": "Звонок инициирован"
           },
           "400": {
-            "description": "\u041d\u0435\u0432\u0435\u0440\u043d\u044b\u0439 \u0444\u043e\u0440\u043c\u0430\u0442 \u043d\u043e\u043c\u0435\u0440\u0430"
+            "description": "Неверный формат номера"
           }
         },
-        "summary": "\u0417\u0430\u043f\u0440\u043e\u0441\u0438\u0442\u044c \u0433\u043e\u043b\u043e\u0441\u043e\u0432\u043e\u0439 OTP-\u0437\u0432\u043e\u043d\u043e\u043a",
+        "summary": "Запросить голосовой OTP-звонок",
         "tags": [
           "auth"
         ]
@@ -280,10 +294,10 @@
             "description": "{ accessToken, isNewUser }"
           },
           "400": {
-            "description": "\u041d\u0435\u0432\u0435\u0440\u043d\u044b\u0439 \u0438\u043b\u0438 \u0438\u0441\u0442\u0451\u043a\u0448\u0438\u0439 \u043a\u043e\u0434"
+            "description": "Неверный или истёкший код"
           }
         },
-        "summary": "\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044c \u043a\u043e\u0434. \u0412\u043e\u0437\u0432\u0440\u0430\u0449\u0430\u0435\u0442 accessToken + \u0441\u0442\u0430\u0432\u0438\u0442 refresh cookie",
+        "summary": "Подтвердить код. Возвращает accessToken + ставит refresh cookie",
         "tags": [
           "auth"
         ]
@@ -308,7 +322,7 @@
             "description": "{ accessToken, refreshToken? }"
           },
           "401": {
-            "description": "Refresh token \u043d\u0435\u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0442\u0435\u043b\u0435\u043d"
+            "description": "Refresh token недействителен"
           }
         },
         "security": [
@@ -316,7 +330,7 @@
             "refresh_token": []
           }
         ],
-        "summary": "\u041e\u0431\u043d\u043e\u0432\u0438\u0442\u044c accessToken \u043f\u043e refresh cookie (web) \u0438\u043b\u0438 refreshToken \u0438\u0437 \u0442\u0435\u043b\u0430 (X-Client: native)",
+        "summary": "Обновить accessToken по refresh cookie (web) или refreshToken из тела (X-Client: native)",
         "tags": [
           "auth"
         ]
@@ -328,7 +342,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "\u0412\u044b\u0445\u043e\u0434 \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d"
+            "description": "Выход выполнен"
           }
         },
         "security": [
@@ -336,7 +350,99 @@
             "refresh_token": []
           }
         ],
-        "summary": "\u0412\u044b\u0445\u043e\u0434 \u2014 \u0438\u043d\u0432\u0430\u043b\u0438\u0434\u0438\u0440\u0443\u0435\u0442 refresh token",
+        "summary": "Выход на этом устройстве — завершает сеанс вместе с его токенами",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/sessions": {
+      "get": {
+        "operationId": "SessionsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionsListView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Сеанс завершён или токен устарел"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Активные сеансы аккаунта: это устройство и другие",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/sessions/others": {
+      "delete": {
+        "operationId": "SessionsController_revokeOthers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokeOthersView"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Выйти со всех устройств, кроме этого",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/sessions/{id}": {
+      "delete": {
+        "operationId": "SessionsController_revoke",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Сеанс завершён"
+          },
+          "400": {
+            "description": "Это текущий сеанс — для него есть POST /auth/logout"
+          },
+          "404": {
+            "description": "Сеанса нет или он чужой"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Завершить один сеанс на другом устройстве",
         "tags": [
           "auth"
         ]
@@ -358,13 +464,13 @@
         },
         "responses": {
           "201": {
-            "description": "\u041f\u0440\u043e\u0444\u0438\u043b\u044c \u0441\u043e\u0437\u0434\u0430\u043d"
+            "description": "Профиль создан"
           },
           "400": {
-            "description": "\u041d\u0435\u0432\u0430\u043b\u0438\u0434\u043d\u044b\u0435 \u0434\u0430\u043d\u043d\u044b\u0435"
+            "description": "Невалидные данные"
           },
           "409": {
-            "description": "\u041f\u0440\u043e\u0444\u0438\u043b\u044c \u0443\u0436\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442"
+            "description": "Профиль уже существует"
           }
         },
         "security": [
@@ -372,7 +478,7 @@
             "bearer": []
           }
         ],
-        "summary": "\u0417\u0430\u043f\u043e\u043b\u043d\u0438\u0442\u044c \u043f\u0440\u043e\u0444\u0438\u043b\u044c (\u0448\u0430\u0433 \u043f\u043e\u0441\u043b\u0435 \u043f\u0435\u0440\u0432\u043e\u0433\u043e \u0432\u0445\u043e\u0434\u0430)",
+        "summary": "Заполнить профиль (шаг после первого входа)",
         "tags": [
           "profile"
         ]
@@ -382,10 +488,10 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "\u041f\u0440\u043e\u0444\u0438\u043b\u044c \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f"
+            "description": "Профиль пользователя"
           },
           "404": {
-            "description": "\u041f\u0440\u043e\u0444\u0438\u043b\u044c \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d"
+            "description": "Профиль не найден"
           }
         },
         "security": [
@@ -393,7 +499,7 @@
             "bearer": []
           }
         ],
-        "summary": "\u041f\u0440\u043e\u0444\u0438\u043b\u044c \u0442\u0435\u043a\u0443\u0449\u0435\u0433\u043e \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f",
+        "summary": "Профиль текущего пользователя",
         "tags": [
           "profile"
         ]
@@ -413,13 +519,13 @@
         },
         "responses": {
           "200": {
-            "description": "\u041f\u0440\u043e\u0444\u0438\u043b\u044c \u043e\u0431\u043d\u043e\u0432\u043b\u0451\u043d"
+            "description": "Профиль обновлён"
           },
           "400": {
-            "description": "\u041d\u0435\u0432\u0430\u043b\u0438\u0434\u043d\u044b\u0435 \u0434\u0430\u043d\u043d\u044b\u0435"
+            "description": "Невалидные данные"
           },
           "404": {
-            "description": "\u041f\u0440\u043e\u0444\u0438\u043b\u044c \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d"
+            "description": "Профиль не найден"
           }
         },
         "security": [
@@ -427,7 +533,7 @@
             "bearer": []
           }
         ],
-        "summary": "\u0418\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0441\u0432\u043e\u0439 \u043f\u0440\u043e\u0444\u0438\u043b\u044c. \u041e\u0442\u0434\u0430\u0451\u0442 \u0441\u0432\u0435\u0436\u0438\u0439 \u043f\u0440\u043e\u0444\u0438\u043b\u044c \u0446\u0435\u043b\u0438\u043a\u043e\u043c",
+        "summary": "Изменить свой профиль. Отдаёт свежий профиль целиком",
         "tags": [
           "profile"
         ]
@@ -447,13 +553,13 @@
         },
         "responses": {
           "204": {
-            "description": "\u0410\u043a\u043a\u0430\u0443\u043d\u0442 \u0443\u0434\u0430\u043b\u0451\u043d"
+            "description": "Аккаунт удалён"
           },
           "400": {
-            "description": "\u041d\u0443\u0436\u043d\u043e \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u0435 \u043f\u043e \u043f\u0438\u0441\u044c\u043c\u0443"
+            "description": "Нужно подтверждение по письму"
           },
           "404": {
-            "description": "\u041f\u0440\u043e\u0444\u0438\u043b\u044c \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d"
+            "description": "Профиль не найден"
           }
         },
         "security": [
@@ -461,7 +567,7 @@
             "bearer": []
           }
         ],
-        "summary": "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0441\u0432\u043e\u0439 \u0430\u043a\u043a\u0430\u0443\u043d\u0442 \u0431\u0435\u0437\u0432\u043e\u0437\u0432\u0440\u0430\u0442\u043d\u043e \u2014 \u0432\u043c\u0435\u0441\u0442\u0435 \u0441 \u0438\u0441\u0442\u043e\u0440\u0438\u0435\u0439 \u0438 \u0441\u0435\u0441\u0441\u0438\u044f\u043c\u0438",
+        "summary": "Удалить свой аккаунт безвозвратно — вместе с историей и сессиями",
         "tags": [
           "profile"
         ]
@@ -483,13 +589,13 @@
         },
         "responses": {
           "200": {
-            "description": "\u041f\u0440\u043e\u0444\u0438\u043b\u044c \u043e\u0431\u043d\u043e\u0432\u043b\u0451\u043d"
+            "description": "Профиль обновлён"
           },
           "400": {
-            "description": "\u041f\u043e \u0441\u0441\u044b\u043b\u043a\u0435 \u0435\u0449\u0451 \u043d\u0435 \u043f\u0435\u0440\u0435\u0448\u043b\u0438"
+            "description": "По ссылке ещё не перешли"
           },
           "409": {
-            "description": "\u041f\u043e\u0447\u0442\u0430 \u0437\u0430\u043d\u044f\u0442\u0430 \u0438\u043b\u0438 \u0442\u0438\u043a\u0435\u0442 \u0443\u0436\u0435 \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u043d"
+            "description": "Почта занята или тикет уже использован"
           }
         },
         "security": [
@@ -497,7 +603,7 @@
             "bearer": []
           }
         ],
-        "summary": "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u043d\u043e\u0432\u0443\u044e \u043f\u043e\u0447\u0442\u0443 \u043f\u043e\u0441\u043b\u0435 \u043f\u0435\u0440\u0435\u0445\u043e\u0434\u0430 \u043f\u043e \u0441\u0441\u044b\u043b\u043a\u0435",
+        "summary": "Сохранить новую почту после перехода по ссылке",
         "tags": [
           "profile"
         ]
@@ -519,13 +625,13 @@
         },
         "responses": {
           "200": {
-            "description": "\u0417\u0432\u043e\u043d\u043e\u043a \u0438\u043d\u0438\u0446\u0438\u0438\u0440\u043e\u0432\u0430\u043d"
+            "description": "Звонок инициирован"
           },
           "400": {
-            "description": "\u041d\u0435\u0432\u0435\u0440\u043d\u044b\u0439 \u0444\u043e\u0440\u043c\u0430\u0442 \u043d\u043e\u043c\u0435\u0440\u0430"
+            "description": "Неверный формат номера"
           },
           "409": {
-            "description": "\u041d\u043e\u043c\u0435\u0440 \u0437\u0430\u043d\u044f\u0442 \u0438\u043b\u0438 \u0441\u043e\u0432\u043f\u0430\u0434\u0430\u0435\u0442 \u0441 \u0442\u0435\u043a\u0443\u0449\u0438\u043c"
+            "description": "Номер занят или совпадает с текущим"
           }
         },
         "security": [
@@ -533,7 +639,7 @@
             "bearer": []
           }
         ],
-        "summary": "\u0417\u0430\u043f\u0440\u043e\u0441\u0438\u0442\u044c \u043a\u043e\u0434 \u0437\u0432\u043e\u043d\u043a\u043e\u043c \u043d\u0430 \u041d\u041e\u0412\u042b\u0419 \u043d\u043e\u043c\u0435\u0440",
+        "summary": "Запросить код звонком на НОВЫЙ номер",
         "tags": [
           "profile"
         ]
@@ -555,13 +661,13 @@
         },
         "responses": {
           "200": {
-            "description": "\u041f\u0440\u043e\u0444\u0438\u043b\u044c \u043e\u0431\u043d\u043e\u0432\u043b\u0451\u043d"
+            "description": "Профиль обновлён"
           },
           "400": {
-            "description": "\u041d\u0435\u0432\u0435\u0440\u043d\u044b\u0439 \u043a\u043e\u0434 \u0438\u043b\u0438 \u043f\u043e \u0441\u0441\u044b\u043b\u043a\u0435 \u043d\u0435 \u043f\u0435\u0440\u0435\u0448\u043b\u0438"
+            "description": "Неверный код или по ссылке не перешли"
           },
           "409": {
-            "description": "\u041d\u043e\u043c\u0435\u0440 \u0437\u0430\u043d\u044f\u0442 \u0438\u043b\u0438 \u0442\u0438\u043a\u0435\u0442 \u0443\u0436\u0435 \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u043d"
+            "description": "Номер занят или тикет уже использован"
           }
         },
         "security": [
@@ -569,7 +675,7 @@
             "bearer": []
           }
         ],
-        "summary": "\u0421\u043c\u0435\u043d\u0438\u0442\u044c \u043d\u043e\u043c\u0435\u0440: \u043a\u043e\u0434 \u0441 \u043d\u043e\u0432\u043e\u0433\u043e \u043d\u043e\u043c\u0435\u0440\u0430 + \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u0435 \u043f\u043e \u043f\u0438\u0441\u044c\u043c\u0443",
+        "summary": "Сменить номер: код с нового номера + подтверждение по письму",
         "tags": [
           "profile"
         ]
@@ -594,13 +700,13 @@
             "description": "{ id, email, expiresAt }"
           },
           "400": {
-            "description": "\u041d\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043d\u043e\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435 \u0438\u043b\u0438 \u043d\u0435\u0442 \u0430\u0434\u0440\u0435\u0441\u0430"
+            "description": "Неизвестное действие или нет адреса"
           },
           "409": {
-            "description": "\u0423 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430 \u043d\u0435\u0442 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043d\u043d\u043e\u0439 \u043f\u043e\u0447\u0442\u044b"
+            "description": "У аккаунта нет подтверждённой почты"
           },
           "429": {
-            "description": "\u041f\u0438\u0441\u044c\u043c\u043e \u0443\u0436\u0435 \u043e\u0442\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u043e \u043c\u0438\u043d\u0443\u0442\u0443 \u043d\u0430\u0437\u0430\u0434"
+            "description": "Письмо уже отправлено минуту назад"
           }
         },
         "security": [
@@ -608,7 +714,7 @@
             "bearer": []
           }
         ],
-        "summary": "\u041e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c \u043f\u0438\u0441\u044c\u043c\u043e \u0441\u043e \u0441\u0441\u044b\u043b\u043a\u043e\u0439 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u044f",
+        "summary": "Отправить письмо со ссылкой подтверждения",
         "tags": [
           "email"
         ]
@@ -633,10 +739,45 @@
             "description": "{ purpose }"
           },
           "400": {
-            "description": "\u0421\u0441\u044b\u043b\u043a\u0430 \u043d\u0435\u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0442\u0435\u043b\u044c\u043d\u0430 \u0438\u043b\u0438 \u0438\u0441\u0442\u0435\u043a\u043b\u0430"
+            "description": "Ссылка недействительна или истекла"
           }
         },
-        "summary": "\u041e\u0442\u043c\u0435\u0442\u0438\u0442\u044c \u043f\u0435\u0440\u0435\u0445\u043e\u0434 \u043f\u043e \u0441\u0441\u044b\u043b\u043a\u0435 \u0438\u0437 \u043f\u0438\u0441\u044c\u043c\u0430",
+        "summary": "Отметить переход по ссылке из письма",
+        "tags": [
+          "email"
+        ]
+      }
+    },
+    "/email/verifications/active": {
+      "get": {
+        "operationId": "MailController_active",
+        "parameters": [
+          {
+            "name": "purpose",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "verify_email",
+                "change_email",
+                "change_phone",
+                "delete_account"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ verification: { id, purpose, email, status, expiresAt } | null }"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Живое (не использованное и не истёкшее) подтверждение действия — чтобы продолжить начатое, а не слать новое письмо",
         "tags": [
           "email"
         ]
@@ -660,7 +801,7 @@
             "description": "status: pending | confirmed | consumed | expired"
           },
           "404": {
-            "description": "\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u0435 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e"
+            "description": "Подтверждение не найдено"
           }
         },
         "security": [
@@ -668,7 +809,7 @@
             "bearer": []
           }
         ],
-        "summary": "\u0421\u043e\u0441\u0442\u043e\u044f\u043d\u0438\u0435 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u044f \u2014 \u0437\u0430 \u044d\u0442\u0438\u043c \u0445\u043e\u0434\u0438\u0442 \u00ab\u042f \u043f\u0435\u0440\u0435\u0448\u0451\u043b \u043f\u043e \u0441\u0441\u044b\u043b\u043a\u0435\u00bb",
+        "summary": "Состояние подтверждения — за этим ходит «Я перешёл по ссылке»",
         "tags": [
           "email"
         ]
@@ -689,10 +830,16 @@
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "403": {
+            "description": "Нет активного звонка в этой комнате"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Токен LiveKit в комнату активного звонка",
         "tags": [
           "calls"
         ]
@@ -712,7 +859,7 @@
             "bearer": []
           }
         ],
-        "summary": "\u0421\u043a\u043e\u043b\u044c\u043a\u043e \u0432\u043e\u043b\u043e\u043d\u0442\u0451\u0440\u043e\u0432 \u0441\u0435\u0439\u0447\u0430\u0441 \u0441\u0432\u043e\u0431\u043e\u0434\u043d\u044b \u0438 \u0433\u043e\u0442\u043e\u0432\u044b \u043f\u0440\u0438\u043d\u044f\u0442\u044c \u0437\u0432\u043e\u043d\u043e\u043a",
+        "summary": "Сколько волонтёров сейчас свободны и готовы принять звонок",
         "tags": [
           "calls"
         ]
@@ -720,8 +867,8 @@
     }
   },
   "info": {
-    "title": "\u0412\u0418\u0416\u0423 API",
-    "description": "API \u0434\u043b\u044f \u0441\u0435\u0440\u0432\u0438\u0441\u0430 \u043f\u043e\u043c\u043e\u0449\u0438 \u043d\u0435\u0437\u0440\u044f\u0447\u0438\u043c \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f\u043c",
+    "title": "ВИЖУ API",
+    "description": "API для сервиса помощи незрячим пользователям",
     "version": "1.0",
     "contact": {}
   },
@@ -746,8 +893,8 @@
         "properties": {
           "title": {
             "type": "object",
-            "example": "\u041a\u0432\u0438\u0442\u0430\u043d\u0446\u0438\u044f \u0416\u041a\u0425",
-            "description": "\u041d\u043e\u0432\u043e\u0435 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u0437\u0430\u043f\u0438\u0441\u0438, \u0434\u043e 255 \u0441\u0438\u043c\u0432\u043e\u043b\u043e\u0432"
+            "example": "Квитанция ЖКХ",
+            "description": "Новое название записи, до 255 символов"
           }
         },
         "required": [
@@ -760,7 +907,7 @@
           "phone": {
             "type": "object",
             "example": "79001234567",
-            "description": "\u041d\u043e\u043c\u0435\u0440 \u0442\u0435\u043b\u0435\u0444\u043e\u043d\u0430. \u041f\u0440\u0438\u043d\u0438\u043c\u0430\u0435\u0442\u0441\u044f \u043b\u044e\u0431\u043e\u0439 \u0444\u043e\u0440\u043c\u0430\u0442: 79001234567, +7(900)123-45-67, 8-900-123-45-67"
+            "description": "Номер телефона. Принимается любой формат: 79001234567, +7(900)123-45-67, 8-900-123-45-67"
           }
         },
         "required": [
@@ -773,12 +920,12 @@
           "phone": {
             "type": "object",
             "example": "79001234567",
-            "description": "\u041d\u043e\u043c\u0435\u0440 \u0442\u0435\u043b\u0435\u0444\u043e\u043d\u0430 \u0432 \u043b\u044e\u0431\u043e\u043c \u0444\u043e\u0440\u043c\u0430\u0442\u0435"
+            "description": "Номер телефона в любом формате"
           },
           "code": {
             "type": "object",
             "example": "1234",
-            "description": "4-\u0437\u043d\u0430\u0447\u043d\u044b\u0439 \u043a\u043e\u0434 \u0438\u0437 \u0437\u0432\u043e\u043d\u043a\u0430"
+            "description": "4-значный код из звонка"
           }
         },
         "required": [
@@ -791,17 +938,105 @@
         "properties": {
           "refreshToken": {
             "type": "object",
-            "description": "Refresh token \u2014 \u0442\u043e\u043b\u044c\u043a\u043e \u0434\u043b\u044f \u043d\u0430\u0442\u0438\u0432\u043d\u043e\u0433\u043e \u043a\u043b\u0438\u0435\u043d\u0442\u0430 (X-Client: native). Web \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0435\u0442 httpOnly-\u043a\u0443\u043a\u0443."
+            "description": "Refresh token — только для нативного клиента (X-Client: native). Web использует httpOnly-куку."
           }
         }
+      },
+      "SessionView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceName": {
+            "type": "string",
+            "example": "Pixel 7",
+            "description": "Подпись устройства"
+          },
+          "client": {
+            "type": "string",
+            "enum": [
+              "native",
+              "web"
+            ],
+            "description": "Приложение или браузер"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "android",
+              "ios",
+              "windows",
+              "macos",
+              "linux",
+              "unknown"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Когда вошли"
+          },
+          "lastActiveAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Последнее обновление токенов"
+          }
+        },
+        "required": [
+          "id",
+          "deviceName",
+          "client",
+          "platform",
+          "createdAt",
+          "lastActiveAt"
+        ]
+      },
+      "SessionsListView": {
+        "type": "object",
+        "properties": {
+          "current": {
+            "description": "Сеанс этого устройства",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SessionView"
+              }
+            ]
+          },
+          "others": {
+            "description": "Остальные активные сеансы, свежие сверху",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionView"
+            }
+          }
+        },
+        "required": [
+          "current",
+          "others"
+        ]
+      },
+      "RevokeOthersView": {
+        "type": "object",
+        "properties": {
+          "revoked": {
+            "type": "number",
+            "example": 2,
+            "description": "Сколько сеансов завершено"
+          }
+        },
+        "required": [
+          "revoked"
+        ]
       },
       "CreateProfileBody": {
         "type": "object",
         "properties": {
           "name": {
             "type": "object",
-            "example": "\u0418\u0432\u0430\u043d",
-            "description": "\u0418\u043c\u044f \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f"
+            "example": "Иван",
+            "description": "Имя пользователя"
           },
           "role": {
             "type": "string",
@@ -810,12 +1045,12 @@
               "volunteer"
             ],
             "example": "blind",
-            "description": "\u0420\u043e\u043b\u044c \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u2014 \u043d\u0435\u0437\u0440\u044f\u0447\u0438\u0439 \u0438\u043b\u0438 \u0432\u043e\u043b\u043e\u043d\u0442\u0451\u0440"
+            "description": "Роль пользователя — незрячий или волонтёр"
           },
           "email": {
             "type": "object",
             "example": "user@example.com",
-            "description": "\u0420\u0435\u0437\u0435\u0440\u0432\u043d\u0430\u044f \u043f\u043e\u0447\u0442\u0430. \u0421\u043e\u0445\u0440\u0430\u043d\u044f\u0435\u0442\u0441\u044f \u043d\u0435\u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043d\u043d\u043e\u0439, \u043f\u0438\u0441\u044c\u043c\u043e \u0441\u043e \u0441\u0441\u044b\u043b\u043a\u043e\u0439 \u0443\u0445\u043e\u0434\u0438\u0442 \u0441\u0440\u0430\u0437\u0443 \u2014 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044f \u0435\u0433\u043e \u043d\u0435 \u0436\u0434\u0451\u0442"
+            "description": "Резервная почта. Сохраняется неподтверждённой, письмо со ссылкой уходит сразу — регистрация его не ждёт"
           }
         },
         "required": [
@@ -828,8 +1063,8 @@
         "properties": {
           "name": {
             "type": "object",
-            "example": "\u0418\u0432\u0430\u043d",
-            "description": "\u041d\u043e\u0432\u043e\u0435 \u0438\u043c\u044f, \u043e\u0442 2 \u0434\u043e 255 \u0441\u0438\u043c\u0432\u043e\u043b\u043e\u0432"
+            "example": "Иван",
+            "description": "Новое имя, от 2 до 255 символов"
           }
         }
       },
@@ -838,7 +1073,7 @@
         "properties": {
           "verificationId": {
             "type": "object",
-            "description": "id \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u044f \u0438\u0437 POST /email/verifications, \u043f\u043e \u043a\u043e\u0442\u043e\u0440\u043e\u043c\u0443 \u0443\u0436\u0435 \u043f\u0435\u0440\u0435\u0448\u043b\u0438 \u043f\u043e \u0441\u0441\u044b\u043b\u043a\u0435 \u0438\u0437 \u043f\u0438\u0441\u044c\u043c\u0430"
+            "description": "id подтверждения из POST /email/verifications, по которому уже перешли по ссылке из письма"
           }
         },
         "required": [
@@ -851,7 +1086,7 @@
           "phone": {
             "type": "object",
             "example": "79001234567",
-            "description": "\u041d\u043e\u0432\u044b\u0439 \u043d\u043e\u043c\u0435\u0440, \u043b\u044e\u0431\u043e\u0439 \u0444\u043e\u0440\u043c\u0430\u0442"
+            "description": "Новый номер, любой формат"
           }
         },
         "required": [
@@ -864,16 +1099,16 @@
           "phone": {
             "type": "object",
             "example": "79001234567",
-            "description": "\u041d\u043e\u0432\u044b\u0439 \u043d\u043e\u043c\u0435\u0440, \u043b\u044e\u0431\u043e\u0439 \u0444\u043e\u0440\u043c\u0430\u0442"
+            "description": "Новый номер, любой формат"
           },
           "code": {
             "type": "object",
             "example": "1234",
-            "description": "4-\u0437\u043d\u0430\u0447\u043d\u044b\u0439 \u043a\u043e\u0434 \u0438\u0437 \u0437\u0432\u043e\u043d\u043a\u0430 \u043d\u0430 \u043d\u043e\u0432\u044b\u0439 \u043d\u043e\u043c\u0435\u0440"
+            "description": "4-значный код из звонка на новый номер"
           },
           "verificationId": {
             "type": "object",
-            "description": "id \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u044f \u043f\u043e \u043f\u0438\u0441\u044c\u043c\u0443 (purpose=change_phone)"
+            "description": "id подтверждения по письму (purpose=change_phone)"
           }
         },
         "required": [
@@ -887,7 +1122,7 @@
         "properties": {
           "verificationId": {
             "type": "object",
-            "description": "id \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u044f. \u041e\u0431\u044f\u0437\u0430\u0442\u0435\u043b\u0435\u043d, \u0435\u0441\u043b\u0438 \u0443 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430 \u0435\u0441\u0442\u044c \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043d\u043d\u0430\u044f \u043f\u043e\u0447\u0442\u0430"
+            "description": "id подтверждения. Обязателен, если у аккаунта есть подтверждённая почта"
           }
         }
       },
@@ -903,12 +1138,12 @@
               "delete_account"
             ],
             "example": "change_email",
-            "description": "\u0414\u0435\u0439\u0441\u0442\u0432\u0438\u0435, \u043a\u043e\u0442\u043e\u0440\u043e\u0435 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0430\u0435\u0442\u0441\u044f \u043f\u0438\u0441\u044c\u043c\u043e\u043c"
+            "description": "Действие, которое подтверждается письмом"
           },
           "email": {
             "type": "object",
             "example": "user@example.com",
-            "description": "\u041d\u043e\u0432\u044b\u0439 \u0430\u0434\u0440\u0435\u0441. \u041e\u0431\u044f\u0437\u0430\u0442\u0435\u043b\u0435\u043d \u0438 \u0443\u0447\u0438\u0442\u044b\u0432\u0430\u0435\u0442\u0441\u044f \u0442\u043e\u043b\u044c\u043a\u043e \u0434\u043b\u044f change_email \u2014 \u043e\u0441\u0442\u0430\u043b\u044c\u043d\u044b\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044f \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0430\u044e\u0442\u0441\u044f \u043f\u0438\u0441\u044c\u043c\u043e\u043c \u043d\u0430 \u043f\u043e\u0447\u0442\u0443 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430"
+            "description": "Новый адрес. Обязателен и учитывается только для change_email — остальные действия подтверждаются письмом на почту аккаунта"
           }
         },
         "required": [
@@ -920,7 +1155,7 @@
         "properties": {
           "token": {
             "type": "object",
-            "description": "\u0422\u043e\u043a\u0435\u043d \u0438\u0437 \u0441\u0441\u044b\u043b\u043a\u0438 \u0432 \u043f\u0438\u0441\u044c\u043c\u0435 (query-\u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440 token)"
+            "description": "Токен из ссылки в письме (query-параметр token)"
           }
         },
         "required": [

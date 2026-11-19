@@ -11,6 +11,7 @@ import { User } from './entities/user.entity';
 import { PhoneAccount } from './entities/phone-account.entity';
 import { EmailAccount } from './entities/email-account.entity';
 import { RefreshToken } from '../auth/entities/refresh-token.entity';
+import { Session } from '../auth/sessions/session.entity';
 import { AuthService } from '../auth/auth.service';
 import { HistoryEntry } from '../history/history.entity';
 import { EmailVerification } from '../mail/entities/email-verification.entity';
@@ -161,7 +162,10 @@ export class UsersService {
       }
 
       await manager.delete(HistoryEntry, { phoneAccountId });
+      // Сеансы — после токенов: те ссылаются на них. Каскад от phone_accounts
+      // сделал бы то же, но порядок удаления здесь расписан явно.
       await manager.delete(RefreshToken, { phoneAccountId });
+      await manager.delete(Session, { phoneAccountId });
       await manager.delete(EmailVerification, { phoneAccountId });
       await manager.delete(User, { phoneAccountId });
       if (user.emailAccountId) {

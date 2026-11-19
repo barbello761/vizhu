@@ -34,4 +34,16 @@ describe('IncomingCallOverlay', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Отклонить звонок' }));
     expect(decline).toHaveBeenCalledWith('req-1');
   });
+
+  it('после «Принять» кнопки блокируются, повторного accept нет', async () => {
+    accept.mockClear();
+    render(<IncomingCallOverlay requestId="req-2" />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Принять звонок' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Соединяем со звонком' }));
+
+    expect(accept).toHaveBeenCalledTimes(1);
+    expect(accept).toHaveBeenCalledWith('req-2');
+    expect(screen.getByRole('button', { name: 'Отклонить звонок' })).toBeDisabled();
+  });
 });

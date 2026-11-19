@@ -22,6 +22,6 @@ export class OtpCode {
   @Column({ type: 'timestamptz' })
   expiresAt!: Date;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 }

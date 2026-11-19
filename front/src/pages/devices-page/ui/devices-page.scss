@@ -1,0 +1,84 @@
+@use 'shared/styles/_mixins' as m;
+
+/* Каркас как у «Профиля» (макет 2844:22037): шапка, тело с прокруткой,
+   кнопка выхода прижата к низу. */
+.devices-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-distant);
+  height: 100%;
+  padding: var(--space-close) var(--space-close) max(var(--space-close), var(--inset-bottom));
+  overflow: hidden;
+  background: var(--bg-page);
+
+  &:focus {
+    outline: none;
+  }
+
+  &__header {
+    display: flex;
+    flex-shrink: 0;
+    gap: var(--space-close);
+    align-items: center;
+  }
+
+  &__title {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--heading-2-font-size);
+    font-weight: var(--heading-2-font-weight);
+    line-height: var(--heading-2-line-height);
+    color: var(--text-main);
+  }
+
+  &__body {
+    @include m.scroll-body;
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-distant);
+  }
+
+  &__loading {
+    display: flex;
+    gap: var(--space-bonded);
+    align-items: center;
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    line-height: var(--body-line-height);
+    color: var(--text-secondary);
+  }
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-related);
+  }
+
+  /* Подпись раздела — тем же стилем, что подписи полей «Профиля». */
+  &__section-title {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--label-font-size);
+    font-weight: var(--label-font-weight);
+    line-height: var(--label-line-height);
+    color: var(--text-main);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-related);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  &__actions {
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    gap: var(--space-related);
+  }
+}

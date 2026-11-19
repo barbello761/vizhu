@@ -14,6 +14,19 @@ export type IncomingCall = {
 };
 
 /**
+ * Почему сервер снял входящий у волонтёра (событие call:cancelled):
+ * - withdrawn — незрячий отменил вызов;
+ * - missed    — волонтёр не ответил вовремя, сервер снял его с линии;
+ * - failed    — не удалось создать комнату звонка.
+ */
+export type CallCancelReason = 'withdrawn' | 'missed' | 'failed';
+
+export type CallCancelled = {
+  requestId: string;
+  reason: CallCancelReason;
+};
+
+/**
  * Фаза матчинга — единый конечный автомат для обеих ролей.
  *
  * - idle             — ничего не происходит
