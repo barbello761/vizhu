@@ -1,7 +1,9 @@
+import type { Socket } from 'socket.io-client';
+
 import type { UserRole } from '@/features/profile';
 import { createStore } from '@/shared/lib/zustand';
 
-import { getSocket } from './socket';
+import { loadSocket } from './socket';
 import type { CallIntent, CallPhase, IncomingCall, MatchInfo } from './types';
 
 interface CallState {
@@ -39,202 +41,226 @@ interface CallActions {
 
 type CallStore = CallState & CallActions;
 
-export const useCallStore = createStore<CallStore>('Calls', (set, get) => ({
-  phase: 'idle',
-  intent: null,
-  match: null,
-  incoming: null,
-  bound: false,
-  previewRole: null,
-
-  init: () => {
-    if (get().bound) {
-      return;
-    }
-    const socket = getSocket();
-
-    // На каждый (пере)коннект идемпотентно перезаявляем, кто мы (см. контракт §6a).
-    // Важно: во время дозвона/звонка (incoming/matched) НЕ перезаявляем присутствие —
-    // иначе волонтёр в разговоре снова попадёт в пул свободных.
-    socket.on('connect', () => {
-      const { intent, phase } = get();
-      if (intent === 'volunteer' && (phase === 'volunteer-online' || phase === 'idle')) {
-        socket.emit('volunteer:online');
+export const useCallStore = createStore<CallStore>('Calls', (set, get) => {
+  /**
+   * Выполняет действие с сокетом, как только клиент загружен. Промис у всех
+   * действий общий, поэтому колбэки отрабатывают в порядке вызова: слушатели
+   * из init навешиваются раньше, чем goOnline/requestHelp подключаются.
+   * Не загрузился — честно возвращаемся в idle, а не показываем «на линии»
+   * без сокета.
+   */
+  const withSocket = (action: (socket: Socket) => void) => {
+    loadSocket()
+      .then(action)
+      .catch((error: unknown) => {
+        console.error('[calls] не удалось загрузить Socket.IO', error);
         set((d) => {
-          d.phase = 'volunteer-online';
+          d.bound = false;
+          d.phase = 'idle';
+          d.intent = null;
+          d.incoming = null;
         });
-      }
-      if (
-        intent === 'blind' &&
-        (phase === 'requesting' || phase === 'waiting' || phase === 'searching')
-      ) {
-        socket.emit('call:request');
-      }
-      // Сокет передёрнулся посреди активного звонка — просим сервер передоставить
-      // матч. Раньше сервер слал его сам на каждый коннект, из-за чего свежий
-      // звонок получал комнату ПРОШЛОГО (стороны разъезжались по разным комнатам).
-      if (get().match && phase === 'matched') {
-        socket.emit('call:resume');
-      }
-    });
+      });
+  };
 
-    socket.on('call:waiting', () => {
+  return {
+    phase: 'idle',
+    intent: null,
+    match: null,
+    incoming: null,
+    bound: false,
+    previewRole: null,
+
+    init: () => {
+      if (get().bound) {
+        return;
+      }
       set((d) => {
-        if (d.intent === 'blind') {
-          d.phase = 'waiting';
+        d.bound = true;
+      });
+      withSocket((socket) => {
+        // На каждый (пере)коннект идемпотентно перезаявляем, кто мы (см. контракт §6a).
+        // Важно: во время дозвона/звонка (incoming/matched) НЕ перезаявляем присутствие —
+        // иначе волонтёр в разговоре снова попадёт в пул свободных.
+        socket.on('connect', () => {
+          const { intent, phase } = get();
+          if (intent === 'volunteer' && (phase === 'volunteer-online' || phase === 'idle')) {
+            socket.emit('volunteer:online');
+            set((d) => {
+              d.phase = 'volunteer-online';
+            });
+          }
+          if (
+            intent === 'blind' &&
+            (phase === 'requesting' || phase === 'waiting' || phase === 'searching')
+          ) {
+            socket.emit('call:request');
+          }
+          // Сокет передёрнулся посреди активного звонка — просим сервер передоставить
+          // матч. Раньше сервер слал его сам на каждый коннект, из-за чего свежий
+          // звонок получал комнату ПРОШЛОГО (стороны разъезжались по разным комнатам).
+          if (get().match && phase === 'matched') {
+            socket.emit('call:resume');
+          }
+        });
+
+        socket.on('call:waiting', () => {
+          set((d) => {
+            if (d.intent === 'blind') {
+              d.phase = 'waiting';
+            }
+          });
+        });
+
+        socket.on('call:searching', () => {
+          set((d) => {
+            if (d.intent === 'blind') {
+              d.phase = 'searching';
+            }
+          });
+        });
+
+        socket.on('call:incoming', (payload: IncomingCall) => {
+          set((d) => {
+            if (d.intent !== 'volunteer') {
+              return;
+            }
+            d.incoming = payload;
+            d.phase = 'incoming';
+          });
+        });
+
+        socket.on('call:matched', (payload: MatchInfo) => {
+          set((d) => {
+            // Идемпотентность: повторный матч в ту же комнату игнорируем.
+            if (d.match?.room === payload.room) {
+              return;
+            }
+            d.match = payload;
+            d.incoming = null;
+            d.phase = 'matched';
+          });
+        });
+
+        socket.on('call:cancelled', () => {
+          set((d) => {
+            d.incoming = null;
+            d.phase = d.intent === 'volunteer' ? 'volunteer-online' : 'idle';
+          });
+        });
+      });
+    },
+
+    goOnline: () => {
+      get().init();
+      set((d) => {
+        d.intent = 'volunteer';
+        d.phase = 'volunteer-online';
+      });
+      withSocket((socket) => {
+        if (socket.connected) {
+          socket.emit('volunteer:online');
+        } else {
+          socket.connect();
         }
       });
-    });
+    },
 
-    socket.on('call:searching', () => {
+    goOffline: () => {
       set((d) => {
-        if (d.intent === 'blind') {
-          d.phase = 'searching';
-        }
-      });
-    });
-
-    socket.on('call:incoming', (payload: IncomingCall) => {
-      set((d) => {
-        if (d.intent !== 'volunteer') {
-          return;
-        }
-        d.incoming = payload;
-        d.phase = 'incoming';
-      });
-    });
-
-    socket.on('call:matched', (payload: MatchInfo) => {
-      set((d) => {
-        // Идемпотентность: повторный матч в ту же комнату игнорируем.
-        if (d.match?.room === payload.room) {
-          return;
-        }
-        d.match = payload;
+        d.intent = null;
+        d.phase = 'idle';
         d.incoming = null;
-        d.phase = 'matched';
       });
-    });
+      withSocket((socket) => {
+        // Явно объявляем уход: иначе сервер ещё 12с grace держит нас в пуле
+        // и шлёт звонки в мёртвый сокет (незрячий видит «волонтёр найден» впустую).
+        if (socket.connected) {
+          socket.emit('volunteer:offline');
+        }
+        socket.disconnect();
+      });
+    },
 
-    socket.on('call:cancelled', () => {
+    requestHelp: () => {
+      get().init();
+      set((d) => {
+        d.intent = 'blind';
+        d.phase = 'requesting';
+        d.match = null;
+      });
+      withSocket((socket) => {
+        if (socket.connected) {
+          socket.emit('call:request');
+        } else {
+          socket.connect();
+        }
+      });
+    },
+
+    cancelRequest: () => {
+      set((d) => {
+        d.intent = null;
+        d.phase = 'idle';
+        d.match = null;
+      });
+      // Явного call:cancel на бэке нет — отменяем разрывом сокета,
+      // сервер почистит очередь после grace-окна (см. контракт §6).
+      withSocket((socket) => socket.disconnect());
+    },
+
+    accept: (requestId) => {
+      withSocket((socket) => socket.emit('call:accept', { requestId }));
+    },
+
+    decline: (requestId) => {
+      withSocket((socket) => socket.emit('call:decline', { requestId }));
       set((d) => {
         d.incoming = null;
         d.phase = d.intent === 'volunteer' ? 'volunteer-online' : 'idle';
       });
-    });
+    },
 
-    set((d) => {
-      d.bound = true;
-    });
-  },
+    endCall: () => {
+      set((d) => {
+        d.intent = null;
+        d.phase = 'idle';
+        d.match = null;
+        d.incoming = null;
+        d.previewRole = null;
+      });
+      withSocket((socket) => socket.disconnect());
+    },
 
-  goOnline: () => {
-    get().init();
-    const socket = getSocket();
-    set((d) => {
-      d.intent = 'volunteer';
-      d.phase = 'volunteer-online';
-    });
-    if (socket.connected) {
-      socket.emit('volunteer:online');
-    } else {
-      socket.connect();
-    }
-  },
+    returnToLine: () => {
+      set((d) => {
+        d.phase = 'volunteer-online';
+        d.intent = 'volunteer';
+        d.match = null;
+        d.incoming = null;
+        d.previewRole = null;
+      });
+      // Сокет НЕ рвём — просто снова заявляем присутствие, чтобы принимать звонки.
+      withSocket((socket) => {
+        if (socket.connected) {
+          socket.emit('volunteer:online');
+        } else {
+          socket.connect();
+        }
+      });
+    },
 
-  goOffline: () => {
-    const socket = getSocket();
-    set((d) => {
-      d.intent = null;
-      d.phase = 'idle';
-      d.incoming = null;
-    });
-    // Явно объявляем уход: иначе сервер ещё 12с grace держит нас в пуле
-    // и шлёт звонки в мёртвый сокет (незрячий видит «волонтёр найден» впустую).
-    if (socket.connected) {
-      socket.emit('volunteer:offline');
-    }
-    socket.disconnect();
-  },
-
-  requestHelp: () => {
-    get().init();
-    const socket = getSocket();
-    set((d) => {
-      d.intent = 'blind';
-      d.phase = 'requesting';
-      d.match = null;
-    });
-    if (socket.connected) {
-      socket.emit('call:request');
-    } else {
-      socket.connect();
-    }
-  },
-
-  cancelRequest: () => {
-    const socket = getSocket();
-    set((d) => {
-      d.intent = null;
-      d.phase = 'idle';
-      d.match = null;
-    });
-    // Явного call:cancel на бэке нет — отменяем разрывом сокета,
-    // сервер почистит очередь после grace-окна (см. контракт §6).
-    socket.disconnect();
-  },
-
-  accept: (requestId) => {
-    getSocket().emit('call:accept', { requestId });
-  },
-
-  decline: (requestId) => {
-    getSocket().emit('call:decline', { requestId });
-    set((d) => {
-      d.incoming = null;
-      d.phase = d.intent === 'volunteer' ? 'volunteer-online' : 'idle';
-    });
-  },
-
-  endCall: () => {
-    const socket = getSocket();
-    set((d) => {
-      d.intent = null;
-      d.phase = 'idle';
-      d.match = null;
-      d.incoming = null;
-      d.previewRole = null;
-    });
-    socket.disconnect();
-  },
-
-  returnToLine: () => {
-    const socket = getSocket();
-    set((d) => {
-      d.phase = 'volunteer-online';
-      d.intent = 'volunteer';
-      d.match = null;
-      d.incoming = null;
-      d.previewRole = null;
-    });
-    // Сокет НЕ рвём — просто снова заявляем присутствие, чтобы принимать звонки.
-    if (socket.connected) {
-      socket.emit('volunteer:online');
-    } else {
-      socket.connect();
-    }
-  },
-
-  reset: () => {
-    set((d) => {
-      d.phase = 'idle';
-      d.intent = null;
-      d.match = null;
-      d.incoming = null;
-      d.previewRole = null;
-    });
-  },
-}));
+    reset: () => {
+      set((d) => {
+        d.phase = 'idle';
+        d.intent = null;
+        d.match = null;
+        d.incoming = null;
+        d.previewRole = null;
+      });
+    },
+  };
+});
 
 // ─── Dev-превью без бэка ───────────────────────────────────────────────────────
 // В деве кладём стор и хелперы на window, чтобы посмотреть экраны звонка/входящего

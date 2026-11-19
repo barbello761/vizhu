@@ -14,10 +14,9 @@ import {
 } from 'livekit-client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import type { MatchInfo } from '@/features/calls';
 import type { UserRole } from '@/features/profile';
 import { announceRouteChange } from '@/shared/lib/a11y/announcer';
-
-import type { MatchInfo } from '../model/types';
 
 export type ConnectionState =
   | 'connecting'

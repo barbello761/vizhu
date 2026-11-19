@@ -9,7 +9,6 @@ import { IncomingCallOverlay } from './incoming-call-overlay';
 /**
  * Глобальный «дирижёр» матчинга. Живёт над всеми страницами (в RootLayout):
  *
- * - навешивает слушатели сокета один раз (init),
  * - при сведении пары переводит на экран звонка,
  * - показывает волонтёру входящий поверх любой страницы.
  */
@@ -17,20 +16,17 @@ export const CallsOrchestrator = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  const { phase, match, incoming, init } = useCallStore(
+  // Слушатели сокета здесь не навешиваем: это делают goOnline/requestHelp
+  // через init, а до них сокет не нужен — и его чанк не грузится на старте.
+  const { phase, match, incoming } = useCallStore(
     useShallow((s) => ({
       phase: s.phase,
       match: s.match,
       incoming: s.incoming,
-      init: s.init,
     })),
   );
 
   const handledRoomRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    init();
-  }, [init]);
 
   // При матче — заводим обе стороны в комнату (один раз на комнату).
   useEffect(() => {

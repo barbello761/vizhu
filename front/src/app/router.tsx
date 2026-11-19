@@ -1,42 +1,32 @@
+import type { ComponentType } from 'react';
 import { createBrowserRouter, redirect } from 'react-router';
 
 import { useAuthStore } from '@/features/auth';
 import { useOnboardingStore } from '@/features/onboarding';
-import { AboutPage } from '@/pages/about-page';
-import { AgreementsPage } from '@/pages/agreements-page';
-import { CallRoomPage } from '@/pages/call-room-page';
-import { CallWaitingPage } from '@/pages/call-waiting-page';
-import { CameraPage } from '@/pages/camera-page';
-import { CodePage } from '@/pages/code-page';
-import { DeleteAccountDonePage } from '@/pages/delete-account-done-page';
-import { DeleteAccountPage } from '@/pages/delete-account-page';
-import { DemoNoticePage } from '@/pages/demo-notice-page';
-import { DialogPage } from '@/pages/dialog-page';
-import { HelpPage } from '@/pages/help-page';
-import { HistoryPage } from '@/pages/history-page';
-import { HomePage } from '@/pages/home-page';
-import { InvitationPage } from '@/pages/invitation-page';
-import { InvitingPage } from '@/pages/inviting-page';
-import { LogoutAllDonePage } from '@/pages/logout-all-done-page';
-import { LogoutAllPage } from '@/pages/logout-all-page';
-import { LogoutDonePage } from '@/pages/logout-done-page';
-import { LogoutPage } from '@/pages/logout-page';
-import { MagicLinkPage } from '@/pages/magic-link-page';
-import { NotFoundPage } from '@/pages/not-found-page';
-import { OnboardingPage } from '@/pages/onboarding-page';
-import { PhoneAuthPage } from '@/pages/phone-auth-page';
-import { ProfileEmailPage } from '@/pages/profile-email-page';
-import { ProfileNamePage } from '@/pages/profile-name-page';
-import { ProfilePage } from '@/pages/profile-page';
-import { ProfilePhonePage } from '@/pages/profile-phone-page';
-import { ProfileSettingsPage } from '@/pages/profile-settings-page';
-import { REGISTRATION_FIELD_STEPS, RegistrationFieldPage } from '@/pages/registration-field-page';
-import { RegistrationIpraPage } from '@/pages/registration-ipra-page';
-import { StartPage } from '@/pages/start-page';
-import { VolunteerPage } from '@/pages/volunteer-page';
 import { env } from '@/shared/config';
 import { PageLayout } from '@/widgets/page-layout';
 import { RootLayout } from '@/widgets/root-layout';
+
+/**
+ * Экран грузится отдельным чанком при первом заходе на роут: на старте
+ * приложению нужен только текущий экран, а не все три десятка. Гарды
+ * (loader) остаются в основном бандле — react-router гоняет их параллельно
+ * с загрузкой чанка, и редирект не ждёт кода экрана, на который не попадём.
+ */
+const page =
+  <M,>(load: () => Promise<M>, pick: (module: M) => ComponentType) =>
+  async () => ({ Component: pick(await load()) });
+
+/**
+ * Шаги регистрации — один экран с разной конфигурацией. key заставляет форму
+ * перемонтироваться при переходе между шагами: без него react-router
+ * переиспользует инстанс и defaultValues остаются от прошлого шага.
+ */
+const registrationFieldStep = (step: 'name' | 'email') => async () => {
+  const { REGISTRATION_FIELD_STEPS, RegistrationFieldPage } =
+    await import('@/pages/registration-field-page');
+  return { element: <RegistrationFieldPage key={step} step={REGISTRATION_FIELD_STEPS[step]} /> };
+};
 
 const isAuthed = () => useAuthStore.getState().isAuthed;
 const isRegistered = () => useAuthStore.getState().isRegistered;
@@ -106,33 +96,48 @@ export const createAppRouter = () =>
           children: [
             {
               index: true,
-              element: <HomePage />,
+              lazy: page(
+                () => import('@/pages/home-page'),
+                (m) => m.HomePage,
+              ),
               handle: { title: 'ИИ-камера', headerVariant: 'none' },
             },
             {
               // Заголовок «История» нарисован в самом экране — хедер не нужен.
               path: 'history',
-              element: <HistoryPage />,
+              lazy: page(
+                () => import('@/pages/history-page'),
+                (m) => m.HistoryPage,
+              ),
               handle: { headerVariant: 'none' },
             },
             {
               // Заголовок и «назад» в макете «Помощи» отсутствуют — только тело
               // (плитка звонка волонтёру + близкие) и таб-бар.
               path: 'help',
-              element: <HelpPage />,
+              lazy: page(
+                () => import('@/pages/help-page'),
+                (m) => m.HelpPage,
+              ),
               handle: { title: 'Помощь', headerVariant: 'none' },
             },
             {
               // Заголовок нарисован в самом экране, «назад» не нужен —
               // это корневой экран раздела с таб-баром.
               path: 'volunteer',
-              element: <VolunteerPage />,
+              lazy: page(
+                () => import('@/pages/volunteer-page'),
+                (m) => m.VolunteerPage,
+              ),
               handle: { title: 'Кабинет волонтёра', headerVariant: 'none' },
             },
             {
               // Заголовок и «назад» не нужны — это корневой экран раздела с таб-баром.
               path: 'profile',
-              element: <ProfilePage />,
+              lazy: page(
+                () => import('@/pages/profile-page'),
+                (m) => m.ProfilePage,
+              ),
               handle: { title: 'Профиль', headerVariant: 'none' },
             },
           ],
@@ -141,25 +146,41 @@ export const createAppRouter = () =>
           path: 'auth',
           loader: redirectIfAuthed,
           children: [
-            { index: true, element: <StartPage />, handle: { title: 'Вход' } },
+            {
+              index: true,
+              lazy: page(
+                () => import('@/pages/start-page'),
+                (m) => m.StartPage,
+              ),
+              handle: { title: 'Вход' },
+            },
             // Только сборка демо-стенда: на проде роута нет, адрес уходит в 404.
             ...(env.isDemo
               ? [
                   {
                     path: 'demo',
-                    element: <DemoNoticePage />,
+                    lazy: page(
+                      () => import('@/pages/demo-notice-page'),
+                      (m) => m.DemoNoticePage,
+                    ),
                     handle: { title: 'Демо-версия' },
                   },
                 ]
               : []),
             {
               path: 'phone',
-              element: <PhoneAuthPage />,
+              lazy: page(
+                () => import('@/pages/phone-auth-page'),
+                (m) => m.PhoneAuthPage,
+              ),
               handle: { title: 'Ввод номера телефона' },
             },
             {
               path: 'code',
-              element: <CodePage />,
+              lazy: page(
+                () => import('@/pages/code-page'),
+                (m) => m.CodePage,
+              ),
               loader: requirePhone,
               handle: { title: 'Ввод кода из СМС' },
             },
@@ -171,24 +192,28 @@ export const createAppRouter = () =>
           children: [
             {
               path: 'agreements',
-              element: <AgreementsPage />,
+              lazy: page(
+                () => import('@/pages/agreements-page'),
+                (m) => m.AgreementsPage,
+              ),
               handle: { title: 'Согласие на обработку данных' },
             },
             {
               path: 'name',
-              // key заставляет форму перемонтироваться при переходе между шагами:
-              // без него react-router переиспользует инстанс и defaultValues остаются от прошлого шага.
-              element: <RegistrationFieldPage key="name" step={REGISTRATION_FIELD_STEPS.name} />,
+              lazy: registrationFieldStep('name'),
               handle: { title: 'Ввод имени' },
             },
             {
               path: 'email',
-              element: <RegistrationFieldPage key="email" step={REGISTRATION_FIELD_STEPS.email} />,
+              lazy: registrationFieldStep('email'),
               handle: { title: 'Ввод электронной почты' },
             },
             {
               path: 'ipra',
-              element: <RegistrationIpraPage />,
+              lazy: page(
+                () => import('@/pages/registration-ipra-page'),
+                (m) => m.RegistrationIpraPage,
+              ),
               handle: { title: 'Подтверждение статуса ИПРА' },
             },
           ],
@@ -197,83 +222,122 @@ export const createAppRouter = () =>
           // Онбординг идёт уже после регистрации — сюда нельзя попасть
           // с токеном, но без профиля.
           path: 'onboarding',
-          element: <OnboardingPage />,
+          lazy: page(
+            () => import('@/pages/onboarding-page'),
+            (m) => m.OnboardingPage,
+          ),
           loader: requireRegistered,
           handle: { title: 'Добро пожаловать' },
         },
         {
           path: 'invitation',
-          element: <InvitationPage />,
+          lazy: page(
+            () => import('@/pages/invitation-page'),
+            (m) => m.InvitationPage,
+          ),
           handle: { title: 'Приглашение' },
         },
         // Вложенные экраны профиля — без таб-бара, со своей кнопкой «назад».
         {
           path: 'profile/settings',
-          element: <ProfileSettingsPage />,
+          lazy: page(
+            () => import('@/pages/profile-settings-page'),
+            (m) => m.ProfileSettingsPage,
+          ),
           loader: requireAuth,
           handle: { title: 'Настройки профиля' },
         },
         {
           path: 'profile/settings/name',
-          element: <ProfileNamePage />,
+          lazy: page(
+            () => import('@/pages/profile-name-page'),
+            (m) => m.ProfileNamePage,
+          ),
           loader: requireAuth,
           handle: { title: 'Смена имени' },
         },
         {
           path: 'profile/settings/email',
-          element: <ProfileEmailPage />,
+          lazy: page(
+            () => import('@/pages/profile-email-page'),
+            (m) => m.ProfileEmailPage,
+          ),
           loader: requireAuth,
           handle: { title: 'Смена электронной почты' },
         },
         {
           path: 'profile/settings/phone',
-          element: <ProfilePhonePage />,
+          lazy: page(
+            () => import('@/pages/profile-phone-page'),
+            (m) => m.ProfilePhonePage,
+          ),
           loader: requireAuth,
           handle: { title: 'Смена номера телефона' },
         },
         {
           path: 'about',
-          element: <AboutPage />,
+          lazy: page(
+            () => import('@/pages/about-page'),
+            (m) => m.AboutPage,
+          ),
           loader: requireAuth,
           handle: { title: 'О приложении' },
         },
         // Пригласить близкого — доступа из UI пока нет, только по прямой ссылке.
         {
           path: 'inviting',
-          element: <InvitingPage />,
+          lazy: page(
+            () => import('@/pages/inviting-page'),
+            (m) => m.InvitingPage,
+          ),
           loader: requireAuth,
           handle: { title: 'Пригласите близкого' },
         },
         // ─── Выход из аккаунта ──────────────────────────────────────────────
         {
           path: 'logout',
-          element: <LogoutPage />,
+          lazy: page(
+            () => import('@/pages/logout-page'),
+            (m) => m.LogoutPage,
+          ),
           loader: requireAuth,
           handle: { title: 'Выход из аккаунта' },
         },
         {
           // После выхода пользователь уже не авторизован — гард здесь не нужен.
           path: 'logout/done',
-          element: <LogoutDonePage />,
+          lazy: page(
+            () => import('@/pages/logout-done-page'),
+            (m) => m.LogoutDonePage,
+          ),
           handle: { title: 'Вы вышли из аккаунта' },
         },
         // ─── Выход со всех устройств (подтверждение отключено, нет метода) ───
         {
           path: 'logout-all',
-          element: <LogoutAllPage />,
+          lazy: page(
+            () => import('@/pages/logout-all-page'),
+            (m) => m.LogoutAllPage,
+          ),
           loader: requireAuth,
           handle: { title: 'Выход со всех устройств' },
         },
         {
           path: 'logout-all/done',
-          element: <LogoutAllDonePage />,
+          lazy: page(
+            () => import('@/pages/logout-all-done-page'),
+            (m) => m.LogoutAllDonePage,
+          ),
           loader: requireAuth,
           handle: { title: 'Вы вышли со всех устройств' },
         },
         // ─── Удаление аккаунта ──────────────────────────────────────────────
         {
           path: 'delete-account',
-          element: <DeleteAccountPage />,
+          lazy: page(
+            () => import('@/pages/delete-account-page'),
+            (m) => m.DeleteAccountPage,
+          ),
           loader: requireAuth,
           handle: { title: 'Удаление аккаунта' },
         },
@@ -281,24 +345,71 @@ export const createAppRouter = () =>
           // Аккаунта и сессии уже нет — гард здесь отправил бы на /auth
           // раньше, чем пользователь услышал бы, что удаление прошло.
           path: 'delete-account/done',
-          element: <DeleteAccountDonePage />,
+          lazy: page(
+            () => import('@/pages/delete-account-done-page'),
+            (m) => m.DeleteAccountDonePage,
+          ),
           handle: { title: 'Аккаунт удалён' },
         },
-        { path: 'camera', element: <CameraPage />, loader: requireAuth },
-        { path: 'dialog', element: <DialogPage />, loader: requireAuth },
+        {
+          path: 'camera',
+          lazy: page(
+            () => import('@/pages/camera-page'),
+            (m) => m.CameraPage,
+          ),
+          loader: requireAuth,
+        },
+        {
+          path: 'dialog',
+          lazy: page(
+            () => import('@/pages/dialog-page'),
+            (m) => m.DialogPage,
+          ),
+          loader: requireAuth,
+        },
         // Запись из истории открывается тем же экраном диалога о фото.
-        { path: 'dialog/:id', element: <DialogPage />, loader: requireAuth },
-        { path: 'call/waiting', element: <CallWaitingPage />, loader: requireAuth },
-        { path: 'call/room', element: <CallRoomPage />, loader: requireAuth },
+        {
+          path: 'dialog/:id',
+          lazy: page(
+            () => import('@/pages/dialog-page'),
+            (m) => m.DialogPage,
+          ),
+          loader: requireAuth,
+        },
+        {
+          path: 'call/waiting',
+          lazy: page(
+            () => import('@/pages/call-waiting-page'),
+            (m) => m.CallWaitingPage,
+          ),
+          loader: requireAuth,
+        },
+        {
+          path: 'call/room',
+          lazy: page(
+            () => import('@/pages/call-room-page'),
+            (m) => m.CallRoomPage,
+          ),
+          loader: requireAuth,
+        },
         // Переход по ссылке из письма. Открывается в браузере почтового
         // клиента, где сессии приложения нет, — поэтому без гарда: пропуском
         // служит токен из адреса.
         {
           path: 'magic-link',
-          element: <MagicLinkPage />,
+          lazy: page(
+            () => import('@/pages/magic-link-page'),
+            (m) => m.MagicLinkPage,
+          ),
           handle: { title: 'Подтверждение по ссылке' },
         },
-        { path: '*', element: <NotFoundPage /> },
+        {
+          path: '*',
+          lazy: page(
+            () => import('@/pages/not-found-page'),
+            (m) => m.NotFoundPage,
+          ),
+        },
       ],
     },
   ]);

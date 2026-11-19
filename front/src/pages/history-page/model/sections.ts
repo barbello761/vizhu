@@ -28,10 +28,5 @@ export const HISTORY_SECTIONS: readonly SegmentedControlOption<HistorySection>[]
   },
 ];
 
-export const HISTORY_SECTION_LABEL: Record<HistorySection, string> = {
-  chats: 'Чаты',
-  calls: 'Звонки',
-};
-
 /** Звонков ещё нет на бэкенде — раздел открывается, но остаётся заглушкой. */
 export const CALLS_STUB_MESSAGE = 'Меню в разработке';

@@ -12,13 +12,13 @@ export { Checkbox } from './checkbox';
 export { CodeInput } from './code-input';
 export { EditableField } from './editable-field';
 export type { EditableFieldProps } from './editable-field';
-export { IconListItem } from './icon-list-item';
-export type { IconListItemProps } from './icon-list-item';
 export { Input } from './input';
 export { Logo } from './logo';
 export { MenuItem } from './menu-item';
 export type { MenuItemProps } from './menu-item';
 export { MockQr } from './mock-qr';
+export { Modal } from './modal';
+export type { ModalProps } from './modal';
 export { MovingGradient } from './moving-gradient';
 export { Notice } from './notice';
 export { SearchField } from './search-field';
@@ -44,7 +44,6 @@ export {
   EyeIcon,
   FlashIcon,
   HeadsetIcon,
-  HeartIcon,
   HelpIcon,
   ImageIcon,
   MailIcon,

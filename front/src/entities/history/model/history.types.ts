@@ -1,12 +1,5 @@
 export type RequestType = 'describe' | 'currency' | 'ocr' | 'volunteer';
 
-export const REQUEST_TYPE_LABELS: Record<RequestType, string> = {
-  describe: 'Описание сцены',
-  currency: 'Купюры',
-  ocr: 'OCR',
-  volunteer: 'Волонтёр',
-};
-
 export type HistoryMessage = {
   role: 'user' | 'assistant';
   text: string;

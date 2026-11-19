@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 
 import { bootstrapAuth } from '@/features/auth';
-import { env } from '@/shared/config';
+import { env, STORAGE_KEYS } from '@/shared/config';
 import { initFocusModality } from '@/shared/lib/a11y';
 import { resolveActiveTheme } from '@/shared/lib/theme';
 import { initInsetsCache, isNativePlatform, syncStatusBar } from '@/shared/platform';
@@ -13,8 +13,6 @@ import { initPlatform } from './platform-init';
 import { AppProviders } from './providers';
 import { createAppRouter } from './router';
 
-// i18n должен быть инициализирован до рендера — иначе первый рендер будет без переводов
-import '@/shared/lib/i18n';
 import './index.css';
 
 const root = document.getElementById('root');
@@ -31,7 +29,26 @@ const removePreloader = () => {
   setTimeout(() => preloader.remove(), 400);
 };
 
-const startApp = () => {
+type AppRouter = ReturnType<typeof createAppRouter>;
+
+/**
+ * Экраны грузятся лениво (route.lazy), и до загрузки чанка первого экрана
+ * RouterProvider рисует пустоту. Ждём инициализации под заставкой — иначе
+ * между ней и экраном мелькал бы пустой #root, а скринридер терял фокус.
+ */
+const waitForRouter = (router: AppRouter): Promise<void> =>
+  router.state.initialized
+    ? Promise.resolve()
+    : new Promise((resolve) => {
+        const unsubscribe = router.subscribe((state) => {
+          if (state.initialized) {
+            unsubscribe();
+            resolve();
+          }
+        });
+      });
+
+const startApp = async () => {
   // Должно отработать до первого взаимодействия: слушатели решают, рисовать ли
   // кольцо фокуса (см. shared/lib/a11y/focus-modality).
   initFocusModality();
@@ -41,13 +58,22 @@ const startApp = () => {
 
   // Роутер создаётся ЗДЕСЬ, а не на импорте модуля: createBrowserRouter
   // сразу гоняет гарды, а они должны видеть состояние ПОСЛЕ бутстрапа.
+  const router = createAppRouter();
+  await waitForRouter(router);
+
   createRoot(root).render(
     <StrictMode>
       <AppProviders>
-        <RouterProvider router={createAppRouter()} />
+        <RouterProvider router={router} />
       </AppProviders>
     </StrictMode>,
   );
+  // Старт удался — следующий пропавший чанк снова может перезагрузить вкладку.
+  try {
+    sessionStorage.removeItem(STORAGE_KEYS.CHUNK_RELOAD);
+  } catch {
+    // sessionStorage недоступен (приватный режим) — флага и не было.
+  }
   // Снимаем заставку не сразу после render(): initial-render в React 18
   // коммитится асинхронно, и синхронное снятие показывало пустой #root за
   // тающей заставкой (чёрно-белые вспышки в PWA/web). Double-rAF = после
@@ -56,6 +82,23 @@ const startApp = () => {
   requestAnimationFrame(() => requestAnimationFrame(removePreloader));
   setTimeout(removePreloader, 3000);
 };
+
+// Вкладка, открытая до деплоя, просит чанки экранов, которых на сервере уже
+// нет (хэши в именах сменились). Перезагружаем страницу за свежим index.html —
+// один раз, чтобы при настоящем обрыве сети не уйти в цикл перезагрузок.
+// В Capacitor чанки лежат внутри приложения, событие там не срабатывает.
+window.addEventListener('vite:preloadError', (event) => {
+  try {
+    if (sessionStorage.getItem(STORAGE_KEYS.CHUNK_RELOAD)) {
+      return;
+    }
+    sessionStorage.setItem(STORAGE_KEYS.CHUNK_RELOAD, '1');
+  } catch {
+    return;
+  }
+  event.preventDefault();
+  window.location.reload();
+});
 
 // PWA-сервис-воркер регистрируем только в браузере: внутри Capacitor ассеты
 // и так локальные, а кэш Workbox лишь добавил бы несвежих данных.
@@ -97,7 +140,7 @@ const bootstrap = async () => {
     // (MIUI/HyperOS) полоса остаётся прозрачной и «съедает» верх экрана.
     await syncStatusBar(resolveActiveTheme());
   }
-  startApp();
+  await startApp();
 };
 
 // Моки включаются явным флагом, а не самим фактом dev-сборки

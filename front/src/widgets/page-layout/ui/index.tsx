@@ -19,7 +19,7 @@ type RouteHandle =
  *
  * 'none' — экран без хедера: остаётся только контент и таб-бар.
  *
- * Новый вариант хедера — добавь компонент рядом (LogoHeader/BackHeader) и новое значение в RouteHandle.
+ * Новый вариант хедера — добавь компонент рядом (по образцу Navigation) и новое значение в RouteHandle.
  *
  * <main id="main-content"> обязателен: на него ведёт skip-link из RootLayout,
  * и туда RootLayout сдвигает фокус при смене роута.

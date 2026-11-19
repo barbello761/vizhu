@@ -13,7 +13,6 @@ export { EllipsisVerticalIcon } from './ellipsis-vertical-icon';
 export { FlashIcon } from './flash-icon';
 export { EyeIcon } from './eye-icon';
 export { HeadsetIcon } from './headset-icon';
-export { HeartIcon } from './heart-icon';
 export { HelpIcon } from './help-icon';
 export { ImageIcon } from './image-icon';
 export { MailIcon } from './mail-icon';

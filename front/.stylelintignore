@@ -1,3 +1,10 @@
+# Сборочные артефакты
 dist
-dist/**/*.css
+dist-native
+dev-dist
+coverage
 node_modules
+
+# Нативные проекты Capacitor: туда CLI копирует собранный web-бандл
+ios
+android

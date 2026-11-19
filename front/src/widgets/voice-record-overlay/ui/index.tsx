@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 
 import { announceRouteChange } from '@/shared/lib/a11y/announcer';
 import { useVoiceRecord } from '@/shared/lib/use-voice-record';
+import { Button, CloseIcon, Modal } from '@/shared/ui';
 
 import { Waveform } from './waveform';
 
@@ -22,24 +22,16 @@ const ERROR_MESSAGES = {
 
 export const VoiceRecordOverlay = ({ onClose, onSend, isSending }: Props) => {
   const { status, audioBlob, analyserNode, error, start, /*stop*/ cancel } = useVoiceRecord();
-  const panelRef = useRef<HTMLDivElement>(null);
-  const prevFocusRef = useRef<HTMLElement | null>(null);
   const shouldAutoSendRef = useRef(false);
   const onSendRef = useRef(onSend);
   onSendRef.current = onSend;
 
   const [isAutoSending, setIsAutoSending] = useState(false);
 
+  // Фокус внутрь окна и обратно на кнопку микрофона после закрытия — забота Modal.
   useEffect(() => {
-    prevFocusRef.current = document.activeElement as HTMLElement;
-    requestAnimationFrame(() => {
-      panelRef.current?.querySelector('button')?.focus();
-    });
     void start();
     announceRouteChange('Говорите. Нажмите кнопку когда закончите.');
-    return () => {
-      prevFocusRef.current?.focus();
-    };
   }, [start]);
 
   useEffect(() => {
@@ -47,17 +39,6 @@ export const VoiceRecordOverlay = ({ onClose, onSend, isSending }: Props) => {
       announceRouteChange(ERROR_MESSAGES[error]);
     }
   }, [error]);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !isSending && !isAutoSending) {
-        cancel();
-        onClose();
-      }
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [cancel, isAutoSending, isSending, onClose]);
 
   // Auto-send as soon as the blob is ready after manual stop
   useEffect(() => {
@@ -77,21 +58,29 @@ export const VoiceRecordOverlay = ({ onClose, onSend, isSending }: Props) => {
   //   stop();
   // };
 
+  // const _isActive = status === 'requesting' || status === 'recording';
+  const isBusy = isSending || isAutoSending;
+
+  // Кнопка, Escape, тап по фону и системная «назад» ведут сюда. Пока запись
+  // уходит, отмена недоступна — но кнопку не глушим disabled (скринридер её бы
+  // пропустил), а объясняем, почему она не срабатывает.
   const handleCancel = () => {
+    if (isBusy) {
+      announceRouteChange('Запись отправляется, подождите');
+      return;
+    }
     cancel();
     onClose();
   };
 
-  // const _isActive = status === 'requesting' || status === 'recording';
-  const isBusy = isSending || isAutoSending;
-
   const statusText = error ? ERROR_MESSAGES[error] : isBusy ? 'Отправка...' : 'Говорите...';
 
-  return createPortal(
-    <div className="voice-overlay" role="dialog" aria-modal="true" aria-label="Запись голоса">
+  return (
+    <Modal className="voice-overlay" aria-label="Запись голоса" onClose={handleCancel}>
+      {/* Тап мимо панели — дубль кнопки «Отменить запись» для зрячих, поэтому скрыт. */}
       <div className="voice-overlay__backdrop" onClick={handleCancel} aria-hidden="true" />
 
-      <div className="voice-overlay__panel" ref={panelRef}>
+      <div className="voice-overlay__panel">
         <p className="voice-overlay__status" aria-live="polite" aria-atomic="true">
           {statusText}
         </p>
@@ -116,16 +105,16 @@ export const VoiceRecordOverlay = ({ onClose, onSend, isSending }: Props) => {
             // />
           )} */}
 
-          {/* <RoundButton
-            className="voice-overlay__btn-cancel"
-            icon={<X size={20} aria-hidden="true" />}
-            aria-label="Отменить запись"
-            disabled={isBusy}
+          <Button
+            variant="secondary"
+            startIcon={<CloseIcon />}
+            aria-disabled={isBusy || undefined}
             onClick={handleCancel}
-          /> */}
+          >
+            Отменить запись
+          </Button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </Modal>
   );
 };

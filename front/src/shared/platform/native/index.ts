@@ -1,4 +1,5 @@
 import { registerPlatform } from '..';
+import { nativeBackButton } from './back-button';
 import { createNativeCallAlert } from './call-alert';
 import { nativeHaptics } from './haptics';
 import { nativePermissions } from './permissions';
@@ -24,5 +25,6 @@ export const registerNativePlatform = (): void => {
     photoCamera: nativePhotoCamera,
     haptics: nativeHaptics,
     callAlert: createNativeCallAlert(nativeHaptics),
+    backButton: nativeBackButton,
   });
 };

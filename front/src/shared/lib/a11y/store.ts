@@ -1,5 +1,3 @@
-import { useShallow } from 'zustand/shallow';
-
 import { createPersistedStore } from '@/shared/lib/zustand';
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
@@ -50,12 +48,3 @@ export const useA11yStore = createPersistedStore<A11yStore>(
 export const useTextScale = () => useA11yStore((s) => s.textScale);
 export const useHighContrast = () => useA11yStore((s) => s.highContrast);
 export const useReduceMotion = () => useA11yStore((s) => s.reduceMotion);
-
-export const useA11yActions = () =>
-  useA11yStore(
-    useShallow((s) => ({
-      setTextScale: s.setTextScale,
-      toggleHighContrast: s.toggleHighContrast,
-      toggleReduceMotion: s.toggleReduceMotion,
-    })),
-  );

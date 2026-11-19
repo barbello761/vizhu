@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 import { startRinging, stopRinging, useCallStore } from '@/features/calls';
 import { announceRouteChange } from '@/shared/lib/a11y/announcer';
-import { Button, MovingGradient } from '@/shared/ui';
+import { Button, Modal, MovingGradient } from '@/shared/ui';
 
 import './incoming-call-overlay.scss';
 
@@ -16,6 +16,10 @@ type IncomingCallOverlayProps = {
  *
  * Макет Figma 2854:35811: полноэкранный синий градиент, заголовок и пояснение
  * сверху, две кнопки снизу — «Принять» (акцентная на белом) и «Отклонить».
+ *
+ * Модальное окно без onClose: Escape и системная «назад» его не закрывают —
+ * звонок завершает только явный выбор, а экран под ним недоступен ни фокусу,
+ * ни свайпу скринридера. Фокус при открытии встаёт на «Принять».
  */
 export const IncomingCallOverlay = ({ requestId }: IncomingCallOverlayProps) => {
   const accept = useCallStore((s) => s.accept);
@@ -28,13 +32,7 @@ export const IncomingCallOverlay = ({ requestId }: IncomingCallOverlayProps) => 
   }, []);
 
   return (
-    <div
-      className="incoming"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="incoming-title"
-      aria-describedby="incoming-hint"
-    >
+    <Modal className="incoming" aria-labelledby="incoming-title" aria-describedby="incoming-hint">
       <MovingGradient />
 
       <div className="incoming__body">
@@ -61,6 +59,6 @@ export const IncomingCallOverlay = ({ requestId }: IncomingCallOverlayProps) => 
           Отклонить
         </Button>
       </div>
-    </div>
+    </Modal>
   );
 };
