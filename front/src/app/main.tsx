@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 
 import { bootstrapAuth } from '@/features/auth';
+import { useCallStore } from '@/features/calls';
 import { env, STORAGE_KEYS } from '@/shared/config';
 import { initFocusModality } from '@/shared/lib/a11y';
 import { resolveActiveTheme } from '@/shared/lib/theme';
@@ -11,7 +12,7 @@ import { initInsetsCache, isNativePlatform, syncStatusBar } from '@/shared/platf
 
 import { initPlatform } from './platform-init';
 import { AppProviders } from './providers';
-import { createAppRouter } from './router';
+import { createAppRouter, preloadCallRoomOnCallStart } from './router';
 
 import './index.css';
 
@@ -60,6 +61,7 @@ const startApp = async () => {
   // сразу гоняет гарды, а они должны видеть состояние ПОСЛЕ бутстрапа.
   const router = createAppRouter();
   await waitForRouter(router);
+  preloadCallRoomOnCallStart();
 
   createRoot(root).render(
     <StrictMode>
@@ -87,7 +89,13 @@ const startApp = async () => {
 // нет (хэши в именах сменились). Перезагружаем страницу за свежим index.html —
 // один раз, чтобы при настоящем обрыве сети не уйти в цикл перезагрузок.
 // В Capacitor чанки лежат внутри приложения, событие там не срабатывает.
+// Во время звонка не перезагружаем никогда: это рвёт сокет матчинга и сам
+// звонок (в том числе из-за фоновой подгрузки экрана звонка), а упавший
+// переход покажет экран ошибки роутера.
 window.addEventListener('vite:preloadError', (event) => {
+  if (useCallStore.getState().phase !== 'idle') {
+    return;
+  }
   try {
     if (sessionStorage.getItem(STORAGE_KEYS.CHUNK_RELOAD)) {
       return;

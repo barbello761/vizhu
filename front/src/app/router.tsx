@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 import { createBrowserRouter, redirect } from 'react-router';
 
 import { useAuthStore } from '@/features/auth';
+import { useCallStore } from '@/features/calls';
 import { useOnboardingStore } from '@/features/onboarding';
 import { env } from '@/shared/config';
 import { PageLayout } from '@/widgets/page-layout';
@@ -26,6 +27,31 @@ const registrationFieldStep = (step: 'name' | 'email') => async () => {
   const { REGISTRATION_FIELD_STEPS, RegistrationFieldPage } =
     await import('@/pages/registration-field-page');
   return { element: <RegistrationFieldPage key={step} step={REGISTRATION_FIELD_STEPS[step]} /> };
+};
+
+/** Экран звонка: почти весь его чанк — livekit-client (~140 КБ gzip). */
+const loadCallRoomPage = () => import('@/pages/call-room-page');
+
+/**
+ * Начинает качать экран звонка, как только пользователь вошёл в сценарий
+ * звонка (попросил помощи, вышел на линию волонтёром). Иначе после матча
+ * чанк качался бы на переходе в комнату — на мобильной сети это заметная
+ * пауза ровно в момент, когда собеседник уже ждёт. Неудача не страшна:
+ * переход в комнату повторит загрузку. Возвращает отписку.
+ */
+export const preloadCallRoomOnCallStart = (): (() => void) => {
+  let requested = false;
+  const preload = () => {
+    if (requested || useCallStore.getState().phase === 'idle') {
+      return;
+    }
+    requested = true;
+    loadCallRoomPage().catch(() => {
+      requested = false;
+    });
+  };
+  preload();
+  return useCallStore.subscribe(preload);
 };
 
 const isAuthed = () => useAuthStore.getState().isAuthed;
@@ -386,10 +412,7 @@ export const createAppRouter = () =>
         },
         {
           path: 'call/room',
-          lazy: page(
-            () => import('@/pages/call-room-page'),
-            (m) => m.CallRoomPage,
-          ),
+          lazy: page(loadCallRoomPage, (m) => m.CallRoomPage),
           loader: requireAuth,
         },
         // Переход по ссылке из письма. Открывается в браузере почтового
