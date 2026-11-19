@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -15,6 +16,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiProperty,
+  ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
 
@@ -114,6 +116,38 @@ export class MailController {
       throw new BadRequestException('Ссылка недействительна');
     }
     return this.magicLink.confirm(token.trim());
+  }
+
+  // Объявлен раньше `:id`, иначе «active» читалось бы как id тикета.
+  @Get('active')
+  @UseGuards(jwtGuard.JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Живое (не использованное и не истёкшее) подтверждение действия — ' +
+      'чтобы продолжить начатое, а не слать новое письмо',
+  })
+  @ApiQuery({ name: 'purpose', enum: EmailPurpose })
+  @ApiResponse({
+    status: 200,
+    description:
+      '{ verification: { id, purpose, email, status, expiresAt } | null }',
+  })
+  async active(
+    @CurrentUser() user: jwtGuard.JwtPayload,
+    @Query('purpose') purpose: unknown,
+  ) {
+    if (typeof purpose !== 'string' || !EMAIL_PURPOSES.includes(purpose)) {
+      throw new BadRequestException(
+        `Укажите действие: ${EMAIL_PURPOSES.join(', ')}`,
+      );
+    }
+    return {
+      verification: await this.magicLink.findActive(
+        user.sub,
+        purpose as EmailPurpose,
+      ),
+    };
   }
 
   @Get(':id')

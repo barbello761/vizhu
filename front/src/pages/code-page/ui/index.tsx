@@ -2,7 +2,15 @@ import axios from 'axios';
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import { type AuthErrorResponse, authApi, useAuthStore } from '@/features/auth';
+import {
+  type AuthErrorResponse,
+  authApi,
+  OTP_FORM_LABEL,
+  otpCallAnnouncement,
+  otpCallHint,
+  otpCodeLabel,
+  useAuthStore,
+} from '@/features/auth';
 import { useOnboardingStore } from '@/features/onboarding';
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { Button, CodeInput } from '@/shared/ui';
@@ -44,6 +52,10 @@ export const CodePage = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
+
+  useEffect(() => {
+    announceRouteChange(otpCallAnnouncement(phone));
+  }, [phone]);
 
   useEffect(() => {
     if (secondsLeft <= 0) {
@@ -124,7 +136,7 @@ export const CodePage = () => {
   return (
     <FormScreen
       title="Введите код"
-      description="Отправили на ваш телефон СМС с кодом"
+      description={otpCallHint(phone)}
       onBack={() => void navigate('/auth/phone')}
       actions={
         <>
@@ -147,7 +159,7 @@ export const CodePage = () => {
         className="code-page__form"
         onSubmit={handleSubmit}
         noValidate
-        aria-label="Форма ввода кода из СМС"
+        aria-label={OTP_FORM_LABEL}
       >
         <CodeInput
           value={code}
@@ -157,7 +169,7 @@ export const CodePage = () => {
           }}
           onComplete={(value) => void submit(value)}
           onSubmit={() => void submit(code)}
-          label={`Код из СМС, ${CODE_LENGTH} цифры`}
+          label={otpCodeLabel(CODE_LENGTH)}
           length={CODE_LENGTH}
           error={error ?? undefined}
           disabled={isVerifying}

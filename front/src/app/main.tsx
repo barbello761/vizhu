@@ -7,19 +7,33 @@ import { bootstrapAuth } from '@/features/auth';
 import { useCallStore } from '@/features/calls';
 import { env, STORAGE_KEYS } from '@/shared/config';
 import { initFocusModality } from '@/shared/lib/a11y';
+import { toAppError } from '@/shared/lib/app-error';
+import { checkConnection, startConnectivityMonitor } from '@/shared/lib/connectivity';
 import { resolveActiveTheme } from '@/shared/lib/theme';
 import { initInsetsCache, isNativePlatform, syncStatusBar } from '@/shared/platform';
 
+import {
+  AppErrorBoundary,
+  ErrorOverlay,
+  FatalErrorScreen,
+  installGlobalErrorHandlers,
+} from './error-handling';
 import { initPlatform } from './platform-init';
 import { AppProviders } from './providers';
 import { createAppRouter, preloadCallRoomOnCallStart } from './router';
 
 import './index.css';
 
-const root = document.getElementById('root');
-if (!root) {
+const rootElement = document.getElementById('root');
+if (!rootElement) {
   throw new Error('Элемент #root не найден. Проверьте index.html.');
 }
+const root = createRoot(rootElement);
+
+// Как можно раньше: падения на старте тоже должны дойти до экрана ошибки,
+// а не остаться в консоли.
+installGlobalErrorHandlers();
+startConnectivityMonitor();
 
 const removePreloader = () => {
   const preloader = document.getElementById('app-preloader');
@@ -63,11 +77,15 @@ const startApp = async () => {
   await waitForRouter(router);
   preloadCallRoomOnCallStart();
 
-  createRoot(root).render(
+  root.render(
     <StrictMode>
-      <AppProviders>
-        <RouterProvider router={router} />
-      </AppProviders>
+      <AppErrorBoundary>
+        <AppProviders>
+          <RouterProvider router={router} />
+          {/* Вне RouterProvider: окно должно пережить и падение роутера. */}
+          <ErrorOverlay />
+        </AppProviders>
+      </AppErrorBoundary>
     </StrictMode>,
   );
   // Старт удался — следующий пропавший чанк снова может перезагрузить вкладку.
@@ -129,12 +147,18 @@ const withTimeout = (task: Promise<unknown>, ms: number): Promise<unknown> =>
   Promise.race([task, new Promise((resolve) => setTimeout(resolve, ms))]);
 
 const bootstrap = async () => {
-  // Ошибки не глотаем молча: если нативные реализации не поднялись, приложение
-  // тихо деградирует до web-портов (secureStorage в памяти → слетает сессия),
-  // и без этого лога причину не найти.
-  await initPlatform().catch((error: unknown) => {
-    console.error('[platform] Не удалось инициализировать нативные порты', error);
-  });
+  // Пульс сервера — параллельно с платформой, чтобы не удлинять заставку.
+  // Если сервер не ответил, экран «нет соединения» будет уже на первом кадре,
+  // а не после того, как экраны отрисуются пустыми.
+  await Promise.all([
+    // Ошибки не глотаем молча: если нативные реализации не поднялись,
+    // приложение тихо деградирует до web-портов (secureStorage в памяти →
+    // слетает сессия), и без этого лога причину не найти.
+    initPlatform().catch((error: unknown) => {
+      console.error('[platform] Не удалось инициализировать нативные порты', error);
+    }),
+    checkConnection(),
+  ]);
   await withTimeout(
     bootstrapAuth().catch((error: unknown) => {
       console.error('[auth] bootstrap упал', error);
@@ -151,15 +175,27 @@ const bootstrap = async () => {
   await startApp();
 };
 
+/**
+ * Запуск упал целиком (роутер не создался, нативный плагин бросил) — без этого
+ * человек навсегда остался бы перед заставкой. Рисуем экран ошибки без
+ * провайдеров: на них и могло упасть.
+ */
+const runBootstrap = () =>
+  bootstrap().catch((error: unknown) => {
+    console.error('[app] Запуск не удался', error);
+    root.render(<FatalErrorScreen error={toAppError(error)} />);
+    removePreloader();
+  });
+
 // Моки включаются явным флагом, а не самим фактом dev-сборки
 if (import.meta.env.DEV && env.enableMocks) {
   // MSW должен стартовать до bootstrapAuth — refresh-запрос идёт через моки.
   await import('@/shared/api/mocks/browser').then(({ worker }) => {
     void worker
       .start({ onUnhandledRequest: 'bypass' })
-      .then(bootstrap)
-      .catch(() => void bootstrap());
+      .then(runBootstrap)
+      .catch(() => void runBootstrap());
   });
 } else {
-  void bootstrap();
+  void runBootstrap();
 }

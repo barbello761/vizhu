@@ -34,6 +34,8 @@ export interface MatchingStore {
   addAvailableVolunteer(userId: string): Promise<void>;
   removeAvailableVolunteer(userId: string): Promise<void>;
   takeAvailableVolunteer(): Promise<string | undefined>;
+  /** Сколько волонтёров на линии и не заняты — для «Доступных волонтёров: N». */
+  countAvailableVolunteers(): Promise<number>;
 
   hasPendingByBlindUser(userId: string): Promise<boolean>;
   enqueuePending(request: PendingRequest): Promise<void>;

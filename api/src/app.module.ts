@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HttpModule } from '@nestjs/axios';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AiModule } from './modules/ai/ai.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -23,6 +24,9 @@ import { LegacySchemaCleanup } from './common/legacy-schema-cleanup';
     }),
 
     HttpModule.register({ timeout: 15000 }),
+
+    // Фоновые задачи по расписанию (очистка брошенных регистраций).
+    ScheduleModule.forRoot(),
 
     AiModule,
     AuthModule,

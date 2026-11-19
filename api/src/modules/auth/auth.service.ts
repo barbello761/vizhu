@@ -13,6 +13,7 @@ import { SmsService } from '../sms/sms.service';
 import { OtpCode } from './otp-code.entity';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { PhoneAccount } from '../users/entities/phone-account.entity';
+import { User } from '../users/entities/user.entity';
 
 const OTP_TTL_MINUTES = 5;
 const OTP_ATTEMPTS_MAX = 5;
@@ -26,6 +27,13 @@ export { REFRESH_COOKIE };
 export interface VerifyOtpResult {
   accessToken: string;
   refreshToken: string;
+  /**
+   * Профиля (строки в users) ещё нет — клиент ведёт на регистрацию.
+   * Не путать с «номер впервые»: phone_accounts заводится на первом же коде,
+   * и брошенная регистрация оставляла номер без профиля. Раньше флаг считался
+   * по phone_accounts, и при повторном входе такой пользователь шёл мимо
+   * регистрации в приложение, где GET /profile отвечал 404 и его выкидывало.
+   */
   isNewUser: boolean;
 }
 
@@ -40,6 +48,8 @@ export class AuthService {
     private readonly phoneAccountRepo: Repository<PhoneAccount>,
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepo: Repository<RefreshToken>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
     private readonly sms: SmsService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
@@ -137,12 +147,14 @@ export class AuthService {
     let phoneAccount = await this.phoneAccountRepo.findOne({
       where: { phone: normalizedPhone },
     });
-    const isNewUser = !phoneAccount;
-
     if (!phoneAccount) {
       phoneAccount = this.phoneAccountRepo.create({ phone: normalizedPhone });
       await this.phoneAccountRepo.save(phoneAccount);
     }
+
+    const isNewUser = !(await this.userRepo.exists({
+      where: { phoneAccountId: phoneAccount.uuid },
+    }));
 
     const accessToken = this.jwt.sign({
       sub: phoneAccount.uuid,

@@ -46,7 +46,55 @@ api.interceptors.request.use(
  * из защищённого хранилища (с ротацией: новый токен из ответа сохраняем).
  * Используется интерсептором 401 и бутстрапом сессии.
  */
-export const refreshSession = async (): Promise<string> => {
+/**
+ * Single-flight: параллельные вызовы (интерсептор 401, сокет матчинга,
+ * бутстрап) делят один запрос. Refresh-токен ротируется — второй параллельный
+ * refresh пришёл бы с уже погашенным токеном и разлогинил пользователя.
+ */
+let refreshInFlight: Promise<string> | null = null;
+
+export const refreshSession = (): Promise<string> => {
+  if (!refreshInFlight) {
+    refreshInFlight = doRefreshSession().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return refreshInFlight;
+};
+
+/** Запас до истечения, при котором access-токен уже считаем протухшим. */
+const EXPIRY_LEEWAY_MS = 30_000;
+
+const tokenExpiresAt = (token: string): number | null => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))) as {
+      exp?: unknown;
+    };
+    return typeof payload.exp === 'number' ? payload.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Access-токен, которому можно доверить долгоживущее соединение (сокет
+ * матчинга): HTTP-запросы чинит интерсептор 401, а у сокета такого механизма
+ * нет — handshake с протухшим токеном просто отвергается.
+ */
+export const getFreshAccessToken = async (): Promise<string | null> => {
+  const token = getAccessToken();
+  const expiresAt = token ? tokenExpiresAt(token) : null;
+  if (token && expiresAt !== null && expiresAt - Date.now() > EXPIRY_LEEWAY_MS) {
+    return token;
+  }
+  try {
+    return await refreshSession();
+  } catch {
+    return getAccessToken();
+  }
+};
+
+const doRefreshSession = async (): Promise<string> => {
   let body: { refreshToken: string } | undefined;
   if (isNativePlatform()) {
     const stored = await getStoredRefreshToken();

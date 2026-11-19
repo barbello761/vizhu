@@ -1,20 +1,13 @@
 import { api } from '@/shared/api';
 
-export type EmailPurpose = 'verify_email' | 'change_email' | 'change_phone' | 'delete_account';
+import type {
+  ActiveVerificationResponse,
+  EmailPurpose,
+  EmailVerification,
+  EmailVerificationState,
+} from './types';
 
-export type VerificationStatus = 'pending' | 'confirmed' | 'consumed' | 'expired';
-
-/** Ответ на запрос письма. `id` нужен всем последующим шагам флоу. */
-export type EmailVerification = {
-  id: string;
-  email: string;
-  expiresAt: string;
-};
-
-export type EmailVerificationState = EmailVerification & {
-  purpose: EmailPurpose;
-  status: VerificationStatus;
-};
+export type * from './types';
 
 export const emailVerificationApi = {
   /** Отправить письмо со ссылкой. `email` учитывается только для change_email. */
@@ -26,4 +19,12 @@ export const emailVerificationApi = {
 
   /** За этим ходит кнопка «Я перешёл по ссылке». */
   status: (id: string) => api.get<EmailVerificationState>(`/email/verifications/${id}`),
+
+  /**
+   * Начатое и ещё живое подтверждение действия. Экран «Проверьте почту»
+   * продолжает его, а не шлёт новое письмо: новое погасило бы ссылку, по
+   * которой человек, возможно, уже перешёл.
+   */
+  active: (purpose: EmailPurpose) =>
+    api.get<ActiveVerificationResponse>('/email/verifications/active', { params: { purpose } }),
 };

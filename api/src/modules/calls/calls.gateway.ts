@@ -98,6 +98,13 @@ export class CallsGateway
       this.runCommand('call:request', this.matching.requestHelp(user.id));
   }
 
+  @SubscribeMessage('call:cancel')
+  onCancel(@ConnectedSocket() client: Socket): void {
+    const user = this.getUser(client);
+    if (user?.role === UserRole.BLIND)
+      this.runCommand('call:cancel', this.matching.cancelRequest(user.id));
+  }
+
   @SubscribeMessage('call:accept')
   onAccept(
     @ConnectedSocket() client: Socket,

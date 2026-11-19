@@ -1,7 +1,15 @@
 import axios from 'axios';
 import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 
-import { type AuthErrorResponse, authApi } from '@/features/auth';
+import {
+  type AuthErrorResponse,
+  authApi,
+  OTP_FORM_LABEL,
+  OTP_SEND_FAILED,
+  otpCallAnnouncement,
+  otpCallHint,
+  otpCodeLabel,
+} from '@/features/auth';
 import { announceRouteChange } from '@/shared/lib/a11y';
 import { Button, CodeInput } from '@/shared/ui';
 import { FormScreen } from '@/widgets/form-screen';
@@ -56,9 +64,9 @@ export const EmailVerifyStep = ({ phone, onVerified, onBack }: EmailVerifyStepPr
       return;
     }
     hasRequested.current = true;
-    announceRouteChange('Введите код. Мы отправили СМС с кодом на ваш телефон.');
+    announceRouteChange(otpCallAnnouncement(phone));
     void authApi.sendOtp(phone).catch(() => {
-      setError('Не удалось отправить код. Попробуйте позже.');
+      setError(OTP_SEND_FAILED);
     });
   }, [phone]);
 
@@ -116,7 +124,7 @@ export const EmailVerifyStep = ({ phone, onVerified, onBack }: EmailVerifyStepPr
       setError(null);
       announceRouteChange('Отправили код ещё раз');
     } catch {
-      setError('Не удалось отправить код. Попробуйте позже.');
+      setError(OTP_SEND_FAILED);
     } finally {
       setIsResending(false);
     }
@@ -125,7 +133,7 @@ export const EmailVerifyStep = ({ phone, onVerified, onBack }: EmailVerifyStepPr
   return (
     <FormScreen
       title="Введите код"
-      description="Мы должны убедиться, что это вы. Отправили на ваш телефон СМС с кодом"
+      description={`Мы должны убедиться, что это вы. ${otpCallHint(phone)}`}
       onBack={onBack}
       backLabel="Назад, к настройкам профиля"
       actions={
@@ -149,7 +157,7 @@ export const EmailVerifyStep = ({ phone, onVerified, onBack }: EmailVerifyStepPr
         className="profile-email__form"
         onSubmit={handleSubmit}
         noValidate
-        aria-label="Форма ввода кода из СМС"
+        aria-label={OTP_FORM_LABEL}
       >
         <CodeInput
           value={code}
@@ -159,7 +167,7 @@ export const EmailVerifyStep = ({ phone, onVerified, onBack }: EmailVerifyStepPr
           }}
           onComplete={(value) => void submit(value)}
           onSubmit={() => void submit(code)}
-          label={`Код из СМС, ${CODE_LENGTH} цифры`}
+          label={otpCodeLabel(CODE_LENGTH)}
           length={CODE_LENGTH}
           error={error ?? undefined}
           disabled={isVerifying}

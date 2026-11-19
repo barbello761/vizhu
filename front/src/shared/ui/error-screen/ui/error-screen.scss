@@ -1,0 +1,61 @@
+@use 'shared/styles/_mixins' as m;
+
+/* Макет «Нет соединения с сервером» (Figma 3662:3905): колонка по центру
+   экрана — иконка 128 и текст с отступом 16, кнопка прижата к низу. */
+.error-screen {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: max(var(--space-close), var(--inset-top)) var(--space-close)
+    max(var(--space-close), var(--inset-bottom));
+
+  /* Скроллится только тело — кнопка видна всегда (см. m.scroll-body). */
+  overflow: hidden;
+  background: var(--bg-page);
+
+  &:focus {
+    outline: none;
+  }
+
+  &__body {
+    @include m.scroll-body;
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-close);
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* При переполнении (крупный системный шрифт) обычное центрирование срезает
+     верх, и до него не доскроллить; safe отдаёт лишнее вниз. */
+  @supports (justify-content: safe center) {
+    &__body {
+      justify-content: safe center;
+    }
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    color: var(--danger-default);
+  }
+
+  &__text {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--body-font-size);
+    font-weight: var(--body-weight-default);
+    line-height: var(--body-line-height);
+    color: var(--danger-default);
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
+  &__actions {
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    padding-top: var(--space-distant);
+  }
+}

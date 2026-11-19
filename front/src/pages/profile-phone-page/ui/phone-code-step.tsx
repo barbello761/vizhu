@@ -1,6 +1,6 @@
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 
-import { formatPhone } from '@/features/auth';
+import { OTP_FORM_LABEL, otpCallAnnouncement, otpCallHint, otpCodeLabel } from '@/features/auth';
 import { profileApi } from '@/features/profile';
 import { apiErrorMessage } from '@/shared/api';
 import { announceRouteChange } from '@/shared/lib/a11y';
@@ -33,7 +33,7 @@ export const PhoneCodeStep = ({ phone, onSubmit, onBack }: PhoneCodeStepProps) =
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
 
   useEffect(() => {
-    announceRouteChange(`Введите код. Мы позвонили на номер ${formatPhone(phone)}.`);
+    announceRouteChange(otpCallAnnouncement(phone));
   }, [phone]);
 
   useEffect(() => {
@@ -100,7 +100,7 @@ export const PhoneCodeStep = ({ phone, onSubmit, onBack }: PhoneCodeStepProps) =
   return (
     <FormScreen
       title="Введите код"
-      description={`Мы позвонили на номер ${formatPhone(phone)} и продиктовали код`}
+      description={otpCallHint(phone)}
       onBack={onBack}
       backLabel="Назад, к вводу номера"
       actions={
@@ -124,7 +124,7 @@ export const PhoneCodeStep = ({ phone, onSubmit, onBack }: PhoneCodeStepProps) =
         className="profile-phone__form"
         onSubmit={handleSubmit}
         noValidate
-        aria-label="Форма ввода кода из звонка"
+        aria-label={OTP_FORM_LABEL}
       >
         <CodeInput
           value={code}
@@ -134,7 +134,7 @@ export const PhoneCodeStep = ({ phone, onSubmit, onBack }: PhoneCodeStepProps) =
           }}
           onComplete={(value) => void submit(value)}
           onSubmit={() => void submit(code)}
-          label={`Код из звонка, ${CODE_LENGTH} цифры`}
+          label={otpCodeLabel(CODE_LENGTH)}
           length={CODE_LENGTH}
           error={error ?? undefined}
           disabled={isVerifying}

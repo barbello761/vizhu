@@ -43,6 +43,6 @@ export class HistoryEntry {
   @Column({ name: 'last_message_at', type: 'timestamptz', nullable: true })
   lastMessageAt!: Date | null;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 }

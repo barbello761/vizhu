@@ -109,6 +109,18 @@ describeRedis('RedisMatchingStore', () => {
     }
   });
 
+  it('считает свободных волонтёров и не учитывает того, кого взяли в звонок', async () => {
+    await store!.addAvailableVolunteer('volunteer-1');
+    await store!.addAvailableVolunteer('volunteer-2');
+    await store!.addAvailableVolunteer('volunteer-2');
+    await expect(store!.countAvailableVolunteers()).resolves.toBe(2);
+
+    await store!.takeAvailableVolunteer();
+    await store!.removeAvailableVolunteer('volunteer-1');
+    await store!.removeAvailableVolunteer('volunteer-2');
+    await expect(store!.countAvailableVolunteers()).resolves.toBe(0);
+  });
+
   it('keeps pending requests FIFO and deduplicates a blind user', async () => {
     await store!.enqueuePending({
       requestId: 'first',

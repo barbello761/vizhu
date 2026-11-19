@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
@@ -15,6 +15,24 @@ const ACCOUNT_GONE_MESSAGE = 'Аккаунт удалён. Вы вышли из 
 const isNotFound = (error: unknown): boolean =>
   axios.isAxiosError(error) && error.response?.status === 404;
 
+/** Общие настройки запроса профиля — их же берёт useEmailVerificationWatch. */
+export const profileQueryOptions = queryOptions<Profile>({
+  queryKey: profileQueryKey,
+  queryFn: async () => (await profileApi.getProfile()).data,
+  staleTime: 5 * 60 * 1000,
+  // Профиль меняется и снаружи приложения: по ссылке из письма переходят в
+  // почтовом клиенте, а подтверждение прилетает на бэкенд, минуя нас. Без
+  // этого «почта подтверждена» становилось видно только после перезагрузки —
+  // на мобиле это означает убить и открыть приложение заново.
+  // `always` игнорирует staleTime: 5 минут свежести тут именно и мешали.
+  // Запрос маленький, а фокус возвращается нечасто.
+  refetchOnWindowFocus: 'always',
+  retry: (failureCount, error) =>
+    // 404 повторять нечего — профиля нет, и ответ не изменится. Две лишние
+    // попытки только оттянули бы разлогин ниже.
+    isNotFound(error) ? false : failureCount < 2,
+});
+
 /** Профиль текущего пользователя. Кэшируется react-query — можно дёргать из
  * любого места (навигация, кабинет, звонок) без повторных запросов. */
 export const useProfile = () => {
@@ -23,23 +41,7 @@ export const useProfile = () => {
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
 
-  const query = useQuery<Profile>({
-    queryKey: profileQueryKey,
-    queryFn: async () => (await profileApi.getProfile()).data,
-    enabled: isAuthed,
-    staleTime: 5 * 60 * 1000,
-    // Профиль меняется и снаружи приложения: по ссылке из письма переходят в
-    // почтовом клиенте, а подтверждение прилетает на бэкенд, минуя нас. Без
-    // этого «почта подтверждена» становилось видно только после перезагрузки —
-    // на мобиле это означает убить и открыть приложение заново.
-    // `always` игнорирует staleTime: 5 минут свежести тут именно и мешали.
-    // Запрос маленький, а фокус возвращается нечасто.
-    refetchOnWindowFocus: 'always',
-    retry: (failureCount, error) =>
-      // 404 повторять нечего — профиля нет, и ответ не изменится. Две лишние
-      // попытки только оттянули бы разлогин ниже.
-      isNotFound(error) ? false : failureCount < 2,
-  });
+  const query = useQuery({ ...profileQueryOptions, enabled: isAuthed });
 
   // 404 по собственному профилю у зарегистрированного пользователя значит одно:
   // аккаунт удалили с другого устройства. Сам по себе токен погас бы только

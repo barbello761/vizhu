@@ -8,11 +8,13 @@ import { SmsService } from '../sms/sms.service';
 import { OtpCode } from './otp-code.entity';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { PhoneAccount } from '../users/entities/phone-account.entity';
+import { User } from '../users/entities/user.entity';
+import { RegistrationCleanupService } from './registration-cleanup.service';
 import { JwtAuthGuard } from '../../common/guards/jwt.guard';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([OtpCode, PhoneAccount, RefreshToken]),
+    TypeOrmModule.forFeature([OtpCode, PhoneAccount, RefreshToken, User]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -23,7 +25,12 @@ import { JwtAuthGuard } from '../../common/guards/jwt.guard';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, SmsService, JwtAuthGuard],
+  providers: [
+    AuthService,
+    SmsService,
+    JwtAuthGuard,
+    RegistrationCleanupService,
+  ],
   exports: [AuthService, JwtModule, JwtAuthGuard],
 })
 export class AuthModule {}

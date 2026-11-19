@@ -34,6 +34,14 @@ export type VerificationStatus =
   | 'consumed'
   | 'expired';
 
+export interface VerificationView {
+  id: string;
+  purpose: EmailPurpose;
+  email: string;
+  status: VerificationStatus;
+  expiresAt: Date;
+}
+
 export interface RequestVerificationInput {
   phoneAccountId: string;
   purpose: EmailPurpose;
@@ -172,25 +180,51 @@ export class MagicLinkService {
   async status(
     phoneAccountId: string,
     uuid: string,
-  ): Promise<{
-    id: string;
-    purpose: EmailPurpose;
-    email: string;
-    status: VerificationStatus;
-    expiresAt: Date;
-  }> {
+  ): Promise<VerificationView> {
     const ticket = await this.tickets.findOne({
       where: { uuid, phoneAccountId },
     });
     if (!ticket) throw new NotFoundException('Подтверждение не найдено');
+    return this.toView(ticket);
+  }
 
-    return {
-      id: ticket.uuid,
-      purpose: ticket.purpose,
-      email: ticket.email,
-      status: this.statusOf(ticket),
-      expiresAt: ticket.expiresAt,
-    };
+  /**
+   * Живой тикет действия — последний выпущенный, ещё не использованный и не
+   * истёкший. null — подтверждения сейчас нет, письмо нужно запросить.
+   *
+   * Нужен, чтобы клиент мог продолжить начатое подтверждение, а не начинать
+   * заново. Id тикета клиент держит в памяти экрана, и всё, что этот экран
+   * размонтирует (ушли назад, открыли ссылку в самом приложении, Android
+   * выгрузил WebView, пока человек был в почте), его теряет. Раньше экран в
+   * таком случае просил новое письмо: в первую минуту получал 429 и оставался
+   * без id, а позже новый тикет гасил тот, по которому уже перешли. Удалить
+   * аккаунт так было не дойти.
+   *
+   * Для действий, подтверждаемых почтой аккаунта, тикет на прежний адрес
+   * (почту с тех пор сменили) живым не считается.
+   */
+  async findActive(
+    phoneAccountId: string,
+    purpose: EmailPurpose,
+  ): Promise<VerificationView | null> {
+    const ticket = await this.tickets.findOne({
+      where: { phoneAccountId, purpose },
+      order: { createdAt: 'DESC' },
+    });
+    if (!ticket) return null;
+
+    const status = this.statusOf(ticket);
+    if (status === 'consumed' || status === 'expired') return null;
+
+    if (PURPOSES_USING_ACCOUNT_EMAIL.has(purpose)) {
+      const user = await this.users.findOne({
+        where: { phoneAccountId },
+        relations: ['emailAccount'],
+      });
+      if (user?.emailAccount?.email !== ticket.email) return null;
+    }
+
+    return this.toView(ticket);
   }
 
   async assertConfirmed(
@@ -254,6 +288,16 @@ export class MagicLinkService {
           'Мы ещё не увидели переход по ссылке. Откройте письмо и попробуйте снова.',
         );
     }
+  }
+
+  private toView(ticket: EmailVerification): VerificationView {
+    return {
+      id: ticket.uuid,
+      purpose: ticket.purpose,
+      email: ticket.email,
+      status: this.statusOf(ticket),
+      expiresAt: ticket.expiresAt,
+    };
   }
 
   private statusOf(ticket: EmailVerification): VerificationStatus {

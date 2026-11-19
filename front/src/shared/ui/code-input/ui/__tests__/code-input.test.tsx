@@ -26,7 +26,7 @@ const Harness = ({
       }}
       onComplete={onComplete}
       onSubmit={onSubmit}
-      label="Код из СМС, 4 цифры"
+      label="Код из звонка, 4 цифры"
       error={error}
     />
   );
@@ -37,7 +37,7 @@ const cells = () => screen.getAllByRole('textbox');
 describe('CodeInput', () => {
   it('рендерит клетки с порядковыми подписями внутри группы', () => {
     render(<Harness />);
-    expect(screen.getByRole('group', { name: 'Код из СМС, 4 цифры' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Код из звонка, 4 цифры' })).toBeInTheDocument();
     expect(cells()).toHaveLength(4);
     expect(screen.getByRole('textbox', { name: 'Цифра 1 из 4' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Цифра 4 из 4' })).toBeInTheDocument();

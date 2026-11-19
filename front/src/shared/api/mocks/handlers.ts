@@ -281,6 +281,10 @@ const mockVerificationStatus = (id: string) => {
 };
 
 export const handlers = [
+  // Пульс сервера: без него в режиме моков приложение считало бы бэкенд
+  // лежащим и сразу показывало экран «нет соединения».
+  http.get('*/health/ping', () => HttpResponse.json({ status: 'ok' })),
+
   // ─── Auth ──────────────────────────────────────────────────────────────────
   // Запрос OTP: любой номер → успех ~600 мс
   http.post('*/auth/send-otp', async () => {
@@ -411,6 +415,27 @@ export const handlers = [
     // Открыли ссылку руками — считаем письмо прочитанным прямо сейчас.
     ticket.sentAt = 0;
     return HttpResponse.json({ purpose: ticket.purpose });
+  }),
+
+  // Раньше `:id` — иначе «active» матчился бы как id тикета.
+  http.get('*/email/verifications/active', ({ request }) => {
+    const purpose = new URL(request.url).searchParams.get('purpose');
+    const live = [...mockVerifications.entries()]
+      .reverse()
+      .find(([, ticket]) => ticket.purpose === purpose && !ticket.consumed);
+    if (!live) {
+      return HttpResponse.json({ verification: null });
+    }
+    const [id, ticket] = live;
+    return HttpResponse.json({
+      verification: {
+        id,
+        purpose: ticket.purpose,
+        email: ticket.email,
+        status: mockVerificationStatus(id),
+        expiresAt: new Date(ticket.sentAt + 30 * 60_000).toISOString(),
+      },
+    });
   }),
 
   http.get('*/email/verifications/:id', ({ params }) => {

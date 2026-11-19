@@ -69,14 +69,16 @@
  * Нажатое состояние интерактивного элемента.
  * На тач-устройствах у макета нет ховера — там срабатывает только :active,
  * ховер добавляется отдельно и только там, где указатель действительно есть.
+ * `aria-disabled` («в разработке») тоже гасит реакцию: такая кнопка в фокусе
+ * и озвучивается, но визуально на нажатие не отвечает, как и `disabled`.
  */
 @mixin pressed {
-  &:active:not(:disabled) {
+  &:active:not(:disabled, [aria-disabled='true']) {
     @content;
   }
 
   @media (hover: hover) {
-    &:hover:not(:disabled) {
+    &:hover:not(:disabled, [aria-disabled='true']) {
       @content;
     }
   }

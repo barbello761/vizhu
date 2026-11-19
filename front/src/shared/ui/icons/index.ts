@@ -1,5 +1,6 @@
 export { AddIcon } from './add-icon';
 export { AlertCircleIcon } from './alert-circle-icon';
+export { AlertTriangleIcon } from './alert-triangle-icon';
 export { CallEndIcon } from './call-end-icon';
 export { CallIcon } from './call-icon';
 export { CameraIcon } from './camera-icon';

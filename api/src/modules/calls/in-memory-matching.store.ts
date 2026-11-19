@@ -51,6 +51,10 @@ export class InMemoryMatchingStore implements MatchingStore {
     return userId;
   }
 
+  async countAvailableVolunteers(): Promise<number> {
+    return this.available.size;
+  }
+
   async hasPendingByBlindUser(userId: string): Promise<boolean> {
     return this.pendingByBlindUser.has(userId);
   }

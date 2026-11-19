@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 
 import { useCallStore } from '@/features/calls';
@@ -15,19 +15,27 @@ export const CallRoomPage = () => {
   const previewRole = useCallStore((s) => s.previewRole);
   const { data: profile, isLoading } = useProfile();
 
-  // Нет активного матча (прямой переход/перезагрузка) — на экран помощи.
+  // Матч был при входе — значит, его обнулило завершение звонка, и уводит
+  // CallRoomStage (волонтёра — на линию, незрячего — в «Помощь»). Раньше
+  // здесь всех сразу кидало на /help: волонтёр на 1,6 секунды попадал
+  // на чужой экран, пока не срабатывал переход на /volunteer.
+  const hadMatchRef = useRef(match !== null);
+
+  // Нет активного матча с самого начала (прямой переход/перезагрузка).
   useEffect(() => {
-    if (!match) {
-      void navigate('/help', { replace: true });
+    if (match || hadMatchRef.current || isLoading) {
+      return;
     }
-  }, [match, navigate]);
+    void navigate(profile?.role === 'volunteer' ? '/volunteer' : '/help', { replace: true });
+  }, [match, isLoading, profile?.role, navigate]);
 
   if (!match || isLoading || !profile) {
+    const ended = !match && hadMatchRef.current;
     return (
       <main id="main-content" className="call-room call-room--loading" tabIndex={-1}>
-        <Spinner className="call-room__spinner" />
+        {!ended && <Spinner className="call-room__spinner" />}
         <p role="status" aria-live="polite">
-          Подключаемся к звонку…
+          {ended ? 'Звонок завершён' : 'Подключаемся к звонку…'}
         </p>
       </main>
     );
