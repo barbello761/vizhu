@@ -14,6 +14,8 @@ import { OtpCode } from './otp-code.entity';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { PhoneAccount } from '../users/entities/phone-account.entity';
 import { User } from '../users/entities/user.entity';
+import type { JwtPayload } from '../../common/guards/jwt.guard';
+import { ClientContext, SessionsService } from './sessions/sessions.service';
 
 const OTP_TTL_MINUTES = 5;
 const OTP_ATTEMPTS_MAX = 5;
@@ -23,6 +25,13 @@ const ROTATION_GRACE_MS = 60_000;
 const REFRESH_COOKIE = 'refresh_token';
 
 export { REFRESH_COOKIE };
+
+/** Срок нового refresh-токена — он же новый срок жизни сеанса. */
+const refreshExpiry = (): Date => {
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + REFRESH_TTL_DAYS);
+  return expiresAt;
+};
 
 export interface VerifyOtpResult {
   accessToken: string;
@@ -53,6 +62,7 @@ export class AuthService {
     private readonly sms: SmsService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
+    private readonly sessions: SessionsService,
   ) {}
 
   //режим дев-разработки не делает звонок в smsc - для этого есть секретный мастер-ключ.
@@ -141,7 +151,11 @@ export class AuthService {
     return normalizedPhone;
   }
 
-  async verifyOtp(phone: string, code: string): Promise<VerifyOtpResult> {
+  async verifyOtp(
+    phone: string,
+    code: string,
+    context: ClientContext,
+  ): Promise<VerifyOtpResult> {
     const normalizedPhone = await this.consumeOtp(phone, code);
 
     let phoneAccount = await this.phoneAccountRepo.findOne({
@@ -156,17 +170,31 @@ export class AuthService {
       where: { phoneAccountId: phoneAccount.uuid },
     }));
 
-    const accessToken = this.jwt.sign({
-      sub: phoneAccount.uuid,
-      phone: normalizedPhone,
-    });
-    const refreshToken = await this.createRefreshToken(phoneAccount.uuid);
+    // Каждый вход по коду — новый сеанс, даже с того же устройства: после
+    // выхода прежний сеанс уже удалён, а склеивать «похожие» по UA — гадание.
+    const expiresAt = refreshExpiry();
+    const session = await this.sessions.open(
+      phoneAccount.uuid,
+      context,
+      expiresAt,
+    );
+    const refreshToken = await this.createRefreshToken(
+      phoneAccount.uuid,
+      session.id,
+      expiresAt,
+    );
+    const accessToken = this.signAccess(
+      phoneAccount.uuid,
+      normalizedPhone,
+      session.id,
+    );
 
     return { accessToken, refreshToken, isNewUser };
   }
 
   async refresh(
     rawToken: string,
+    context: ClientContext,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const hash = this.hashToken(rawToken);
     const record = await this.refreshTokenRepo.findOne({
@@ -179,17 +207,34 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token недействителен');
     }
 
+    const expiresAt = refreshExpiry();
+    let sessionId = record.sessionId;
+    if (sessionId) {
+      await this.sessions.touch(sessionId, expiresAt);
+    } else {
+      // Токен выдан до появления сеансов: заводим сеанс сейчас, иначе после
+      // выкладки всех вошедших пришлось бы разлогинить. Устройство — то, с
+      // которого пришёл refresh: токен с него и прислан.
+      sessionId = (
+        await this.sessions.open(record.phoneAccountId, context, expiresAt)
+      ).id;
+    }
+
     // Ротация с grace-окном вместо мгновенного удаления: мобильный клиент
     // может не успеть сохранить новый токен (приложение убили, сеть оборвалась
     // после ответа) — тогда он повторно придёт со старым токеном и получит
     // новую пару, а не вечный разлогин. Старый токен доживает ROTATION_GRACE_MS.
+    // Сеанс ему проставляем тоже: повтор старого токена не должен заводить
+    // ещё один сеанс, а отзыв сеанса — гасить и его.
     const graceDeadline = new Date(Date.now() + ROTATION_GRACE_MS);
-    if (record.expiresAt > graceDeadline) {
-      await this.refreshTokenRepo.update(
-        { uuid: record.uuid },
-        { expiresAt: graceDeadline },
-      );
-    }
+    await this.refreshTokenRepo.update(
+      { uuid: record.uuid },
+      {
+        expiresAt:
+          record.expiresAt > graceDeadline ? graceDeadline : record.expiresAt,
+        sessionId,
+      },
+    );
 
     // Заодно подчищаем протухшие токены аккаунта (в т.ч. отработавшие grace).
     await this.refreshTokenRepo.delete({
@@ -199,25 +244,53 @@ export class AuthService {
 
     const newRefreshToken = await this.createRefreshToken(
       record.phoneAccountId,
+      sessionId,
+      expiresAt,
     );
-    const accessToken = this.jwt.sign({
-      sub: record.phoneAccount.uuid,
-      phone: record.phoneAccount.phone,
-    });
+    const accessToken = this.signAccess(
+      record.phoneAccount.uuid,
+      record.phoneAccount.phone,
+      sessionId,
+    );
 
     return { accessToken, refreshToken: newRefreshToken };
   }
 
+  /** Выход на этом устройстве: гасим весь сеанс, а не только предъявленный токен. */
   async logout(rawToken: string): Promise<void> {
-    await this.refreshTokenRepo.delete({ tokenHash: this.hashToken(rawToken) });
+    const record = await this.refreshTokenRepo.findOne({
+      where: { tokenHash: this.hashToken(rawToken) },
+    });
+    if (!record) return;
+    if (record.sessionId) {
+      await this.sessions.close(record.sessionId);
+    } else {
+      await this.refreshTokenRepo.delete({ uuid: record.uuid });
+    }
   }
 
-  private async createRefreshToken(phoneAccountId: string): Promise<string> {
+  private signAccess(
+    phoneAccountId: string,
+    phone: string,
+    sessionId: string,
+  ): string {
+    const payload: Omit<JwtPayload, 'iat' | 'exp'> = {
+      sub: phoneAccountId,
+      phone,
+      sid: sessionId,
+    };
+    return this.jwt.sign(payload);
+  }
+
+  private async createRefreshToken(
+    phoneAccountId: string,
+    sessionId: string,
+    expiresAt: Date,
+  ): Promise<string> {
     const raw = randomBytes(32).toString('hex');
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + REFRESH_TTL_DAYS);
     await this.refreshTokenRepo.save({
       phoneAccountId,
+      sessionId,
       tokenHash: this.hashToken(raw),
       expiresAt,
     });

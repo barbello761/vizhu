@@ -8,34 +8,51 @@ import {
   MessageBody,
   ConnectedSocket,
 } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
+import { Logger, OnModuleDestroy } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { Server, Socket } from 'socket.io';
 import { MatchingService } from './matching.service';
 import { UsersService } from '../users/users.service'; // ← путь/имя под своё
 import { UserRole } from '../users/user-role.enum';
-import type { JwtPayload } from '../../common/guards/jwt.guard'; // ← путь к твоему интерфейсу
+import type { Subscription } from 'rxjs';
+import { verifyAccessToken } from '../../common/guards/jwt.guard';
+import { SessionsService } from '../auth/sessions/sessions.service';
 
 interface SocketUser {
   id: string;
   role: UserRole;
+  /** Сеанс, с которого подключились: по нему сокет отключают при отзыве. */
+  sessionId?: string;
 }
 
 @WebSocketGateway({ cors: false })
 export class CallsGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+  implements
+    OnGatewayInit,
+    OnGatewayConnection,
+    OnGatewayDisconnect,
+    OnModuleDestroy
 {
   private readonly logger = new Logger(CallsGateway.name);
   @WebSocketServer() server!: Server;
+  private revokedSubscription?: Subscription;
 
   constructor(
     private readonly matching: MatchingService,
     private readonly jwt: JwtService,
     private readonly users: UsersService,
+    private readonly sessions: SessionsService,
   ) {}
 
   afterInit(server: Server): void {
     this.matching.bindServer(server);
+    // Сокет переживает access-токен: проверка на handshake отозванное
+    // устройство не выгонит. Отключаем сами — disconnect запускает обычную
+    // уборку (выход с линии, отмена поиска). Клиент переподключится, его
+    // refresh получит 401, и приложение уйдёт на экран входа.
+    this.revokedSubscription = this.sessions.revoked$.subscribe((ids) => {
+      this.disconnectSessions(new Set(ids));
+    });
     // Socket.IO отправляет клиенту `connect` до завершения async
     // handleConnection. Без middleware первый volunteer:online/call:request
     // мог прийти раньше, чем профиль уже положен в client.data.
@@ -148,12 +165,32 @@ export class CallsGateway
     (client.data as { user?: SocketUser }).user = user;
   }
 
+  onModuleDestroy(): void {
+    this.revokedSubscription?.unsubscribe();
+  }
+
+  private disconnectSessions(sessionIds: ReadonlySet<string>): void {
+    for (const socket of this.server.sockets.sockets.values()) {
+      const sessionId = this.getUser(socket)?.sessionId;
+      if (sessionId && sessionIds.has(sessionId)) socket.disconnect(true);
+    }
+  }
+
   private async authenticate(client: Socket): Promise<void> {
     const auth = client.handshake.auth as { token?: string };
     if (!auth.token) throw new Error('Missing token');
-    const payload = this.jwt.verify<JwtPayload>(auth.token);
+    const payload = await verifyAccessToken(
+      this.jwt,
+      this.sessions,
+      auth.token,
+    );
+    if (!payload) throw new Error('Invalid token');
     const user = await this.users.getProfile(payload.sub);
-    this.setUser(client, { id: user.uuid, role: user.role });
+    this.setUser(client, {
+      id: user.uuid,
+      role: user.role,
+      sessionId: payload.sid,
+    });
   }
 
   private runCommand(event: string, command: Promise<void>): void {

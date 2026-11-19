@@ -350,7 +350,99 @@
             "refresh_token": []
           }
         ],
-        "summary": "Выход — инвалидирует refresh token",
+        "summary": "Выход на этом устройстве — завершает сеанс вместе с его токенами",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/sessions": {
+      "get": {
+        "operationId": "SessionsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionsListView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Сеанс завершён или токен устарел"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Активные сеансы аккаунта: это устройство и другие",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/sessions/others": {
+      "delete": {
+        "operationId": "SessionsController_revokeOthers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokeOthersView"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Выйти со всех устройств, кроме этого",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/sessions/{id}": {
+      "delete": {
+        "operationId": "SessionsController_revoke",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Сеанс завершён"
+          },
+          "400": {
+            "description": "Это текущий сеанс — для него есть POST /auth/logout"
+          },
+          "404": {
+            "description": "Сеанса нет или он чужой"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Завершить один сеанс на другом устройстве",
         "tags": [
           "auth"
         ]
@@ -849,6 +941,94 @@
             "description": "Refresh token — только для нативного клиента (X-Client: native). Web использует httpOnly-куку."
           }
         }
+      },
+      "SessionView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceName": {
+            "type": "string",
+            "example": "Pixel 7",
+            "description": "Подпись устройства"
+          },
+          "client": {
+            "type": "string",
+            "enum": [
+              "native",
+              "web"
+            ],
+            "description": "Приложение или браузер"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "android",
+              "ios",
+              "windows",
+              "macos",
+              "linux",
+              "unknown"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Когда вошли"
+          },
+          "lastActiveAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Последнее обновление токенов"
+          }
+        },
+        "required": [
+          "id",
+          "deviceName",
+          "client",
+          "platform",
+          "createdAt",
+          "lastActiveAt"
+        ]
+      },
+      "SessionsListView": {
+        "type": "object",
+        "properties": {
+          "current": {
+            "description": "Сеанс этого устройства",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SessionView"
+              }
+            ]
+          },
+          "others": {
+            "description": "Остальные активные сеансы, свежие сверху",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionView"
+            }
+          }
+        },
+        "required": [
+          "current",
+          "others"
+        ]
+      },
+      "RevokeOthersView": {
+        "type": "object",
+        "properties": {
+          "revoked": {
+            "type": "number",
+            "example": 2,
+            "description": "Сколько сеансов завершено"
+          }
+        },
+        "required": [
+          "revoked"
+        ]
       },
       "CreateProfileBody": {
         "type": "object",

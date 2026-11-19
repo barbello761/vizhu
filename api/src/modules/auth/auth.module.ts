@@ -11,10 +11,20 @@ import { PhoneAccount } from '../users/entities/phone-account.entity';
 import { User } from '../users/entities/user.entity';
 import { RegistrationCleanupService } from './registration-cleanup.service';
 import { JwtAuthGuard } from '../../common/guards/jwt.guard';
+import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt.guard';
+import { Session } from './sessions/session.entity';
+import { SessionsController } from './sessions/sessions.controller';
+import { SessionsService } from './sessions/sessions.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([OtpCode, PhoneAccount, RefreshToken, User]),
+    TypeOrmModule.forFeature([
+      OtpCode,
+      PhoneAccount,
+      RefreshToken,
+      Session,
+      User,
+    ]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -24,13 +34,23 @@ import { JwtAuthGuard } from '../../common/guards/jwt.guard';
       }),
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, SessionsController],
   providers: [
     AuthService,
     SmsService,
+    SessionsService,
     JwtAuthGuard,
+    OptionalJwtAuthGuard,
     RegistrationCleanupService,
   ],
-  exports: [AuthService, JwtModule, JwtAuthGuard],
+  // SessionsService наружу — его требуют guard'ы, которые другие модули
+  // подключают через @UseGuards, и шлюз звонков (отключение отозванных).
+  exports: [
+    AuthService,
+    SessionsService,
+    JwtModule,
+    JwtAuthGuard,
+    OptionalJwtAuthGuard,
+  ],
 })
 export class AuthModule {}

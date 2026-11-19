@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw';
 
 import type { HistoryEntry } from '@/entities/history';
+import type { SessionsResponse } from '@/entities/session';
 
 const now = new Date();
 const ts = (daysAgo: number, h: number, m: number) => {
@@ -280,6 +281,37 @@ const mockVerificationStatus = (id: string) => {
   return Date.now() - ticket.sentAt >= MOCK_CONFIRM_DELAY_MS ? 'confirmed' : 'pending';
 };
 
+const minutesAgo = (minutes: number) => new Date(now.getTime() - minutes * 60_000).toISOString();
+
+let mockSessions: SessionsResponse = {
+  current: {
+    id: 'session-current',
+    deviceName: 'Pixel 7',
+    client: 'native',
+    platform: 'android',
+    createdAt: ts(7, 10, 0),
+    lastActiveAt: minutesAgo(0),
+  },
+  others: [
+    {
+      id: 'session-iphone',
+      deviceName: 'iPhone',
+      client: 'native',
+      platform: 'ios',
+      createdAt: ts(30, 12, 0),
+      lastActiveAt: minutesAgo(180),
+    },
+    {
+      id: 'session-windows',
+      deviceName: 'Chrome, Windows',
+      client: 'web',
+      platform: 'windows',
+      createdAt: ts(3, 9, 15),
+      lastActiveAt: ts(2, 21, 40),
+    },
+  ],
+};
+
 export const handlers = [
   // Пульс сервера: без него в режиме моков приложение считало бы бэкенд
   // лежащим и сразу показывало экран «нет соединения».
@@ -318,6 +350,28 @@ export const handlers = [
   }),
 
   http.post('*/auth/logout', () => new HttpResponse(null, { status: 200 })),
+
+  // ─── Сеансы ────────────────────────────────────────────────────────────────
+  // Состояние живёт в mockSessions: завершённый сеанс пропадает из списка.
+  http.get('*/auth/sessions', () => HttpResponse.json(mockSessions)),
+
+  http.delete('*/auth/sessions/others', () => {
+    const revoked = mockSessions.others.length;
+    mockSessions = { ...mockSessions, others: [] };
+    return HttpResponse.json({ revoked });
+  }),
+
+  http.delete('*/auth/sessions/:id', ({ params }) => {
+    const exists = mockSessions.others.some((s) => s.id === params.id);
+    if (!exists) {
+      return HttpResponse.json({ message: 'Сеанс не найден' }, { status: 404 });
+    }
+    mockSessions = {
+      ...mockSessions,
+      others: mockSessions.others.filter((s) => s.id !== params.id),
+    };
+    return new HttpResponse(null, { status: 204 });
+  }),
 
   // ─── AI ────────────────────────────────────────────────────────────────────
   http.post('*/ai/stt', async () => {

@@ -5,6 +5,7 @@ import { useTheme } from '@/shared/lib/theme';
 import {
   MenuItem,
   PersonCircleIcon,
+  PhonePortraitIcon,
   SegmentedControl,
   type SegmentedControlOption,
   VizhuMarkIcon,
@@ -22,13 +23,13 @@ const THEME_OPTIONS: readonly SegmentedControlOption<ThemeChoice>[] = [
 
 /**
  * Настройки волонтёра (макет Figma 2902:21363): то же меню, что у незрячего, но
- * без разделов доступа — только «Профиль», «О приложении» и выбор темы.
+ * без разделов доступа — только «Профиль», «О приложении», «Устройства» и выбор темы.
  */
 export const VolunteerSettings = () => {
   const { resolvedTheme, setMode } = useTheme();
 
   useEffect(() => {
-    announceRouteChange('Настройки. Профиль, о приложении и выбор темы.');
+    announceRouteChange('Настройки. Профиль, о приложении, устройства и выбор темы.');
   }, []);
 
   const handleThemeChange = (choice: ThemeChoice) => {
@@ -49,6 +50,9 @@ export const VolunteerSettings = () => {
           </li>
           <li>
             <MenuItem icon={<VizhuMarkIcon />} label="О приложении" to="/about" />
+          </li>
+          <li>
+            <MenuItem icon={<PhonePortraitIcon />} label="Устройства" to="/profile/devices" />
           </li>
         </ul>
       </nav>

@@ -114,9 +114,6 @@ export const ProfileSettingsPage = () => {
       </div>
 
       <div className="profile-settings__actions">
-        <Button variant="secondary" onClick={() => void navigate('/logout-all')}>
-          Выйти со всех устройств
-        </Button>
         <Button variant="secondary" onClick={() => void navigate('/logout')}>
           Выйти из аккаунта
         </Button>

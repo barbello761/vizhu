@@ -312,6 +312,15 @@ export const createAppRouter = () =>
               handle: { title: 'Смена номера телефона' },
             },
             {
+              path: 'profile/devices',
+              lazy: page(
+                () => import('@/pages/devices-page'),
+                (m) => m.DevicesPage,
+              ),
+              loader: requireAuth,
+              handle: { title: 'Устройства' },
+            },
+            {
               path: 'about',
               lazy: page(
                 () => import('@/pages/about-page'),
@@ -349,7 +358,7 @@ export const createAppRouter = () =>
               ),
               handle: { title: 'Вы вышли из аккаунта' },
             },
-            // ─── Выход со всех устройств (подтверждение отключено, нет метода) ───
+            // ─── Выход со всех устройств (вход — с экрана «Устройства») ─────────
             {
               path: 'logout-all',
               lazy: page(

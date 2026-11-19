@@ -1,20 +1,19 @@
-import { useNavigate } from 'react-router';
-
+import { useGoBack } from '@/shared/lib/navigation';
 import { ResultScreen } from '@/widgets/result-screen';
 
 /**
- * Экран результата выхода со всех устройств. Пока не участвует во флоу — кнопка
- * подтверждения на предыдущем экране отключена (нет метода на бэке), поэтому сюда
- * попадают только по прямой ссылке.
+ * Результат выхода со всех устройств. Подтверждение ушло сюда с replace,
+ * поэтому «назад» ведёт ровно на «Устройства», откуда пришли, — уже без
+ * других сеансов в списке.
  */
 export const LogoutAllDonePage = () => {
-  const navigate = useNavigate();
+  const goBack = useGoBack('/profile/devices');
 
   return (
     <ResultScreen
       title={'Вы вышли\nсо всех устройств'}
       description="Завершили сеансы на всех устройствах, кроме данного."
-      onDone={() => void navigate('/profile', { replace: true })}
+      onDone={goBack}
       announce="Вы вышли со всех устройств, кроме данного."
     />
   );
