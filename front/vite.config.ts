@@ -1,4 +1,5 @@
 import react from '@vitejs/plugin-react-swc';
+import { rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -7,11 +8,35 @@ import { VitePWA } from 'vite-plugin-pwa';
 // resolve.alias из него же начинает действовать.
 import { API_CACHE_NAME } from './src/shared/config/cache-names';
 
+const VENDOR_CORE =
+  /[\\/]node_modules[\\/](react|react-dom|scheduler|react-router|react-router-dom)[\\/]/;
+const VENDOR_QUERY = /[\\/]node_modules[\\/]@tanstack[\\/](react-query|query-core)[\\/]/;
+
+/**
+ * Воркер MSW нужен только dev-серверу с VITE_ENABLE_MOCKS. Он лежит в public,
+ * чтобы `msw init` обновлял его на месте, — поэтому Vite копирует его в каждую
+ * сборку. Вырезаем: в web он висел бы на проде, в Capacitor — уезжал в APK/IPA.
+ */
+const MSW_WORKER = 'mockServiceWorker.js';
+const dropMswWorker = (): Plugin => ({
+  name: 'vizhu:drop-msw-worker',
+  apply: 'build',
+  writeBundle({ dir }) {
+    if (dir) {
+      rmSync(resolve(dir, MSW_WORKER), { force: true });
+    }
+  },
+});
+
 export default defineConfig(async ({ command, mode }) => {
   // Загружаем .env.{mode} чтобы переменные были доступны на этапе конфигурации
   const env = loadEnv(mode, process.cwd(), '');
-  // Демо-стенд собирается как прод, отличаются только переменные .env.demo.
-  const isProd = mode === 'production' || mode === 'demo';
+  // Демо-стенд и Capacitor-сборка — тот же прод, отличаются только .env.{mode}.
+  const isProd = mode === 'production' || mode === 'demo' || mode === 'native';
+  // Ассеты Capacitor лежат внутри приложения: сервис-воркер там не
+  // регистрируется (см. main.tsx), значит sw.js и precache-манифест — мёртвый
+  // груз в APK/IPA.
+  const isNative = mode === 'native';
 
   // Без VITE_API_URL vite молча подставит undefined, сборка пройдёт, и упадёт
   // уже браузер пользователя на валидации в src/shared/config/env.ts. Роняем
@@ -52,6 +77,7 @@ export default defineConfig(async ({ command, mode }) => {
   }
 
   const pwaPlugin = VitePWA({
+    disable: isNative,
     registerType: 'autoUpdate',
 
     // Регистрация SW — вручную в main.tsx (virtual:pwa-register), чтобы
@@ -64,6 +90,8 @@ export default defineConfig(async ({ command, mode }) => {
 
     workbox: {
       globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webm,mp4}'],
+      // Страховка к dropMswWorker: воркер моков не должен попасть в precache.
+      globIgnores: ['**/node_modules/**', MSW_WORKER],
 
       runtimeCaching: [
         {
@@ -92,7 +120,7 @@ export default defineConfig(async ({ command, mode }) => {
   });
 
   return {
-    plugins: [react(), pwaPlugin, ...extraPlugins],
+    plugins: [react(), dropMswWorker(), pwaPlugin, ...extraPlugins],
 
     resolve: {
       alias: {
@@ -112,17 +140,25 @@ export default defineConfig(async ({ command, mode }) => {
     build: {
       target: 'es2022',
       outDir: 'dist',
-      // Source maps в dev для отладки; в prod отключены (безопасность + размер)
+      // Source maps в dev для отладки; в prod отключены (безопасность + размер:
+      // в нативной сборке .map-файлы уезжали бы прямо в APK/IPA)
       sourcemap: !isProd,
       rollupOptions: {
         output: {
-          // Разделение vendor-чанков для долгосрочного кэширования.
-          // Хэш меняется только при обновлении конкретной библиотеки.
-          manualChunks: {
-            'react-vendor': ['react', 'react-dom'],
-            'router-vendor': ['react-router-dom'],
-            'query-vendor': ['@tanstack/react-query', '@tanstack/react-query-devtools'],
-            'zustand-vendor': ['zustand'],
+          // Ядро, которое нужно на старте любого экрана, — отдельным чанком для
+          // долгосрочного кэширования в web: хэш меняется только при обновлении
+          // библиотек. Функция, а не объект: React — CommonJS, и объектная
+          // форма ловила только обёртку `react/index.js` (чанк выходил пустым,
+          // а react-dom оседал в index). Остальные зависимости сюда не
+          // перечисляем — их по ленивым чанкам экранов раскладывает Rollup.
+          manualChunks: (id: string) => {
+            if (VENDOR_CORE.test(id)) {
+              return 'react-vendor';
+            }
+            if (VENDOR_QUERY.test(id)) {
+              return 'query-vendor';
+            }
+            return undefined;
           },
         },
       },

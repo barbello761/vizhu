@@ -1,4 +1,5 @@
 import type { PlatformServices } from './types';
+import { webBackButton } from './web/back-button';
 import { createWebCallAlert } from './web/call-alert';
 import { webHaptics } from './web/haptics';
 import { webPermissions } from './web/permissions';
@@ -9,6 +10,7 @@ export { isNativePlatform, getPlatformName } from './detect';
 export { initInsetsCache, INSETS_STORAGE_KEY } from './insets';
 export { syncStatusBar } from './status-bar';
 export type {
+  BackButtonPort,
   CallAlertPort,
   CapturedPhoto,
   HapticsPort,
@@ -39,6 +41,7 @@ export const platform: PlatformServices = {
   photoCamera: webPhotoCamera,
   haptics: webHaptics,
   callAlert: createWebCallAlert(webHaptics),
+  backButton: webBackButton,
 };
 
 /** Подменить часть реализаций (вызывается нативным бутстрапом Capacitor). */

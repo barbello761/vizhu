@@ -1,0 +1,15 @@
+import { Tile } from '@/shared/ui';
+
+import { HOME_TILES } from '../model/tiles';
+
+import './home-page.scss';
+
+export const HomePage = () => (
+  <ul className="home" role="list">
+    {HOME_TILES.map(({ id, to, label, Icon }) => (
+      <li key={id} className="home__item">
+        <Tile to={to} label={label} icon={<Icon />} />
+      </li>
+    ))}
+  </ul>
+);

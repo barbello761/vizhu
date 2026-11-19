@@ -1,0 +1,30 @@
+/* Сброс UA-стилей <dialog> (рамка, отступы, max-width, полупрозрачный
+   ::backdrop). :where() — нулевая специфичность: раскладку и фон задаёт класс
+   потребителя, и он перебьёт сброс при любом порядке подключения CSS. */
+:where(.modal) {
+  position: fixed;
+  inset: 0;
+
+  /* Действует только в фолбэке без top layer (iOS 15.0–15.3). */
+  z-index: 1000;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  color: inherit;
+  background: transparent;
+  border: 0;
+}
+
+:where(.modal)::backdrop {
+  background: transparent;
+}
+
+/* Сам диалог получает фокус, только если внутри нечего фокусировать. */
+:where(.modal):focus {
+  outline: none;
+}

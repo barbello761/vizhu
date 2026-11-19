@@ -3,8 +3,6 @@ export const formatTime = (iso: string): string =>
 
 /**
  * Метка дня для записи: «Сегодня», «Вчера» или «12 марта».
- * Нужна и снаружи `groupByDate` — в истории она стоит прямо в строке записи,
- * а не в заголовке группы.
  */
 export const formatDateGroup = (iso: string): string => {
   const d = new Date(iso);
@@ -19,21 +17,4 @@ export const formatDateGroup = (iso: string): string => {
     return 'Вчера';
   }
   return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
-};
-
-export const groupByDate = <T>(
-  items: T[],
-  getDate: (item: T) => string,
-): { label: string; items: T[] }[] => {
-  const map = new Map<string, T[]>();
-  for (const item of items) {
-    const label = formatDateGroup(getDate(item));
-    const group = map.get(label);
-    if (group) {
-      group.push(item);
-    } else {
-      map.set(label, [item]);
-    }
-  }
-  return Array.from(map.entries()).map(([label, items]) => ({ label, items }));
 };

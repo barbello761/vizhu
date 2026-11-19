@@ -1,14 +1,14 @@
-/* Onest Rounded — гарнитура макета. В public лежат только .ttf, поэтому
-   woff2 указан первым «на вырост»: как только его положат рядом, браузер
-   возьмёт именно его, а до тех пор — ttf. */
+/* Onest Rounded — гарнитура макета. Только woff2: его понимают все целевые
+   WebView (iOS 15+, Android 7+), а ttf весил втрое больше. В public лежат
+   лишь начертания, подключённые здесь, — Capacitor копирует public в
+   APK/IPA целиком, а Workbox прекэширует каждый woff2. Нужен новый вес —
+   верните файл из истории git (ttf конвертируется fontTools в woff2). */
 
 @font-face {
   font-family: 'Onest Rounded';
   font-style: normal;
   font-weight: 500;
-  src:
-    url('/assets/fonts/OnestRounded-Medium.woff2') format('woff2'),
-    url('/assets/fonts/OnestRounded-Medium.ttf') format('truetype');
+  src: url('/assets/fonts/OnestRounded-Medium.woff2') format('woff2');
   font-display: swap;
 }
 
@@ -16,9 +16,7 @@
   font-family: 'Onest Rounded';
   font-style: normal;
   font-weight: 700;
-  src:
-    url('/assets/fonts/OnestRounded-Bold.woff2') format('woff2'),
-    url('/assets/fonts/OnestRounded-Bold.ttf') format('truetype');
+  src: url('/assets/fonts/OnestRounded-Bold.woff2') format('woff2');
   font-display: swap;
 }
 

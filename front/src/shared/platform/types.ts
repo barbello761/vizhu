@@ -117,6 +117,23 @@ export interface CallAlertPort {
   stop(): void;
 }
 
+// ─── Системная кнопка «назад» ──────────────────────────────────────────────────
+
+/**
+ * Перехват системной «назад» (Android) — например, чтобы она закрывала
+ * модальное окно, а не уводила с экрана под ним.
+ *
+ * - web — no-op: в браузере «назад» у открытого `<dialog>` и так превращается
+ *   в событие `cancel` (CloseWatcher), а историю роутера трогать нельзя.
+ * - натив — @capacitor/app. Пока есть хоть один подписчик, плагин отключает
+ *   поведение по умолчанию (шаг назад по истории WebView / выход), поэтому
+ *   подписываться стоит только на время, пока перехват действительно нужен.
+ */
+export interface BackButtonPort {
+  /** Подписаться на нажатие. Возвращает отписку. */
+  subscribe(handler: () => void): () => void;
+}
+
 // ─── Композиция ───────────────────────────────────────────────────────────────
 
 export interface PlatformServices {
@@ -126,4 +143,5 @@ export interface PlatformServices {
   photoCamera: PhotoCameraPort;
   haptics: HapticsPort;
   callAlert: CallAlertPort;
+  backButton: BackButtonPort;
 }
