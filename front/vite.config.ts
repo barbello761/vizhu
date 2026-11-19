@@ -10,6 +10,10 @@ import { API_CACHE_NAME } from './src/shared/config/cache-names';
 
 const VENDOR_CORE =
   /[\\/]node_modules[\\/](react|react-dom|scheduler|react-router|react-router-dom)[\\/]/;
+// livekit-client и зависимости, которые тянет только он. events и tslib не
+// включаем: если их импортирует кто-то ещё, тот потащил бы весь livekit.
+const VENDOR_LIVEKIT =
+  /[\\/]node_modules[\\/](livekit-client|@livekit|@bufbuild|jose|loglevel|sdp|sdp-transform|webrtc-adapter|typed-emitter)[\\/]/;
 const VENDOR_QUERY = /[\\/]node_modules[\\/]@tanstack[\\/](react-query|query-core)[\\/]/;
 
 /**
@@ -157,6 +161,11 @@ export default defineConfig(async ({ command, mode }) => {
             }
             if (VENDOR_QUERY.test(id)) {
               return 'query-vendor';
+            }
+            // Отдельно от кода экрана звонка: правки экрана не заставляют
+            // перекачивать полмегабайта библиотеки (кэш в web).
+            if (VENDOR_LIVEKIT.test(id)) {
+              return 'livekit-vendor';
             }
             return undefined;
           },
